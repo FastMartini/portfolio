@@ -205,7 +205,7 @@ test("High-Momentum Scanner evidence is useful without exposing private implemen
   await expect(scanner).not.toContainText(/Alpaca|Finnhub|RVOL formula|source code/i);
 });
 
-test("Trailhead reaches the first Waypoint without unfinished Case Study links", async ({
+test("Trailhead reaches the first Waypoint and links only published Case Studies", async ({
   page,
 }) => {
   await page.goto("./");
@@ -213,6 +213,10 @@ test("Trailhead reaches the first Waypoint without unfinished Case Study links",
   await page.getByRole("link", { name: "View selected work" }).click();
   await expect(page).toHaveURL(/#momentumx$/);
   await expect(page.locator("#momentumx")).toBeVisible();
-  await expect(page.locator('a[href*="/work/"]')).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Read case study" })).toHaveAttribute(
+    "href",
+    "/portfolio/work/momentumx/",
+  );
+  await expect(page.locator('a[href*="/work/"]')).toHaveCount(1);
   await expect(page.locator("body")).not.toContainText("Grassroots");
 });

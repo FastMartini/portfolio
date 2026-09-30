@@ -1,0 +1,252 @@
+import Link from "next/link";
+
+import { PortfolioHeader, SkipLink } from "../../../components/portfolio-shell";
+import { momentumXWaypoint } from "../../../content/waypoints";
+import styles from "./momentumx.module.css";
+
+export const metadata = momentumXWaypoint.metadata;
+
+<SkipLink href="#case-study-content" label="Skip to Case Study" />
+<PortfolioHeader
+  homeHref={`/#${momentumXWaypoint.slug}`}
+  homeLabel="Portfolio"
+  homeAriaLabel={`Return to the ${momentumXWaypoint.name} Waypoint`}
+  links={[
+    { href: "#decisions", label: "Decisions" },
+    { href: "#evidence", label: "Evidence" },
+    { href: "#outcome", label: "Outcome" },
+  ]}
+  navLabel="Case Study navigation"
+  variant="case-study"
+/>
+
+<main id="case-study-content" className={styles.caseStudy}>
+  <article>
+    <header className={styles.hero}>
+      <div className={styles.heroCopy}>
+        <p className={styles.eyebrow}>{`Waypoint ${String(momentumXWaypoint.order).padStart(2, "0")} · ${momentumXWaypoint.period}`}</p>
+        <h1>{momentumXWaypoint.name}</h1>
+        <p className={styles.dek}>{momentumXWaypoint.summary}</p>
+        <p className={styles.ownership}>{momentumXWaypoint.owned}</p>
+        <div className={styles.heroActions}>
+          <a href={momentumXWaypoint.links[0].href}>View source repository</a>
+          <a href={`${momentumXWaypoint.links[0].href}/blob/main/README.md`}>Read the project README</a>
+        </div>
+      </div>
+
+      <aside className={styles.fieldNotes} aria-label="MomentumX field notes">
+        <div>
+          <span>Recognition</span>
+          <strong>{momentumXWaypoint.award}</strong>
+        </div>
+        <div>
+          <span>My role</span>
+          <strong>{momentumXWaypoint.role}</strong>
+        </div>
+        <div>
+          <span>Format</span>
+          <strong>{momentumXWaypoint.team}</strong>
+        </div>
+      </aside>
+    </header>
+
+    <section className={styles.introGrid} aria-labelledby="problem-title">
+      <div>
+        <p className={styles.sectionNumber}>01 · Context</p>
+        <h2 id="problem-title">The problem</h2>
+      </div>
+      <div className={styles.prose}>
+        <p className={styles.lead}>{"The team explored how an international investor might discover a U.S. market move, inspect the catalyst, and act without losing sight of what happened next."}</p>
+        <p>{"The concept joined a momentum scanner, a trade ticket, and portfolio feedback in one coherent demonstration. Its job was to make the path from signal to decision legible—not to promise investment performance or access in any particular country."}</p>
+      </div>
+    </section>
+
+    <section className={styles.splitSection} aria-labelledby="users-title">
+      <div>
+        <p className={styles.sectionNumber}>02 · Frame</p>
+        <h2 id="users-title">Users and constraints</h2>
+      </div>
+      <div className={styles.factGrid}>
+        <article>
+          <span>Audience</span>
+          <h3>Curious first-time investors and active traders</h3>
+          <p>The demo followed one fictional user from demo dollars to a scanner-led trade.</p>
+        </article>
+        <article>
+          <span>Market constraint</span>
+          <h3>The market was closed during the build</h3>
+          <p>A minute-by-minute replay kept prices, signals, news, and trades on one clock.</p>
+        </article>
+        <article>
+          <span>Execution constraint</span>
+          <h3>No real securities changed hands</h3>
+          <p>The team used mock stock tokens and dUSD on Solana devnet.</p>
+        </article>
+        <article>
+          <span>Delivery constraint</span>
+          <h3>A weekend and one demo laptop</h3>
+          <p>The must-have loop took priority over live hosting, backtesting, and short selling.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="evidence" className={styles.evidenceSection} aria-labelledby="evidence-title">
+      <div className={styles.evidenceHeading}>
+        <div>
+          <p className={styles.sectionNumber}>03 · Repository evidence</p>
+          <h2 id="evidence-title">One path from signal to record.</h2>
+        </div>
+        <p>{"This system flow comes directly from the public repository’s documented architecture. Each stage links to the material behind it."}</p>
+      </div>
+
+      <ol className={styles.systemFlow} aria-label="MomentumX system flow">
+        <li>
+          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/replay.py">
+            <span>01</span><strong>Replay clock</strong><small>One shared market time</small>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/scanner.py">
+            <span>02</span><strong>Scanner</strong><small>Price + relative volume</small>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/frontend/src/App.tsx">
+            <span>03</span><strong>Alert + ticket</strong><small>Signal becomes an action</small>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/chain.py">
+            <span>04</span><strong>Vault swap</strong><small>Phantom signs first</small>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/ledger.py">
+            <span>05</span><strong>Ledger + stats</strong><small>Result stays inspectable</small>
+          </a>
+        </li>
+      </ol>
+
+      <div className={styles.sourceNote}>Source: <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/BUILD_SPEC.md">build specification</a>{" · "}<a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/DECISIONS.md">decision log</a></div>
+
+      <div className={styles.surfaceGrid}>
+        <article>
+          <p>01 · Momentum monitor</p>
+          <h3>Signals before stories</h3>
+          <dl>
+            <div><dt>Price move</dt><dd>≥ 3%</dd></div>
+            <div><dt>Relative volume</dt><dd>≥ 2×</dd></div>
+            <div><dt>News</dt><dd>Context</dd></div>
+          </dl>
+          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/tests/test_scanner.py">Inspect scanner tests →</a>
+        </article>
+        <article>
+          <p>02 · Trade ticket preview</p>
+          <h3>A constrained action</h3>
+          <ul>
+            <li>Buy or sell</li>
+            <li>Quote expires in 30 seconds</li>
+            <li>Phantom approval</li>
+          </ul>
+          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/frontend/src/api/trade.ts">Inspect trade handling →</a>
+        </article>
+        <article>
+          <p>03 · Portfolio overview</p>
+          <h3>Feedback after the trade</h3>
+          <ul>
+            <li>Total account value</li>
+            <li>Trade history</li>
+            <li>Average win and loss</li>
+          </ul>
+          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/stats.py">Inspect stats logic →</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="decisions" className={styles.decisionSection} aria-labelledby="decisions-title">
+      <div>
+        <p className={styles.sectionNumber}>04 · Engineering</p>
+        <h2 id="decisions-title">Key decisions</h2>
+      </div>
+      <ol className={styles.decisionList}>
+        <li>
+          <span>01</span>
+          <div><h3>Replay one real market day.</h3><p>A deterministic clock made a live-feeling demo possible while markets were closed and kept every screen aligned to the same minute.</p></div>
+        </li>
+        <li>
+          <span>02</span>
+          <div><h3>Let market data trigger; let news explain.</h3><p>Price movement and relative volume created the alert. Recent company news supplied context without pretending that a headline proved causation.</p></div>
+        </li>
+        <li>
+          <span>03</span>
+          <div><h3>Keep SQLite as the source of truth.</h3><p>The chain executed and verified swaps; the local ledger owned prices, deposits, trades, and performance so the product could explain its state.</p></div>
+        </li>
+        <li>
+          <span>04</span>
+          <div><h3>Make signing explicit.</h3><p>The backend built an unsigned swap, Phantom signed it, and the vault co-signed and submitted it—an inspectable sequence instead of a hidden transaction.</p></div>
+        </li>
+      </ol>
+    </section>
+
+    <section className={styles.technologySection} aria-labelledby="technology-title">
+      <div>
+        <p className={styles.sectionNumber}>05 · Build</p>
+        <h2 id="technology-title">Technology</h2>
+      </div>
+      <div>
+        <ul className={styles.techList} aria-label="MomentumX technologies">
+          {momentumXWaypoint.technologies.map((technology) => <li key={technology}>{technology}</li>)}
+        </ul>
+        <p>{"The frontend exposed the scanner, stock chart, trade ticket, replay controls, holdings, and performance views. The FastAPI backend coordinated replay data, alerts, quotes, devnet execution, and the ledger."}</p>
+      </div>
+    </section>
+
+    <section className={styles.teamSection} aria-labelledby="team-title">
+      <div>
+        <p className={styles.sectionNumber}>06 · Collaboration</p>
+        <h2 id="team-title">Team and contribution</h2>
+      </div>
+      <div>
+        <p className={styles.lead}>Four people built one end-to-end demonstration with explicit ownership.</p>
+        <dl className={styles.teamList}>
+          <div><dt>Diego Martinez</dt><dd>Scanner rules and service, React frontend, and pitch</dd></div>
+          <div><dt>Khalil Peguero</dt><dd>Backend, price service, ledger and stats, and pitch</dd></div>
+          <div><dt>Matthew</dt><dd>Solana vault, replay data loader, and replay system</dd></div>
+          <div><dt>Justin Cardenas</dt><dd>Setup scripts, stock-list checks, Devpost, and slides</dd></div>
+        </dl>
+        <div className={styles.sourceNote}>Roles are reproduced from the repository’s <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/README.md#team">team record</a>{" and "}<a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/BUILD_SPEC.md#architecture">build specification</a>.</div>
+      </div>
+    </section>
+
+    <section id="outcome" className={styles.outcomeSection} aria-labelledby="outcome-title">
+      <div>
+        <p className={styles.sectionNumber}>07 · Result</p>
+        <h2 id="outcome-title">Outcome</h2>
+      </div>
+      <div className={styles.outcomeCopy}>
+        <p className={styles.award}>{momentumXWaypoint.award}</p>
+        <p>{"The team delivered the must-have loop: connect a wallet, receive demo dollars, inspect a scanner alert, buy and sell mock stock tokens on devnet, and review the transaction and portfolio result. The recognition is specific to the MLH Solana category."}</p>
+      </div>
+    </section>
+
+    <section className={styles.limitationsSection} aria-labelledby="limitations-title">
+      <div>
+        <p className={styles.sectionNumber}>08 · Boundary</p>
+        <h2 id="limitations-title">Limitations</h2>
+      </div>
+      <div className={styles.limitationsGrid}>
+        <p><strong>Demonstration, not brokerage.</strong> MomentumX is not a production brokerage and did not execute real securities trades.</p>
+        <p><strong>Mock assets.</strong> dUSD and the stock tokens have no monetary value; transactions ran only on Solana devnet.</p>
+        <p><strong>Replayed market.</strong> The scanner used a recorded market day rather than a live feed during judging.</p>
+        <p><strong>No eligibility claim.</strong> The team did not verify that any named country or person could legally access a production tokenized-stock product.</p>
+        <p><strong>Prototype operations.</strong> The app ran on one laptop and depended on devnet availability; production security and reliability were outside the weekend scope.</p>
+        <p><strong>Price exposure is not ownership.</strong> The production concept referenced tracker products, which do not represent legal ownership of the underlying shares.</p>
+      </div>
+    </section>
+
+    <footer className={styles.caseFooter}>
+      <p><span>Next bearing</span>Return to the Mountain Journey</p>
+      <Link href={`/#${momentumXWaypoint.slug}`}>Back to selected work <span aria-hidden="true">↗</span></Link>
+    </footer>
+  </article>
+</main>
