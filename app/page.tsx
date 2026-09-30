@@ -34,14 +34,6 @@ function MountainStudy() {
     >
       <circle className="mountain-sun" cx="532" cy="138" r="72" />
       <path
-        className="contour contour-one"
-        d="M90 520c80-54 127-112 187-198 36-51 63-79 86-82 32-5 47 34 75 79 31 50 68 70 132 110 39 25 69 55 91 91"
-      />
-      <path
-        className="contour contour-two"
-        d="M34 561c98-57 166-117 230-212 48-71 70-103 103-108 43-7 64 41 97 91 35 53 90 86 174 142 27 18 47 39 61 63"
-      />
-      <path
         className="mountain-back"
         d="M0 523 118 410l72 47 161-250 88 137 73-67 208 246v137H0Z"
       />
@@ -50,9 +42,6 @@ function MountainStudy() {
         d="M0 576 156 446l77 63 91-112 79 73 91-164 226 270v84H0Z"
       />
       <path className="mountain-ridge" d="m324 397 45 42 34 31 91-164 48 58" />
-      <path className="mountain-trail" d="M182 584c52-23 85-38 96-68 10-26-23-38-3-65 16-21 53-4 66-35 8-19-5-30-17-42" />
-      <circle className="trail-marker" cx="182" cy="584" r="7" />
-      <circle className="trail-marker trail-marker-top" cx="324" cy="374" r="7" />
     </svg>
   );
 }
@@ -82,7 +71,7 @@ export default function Home() {
         <section className="trailhead" id="trailhead" aria-labelledby="trailhead-title">
           <div className="trailhead-copy">
             <p className="eyebrow">
-              <span aria-hidden="true" /> Software engineer · Miami, Florida
+              <span aria-hidden="true" /> Software engineer · Building with intention
             </p>
             <h1 id="trailhead-title">
               Software engineer building intelligent, data-driven products.
@@ -101,8 +90,8 @@ export default function Home() {
 
           <div className="mountain-frame">
             <div className="elevation-note" aria-hidden="true">
-              <span>25.7617° N</span>
-              <span>80.1918° W</span>
+              <span>Trailhead</span>
+              <span>Field note 01</span>
             </div>
             <MountainStudy />
             <p className="mountain-caption">
@@ -136,7 +125,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <p className="section-coordinate">Base camp · Miami</p>
+          <p className="section-coordinate">Base camp · Beginning the ascent</p>
         </section>
 
         <section
@@ -175,7 +164,7 @@ export default function Home() {
         </section>
 
         <section className="summit" id="summit" aria-labelledby="summit-title">
-          <div className="section-kicker section-kicker-light">
+          <div className="section-kicker">
             <span>03</span>
             <span>Contact</span>
           </div>

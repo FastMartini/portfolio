@@ -6,6 +6,8 @@
   --ink: #1f2621;
   --fog: #d8d4c4;
   --copper: #b5653b;
+  --copper-text: #8b4428;
+  --copper-text-dark: #e0a07a;
   --cream: #fffbed;
   --line: rgba(31, 38, 33, 0.2);
   --page-padding: clamp(1.25rem, 5vw, 5rem);
@@ -79,7 +81,7 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 }
 .button-primary { background: var(--pine); color: var(--cream); transition: background 180ms ease, transform 180ms ease; }
 .button-primary:hover { background: var(--pine-light); transform: translateY(-2px); }
-.resume-note { border-bottom: 1px solid var(--line); color: rgba(31, 38, 33, 0.64); font-size: 0.72rem; letter-spacing: 0.04em; padding-bottom: 0.35rem; }
+.resume-note { border-bottom: 1px solid var(--line); color: rgba(31, 38, 33, 0.78); font-size: 0.72rem; letter-spacing: 0.04em; padding-bottom: 0.35rem; }
 
 .mountain-frame {
   align-self: stretch; border-left: 1px solid var(--line); display: flex; flex-direction: column; justify-content: flex-end;
@@ -93,34 +95,27 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .elevation-note { display: flex; font-size: 0.55rem; justify-content: space-between; left: 2rem; letter-spacing: 0.12em; position: absolute; right: 2rem; top: 8rem; }
 .mountain-study { display: block; position: relative; width: min(56vw, 48rem); z-index: 2; }
 .mountain-sun { fill: var(--copper); opacity: 0.9; }
-.contour { fill: none; stroke: var(--pine); stroke-width: 1; }
-.contour-one { opacity: 0.3; }
-.contour-two { opacity: 0.14; }
 .mountain-back { fill: var(--fog); }
 .mountain-front { fill: var(--pine); }
 .mountain-ridge { fill: none; opacity: 0.42; stroke: var(--cream); stroke-width: 1; }
-.mountain-trail { fill: none; stroke: var(--copper); stroke-dasharray: 5 6; stroke-linecap: round; stroke-width: 3; }
-.trail-marker { fill: var(--parchment); stroke: var(--copper); stroke-width: 3; }
-.trail-marker-top { fill: var(--copper); }
 .mountain-caption {
   align-items: flex-start; background: var(--cream); bottom: 2rem; display: flex; flex-direction: column;
   font-size: 0.7rem; gap: 0.3rem; line-height: 1.5; margin: 0; max-width: 13rem;
   padding: 1rem; position: absolute; right: 1.5rem; z-index: 3;
 }
-.mountain-caption span { color: var(--copper); font-size: 0.56rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+.mountain-caption span { color: var(--copper-text); font-size: 0.56rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
 .scroll-cue { align-items: center; bottom: 2rem; display: flex; font-size: 0.62rem; font-weight: 700; gap: 0.7rem; left: var(--page-padding); letter-spacing: 0.12em; position: absolute; text-decoration: none; text-transform: uppercase; }
 
 .about, .personal-interlude, .summit { padding: clamp(6rem, 12vw, 11rem) var(--page-padding); }
 .about { background: var(--pine); color: var(--cream); min-height: 90svh; position: relative; }
 .section-kicker { border-top: 1px solid rgba(255, 251, 237, 0.25); color: var(--cream); justify-content: space-between; padding-top: 1rem; }
 .section-kicker-dark { border-color: var(--line); color: var(--pine); }
-.section-kicker-light { border-color: rgba(255, 251, 237, 0.25); color: var(--cream); }
 .about-copy { display: grid; gap: clamp(2rem, 8vw, 8rem); grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr); margin-top: clamp(5rem, 12vh, 9rem); }
 .about h2, .personal-interlude h2, .summit h2 { font-size: clamp(3.4rem, 7vw, 7rem); line-height: 0.94; margin: 0; }
 .about-details { align-self: end; display: grid; gap: 1.5rem; }
 .about-details p, .interlude-copy > p:last-child, .summit-heading > p:last-child { font-size: clamp(1rem, 1.4vw, 1.2rem); line-height: 1.8; margin: 0; }
 .about-details p:first-child { font-family: var(--font-newsreader), serif; font-size: clamp(1.5rem, 2.3vw, 2.2rem); line-height: 1.4; }
-.section-coordinate { bottom: 2rem; color: rgba(255, 251, 237, 0.48); font-size: 0.58rem; left: var(--page-padding); letter-spacing: 0.12em; margin: 0; position: absolute; text-transform: uppercase; }
+.section-coordinate { bottom: 2rem; color: rgba(255, 251, 237, 0.74); font-size: 0.58rem; left: var(--page-padding); letter-spacing: 0.12em; margin: 0; position: absolute; text-transform: uppercase; }
 
 .personal-interlude { background: var(--parchment); }
 .interlude-grid { display: grid; gap: clamp(3rem, 8vw, 8rem); grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr); margin-top: clamp(4rem, 8vw, 8rem); }
@@ -133,21 +128,22 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .fret-one { left: 24%; } .fret-two { left: 42%; } .fret-three { left: 60%; } .fret-four { left: 78%; }
 .interlude-stamp { bottom: 2rem; color: var(--pine); font-family: var(--font-newsreader), serif; font-size: 1rem; font-style: italic; left: 2rem; position: absolute; }
 .interlude-copy { align-self: center; max-width: 46rem; }
-.handwritten { color: var(--copper); font-family: var(--font-newsreader), serif; font-size: 1.1rem; font-style: italic; margin: 0 0 1.25rem; }
+.handwritten { color: var(--copper-text); font-family: var(--font-newsreader), serif; font-size: 1.1rem; font-style: italic; margin: 0 0 1.25rem; }
 .interlude-copy > p:last-child { margin-top: 2.5rem; max-width: 34rem; }
 
 .summit { background: var(--ink); color: var(--cream); min-height: 90svh; }
+.summit .handwritten { color: var(--copper-text-dark); }
 .summit-heading { margin: clamp(5rem, 10vw, 9rem) 0; max-width: 70rem; }
 .summit-heading h2 { max-width: 10ch; }
 .summit-heading > p:last-child { color: rgba(255, 251, 237, 0.72); margin-top: 2rem; max-width: 38rem; }
 .contact-list { border-top: 1px solid rgba(255, 251, 237, 0.25); }
 .contact-list a { align-items: center; border-bottom: 1px solid rgba(255, 251, 237, 0.25); display: grid; gap: 1rem; grid-template-columns: 3rem minmax(8rem, 0.8fr) minmax(12rem, 1.2fr) auto; min-height: 6rem; text-decoration: none; transition: color 180ms ease, padding 180ms ease; }
 .contact-list a:hover { color: #e09a70; padding-left: 0.75rem; }
-.contact-number, .contact-detail { color: rgba(255, 251, 237, 0.48); font-size: 0.67rem; }
+.contact-number, .contact-detail { color: rgba(255, 251, 237, 0.72); font-size: 0.67rem; }
 .contact-label { font-family: var(--font-newsreader), serif; font-size: clamp(1.5rem, 2.5vw, 2.4rem); }
 .contact-detail { letter-spacing: 0.03em; }
 
-footer { align-items: center; background: var(--ink); border-top: 1px solid rgba(255, 251, 237, 0.15); color: rgba(255, 251, 237, 0.56); display: flex; font-size: 0.62rem; justify-content: space-between; letter-spacing: 0.08em; padding: 1.5rem var(--page-padding); text-transform: uppercase; }
+footer { align-items: center; background: var(--ink); border-top: 1px solid rgba(255, 251, 237, 0.15); color: rgba(255, 251, 237, 0.72); display: flex; font-size: 0.62rem; justify-content: space-between; letter-spacing: 0.08em; padding: 1.5rem var(--page-padding); text-transform: uppercase; }
 footer p { margin: 0; } footer a { text-decoration: none; }
 
 @media (max-width: 900px) {
