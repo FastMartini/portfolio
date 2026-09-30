@@ -1,3 +1,5 @@
+import { waypoints } from "../content/waypoints";
+
 const contactLinks = [
   {
     label: "Email Diego",
@@ -46,6 +48,87 @@ function MountainStudy() {
   );
 }
 
+function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
+  const tierLabel =
+    waypoint.tier === "case-study" ? "Full Case Study" : "Compact Waypoint";
+
+  return (
+    <article
+      className={`waypoint waypoint-${waypoint.tier}`}
+      id={waypoint.slug}
+      data-waypoint-slug={waypoint.slug}
+      data-waypoint-tier={waypoint.tier}
+    >
+      <p className="waypoint-index" aria-hidden="true">
+        {String(waypoint.order).padStart(2, "0")}
+      </p>
+
+      <div className="waypoint-story">
+        <div className="waypoint-meta">
+          <span>{tierLabel}</span>
+          <span>{waypoint.period}</span>
+        </div>
+        <h3>{waypoint.name}</h3>
+        <p className="waypoint-summary">{waypoint.summary}</p>
+        <p className="waypoint-purpose">{waypoint.purpose}</p>
+
+        {waypoint.technologies.length > 0 ? (
+          <ul className="technology-list" aria-label={`${waypoint.name} technologies`}>
+            {waypoint.technologies.map((technology) => (
+              <li key={technology}>{technology}</li>
+            ))}
+          </ul>
+        ) : null}
+
+        {waypoint.links.length > 0 ? (
+          <div className="waypoint-links" aria-label={`${waypoint.name} public links`}>
+            {waypoint.links.map((link) => (
+              <a href={link.href} key={link.href}>
+                {link.label} <ArrowIcon />
+              </a>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="waypoint-details">
+        <dl className="waypoint-attribution">
+          <div>
+            <dt>Role</dt>
+            <dd>{waypoint.role}</dd>
+          </div>
+          <div>
+            <dt>Team</dt>
+            <dd>{waypoint.team}</dd>
+          </div>
+        </dl>
+        <p className="waypoint-owned">{waypoint.owned}</p>
+
+        <div className="waypoint-outcomes">
+          <p>Outcomes</p>
+          <ul>
+            {waypoint.outcomes.map((outcome) => (
+              <li key={outcome}>{outcome}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="waypoint-evidence">
+          <p>{waypoint.evidence.label}</p>
+          <strong>{waypoint.evidence.detail}</strong>
+        </div>
+
+        {"privacy" in waypoint ? (
+          <div className="waypoint-privacy">
+            <span>{waypoint.privacy.label}</span>
+            <p>{waypoint.privacy.publicNote}</p>
+          </div>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
 export default function Home() {
   return (
     <>
@@ -62,6 +145,7 @@ export default function Home() {
         </a>
         <nav aria-label="Primary navigation">
           <a href="#about">About</a>
+          <a href="#work">Work</a>
           <a href="#beyond-work">Beyond Work</a>
           <a href="#summit">Contact</a>
         </nav>
@@ -81,8 +165,11 @@ export default function Home() {
               all the way from first question to thoughtful product.
             </p>
             <div className="trailhead-actions">
-              <a className="button button-primary" href="#summit">
-                Contact me <ArrowIcon />
+              <a className="button button-primary" href="#momentumx">
+                View selected work <ArrowIcon />
+              </a>
+              <a className="button button-secondary" href="#summit">
+                Contact me
               </a>
               <span className="resume-note">Résumé — coming soon</span>
             </div>
@@ -128,13 +215,37 @@ export default function Home() {
           <p className="section-coordinate">Base camp · Beginning the ascent</p>
         </section>
 
+        <section className="work" id="work" aria-labelledby="work-title">
+          <div className="section-kicker section-kicker-dark">
+            <span>02</span>
+            <span>Selected Work</span>
+          </div>
+          <div className="work-heading">
+            <div>
+              <p className="handwritten">Evidence along the ascent</p>
+              <h2 id="work-title">Built, tested, and learned in public.</h2>
+            </div>
+            <p>
+              Six Waypoints, ordered by the strength of the signal rather than the
+              date. Each separates my contribution from the wider team and keeps
+              its claims within the available evidence.
+            </p>
+          </div>
+
+          <div className="waypoint-list">
+            {waypoints.map((waypoint) => (
+              <Waypoint key={waypoint.slug} waypoint={waypoint} />
+            ))}
+          </div>
+        </section>
+
         <section
           className="personal-interlude"
           id="beyond-work"
           aria-labelledby="beyond-work-title"
         >
           <div className="section-kicker section-kicker-dark">
-            <span>02</span>
+            <span>03</span>
             <span>Beyond Work</span>
           </div>
           <div className="interlude-grid">
@@ -165,7 +276,7 @@ export default function Home() {
 
         <section className="summit" id="summit" aria-labelledby="summit-title">
           <div className="section-kicker">
-            <span>03</span>
+            <span>04</span>
             <span>Contact</span>
           </div>
           <div className="summit-heading">

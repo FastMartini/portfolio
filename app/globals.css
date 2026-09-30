@@ -81,6 +81,8 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 }
 .button-primary { background: var(--pine); color: var(--cream); transition: background 180ms ease, transform 180ms ease; }
 .button-primary:hover { background: var(--pine-light); transform: translateY(-2px); }
+.button-secondary { border: 1px solid var(--pine); color: var(--pine); transition: background 180ms ease, color 180ms ease, transform 180ms ease; }
+.button-secondary:hover { background: var(--pine); color: var(--cream); transform: translateY(-2px); }
 .resume-note { border-bottom: 1px solid var(--line); color: rgba(31, 38, 33, 0.78); font-size: 0.72rem; letter-spacing: 0.04em; padding-bottom: 0.35rem; }
 
 .mountain-frame {
@@ -106,7 +108,7 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .mountain-caption span { color: var(--copper-text); font-size: 0.56rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
 .scroll-cue { align-items: center; bottom: 2rem; display: flex; font-size: 0.62rem; font-weight: 700; gap: 0.7rem; left: var(--page-padding); letter-spacing: 0.12em; position: absolute; text-decoration: none; text-transform: uppercase; }
 
-.about, .personal-interlude, .summit { padding: clamp(6rem, 12vw, 11rem) var(--page-padding); }
+.about, .work, .personal-interlude, .summit { padding: clamp(6rem, 12vw, 11rem) var(--page-padding); }
 .about { background: var(--pine); color: var(--cream); min-height: 90svh; position: relative; }
 .section-kicker { border-top: 1px solid rgba(255, 251, 237, 0.25); color: var(--cream); justify-content: space-between; padding-top: 1rem; }
 .section-kicker-dark { border-color: var(--line); color: var(--pine); }
@@ -116,6 +118,47 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .about-details p, .interlude-copy > p:last-child, .summit-heading > p:last-child { font-size: clamp(1rem, 1.4vw, 1.2rem); line-height: 1.8; margin: 0; }
 .about-details p:first-child { font-family: var(--font-newsreader), serif; font-size: clamp(1.5rem, 2.3vw, 2.2rem); line-height: 1.4; }
 .section-coordinate { bottom: 2rem; color: rgba(255, 251, 237, 0.74); font-size: 0.58rem; left: var(--page-padding); letter-spacing: 0.12em; margin: 0; position: absolute; text-transform: uppercase; }
+
+.work { background: var(--parchment-deep); }
+.work-heading { align-items: end; display: grid; gap: clamp(2rem, 8vw, 8rem); grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr); margin: clamp(5rem, 9vw, 8rem) 0; }
+.work-heading h2 { font-size: clamp(3.4rem, 7vw, 7rem); line-height: 0.94; margin: 0; max-width: 10ch; }
+.work-heading > p { font-size: clamp(1rem, 1.35vw, 1.15rem); line-height: 1.8; margin: 0; }
+.waypoint-list { display: grid; gap: 2rem; }
+.waypoint {
+  border-top: 1px solid var(--line); display: grid; gap: clamp(1.5rem, 4vw, 4rem);
+  grid-template-columns: 3rem minmax(0, 1.1fr) minmax(18rem, 0.9fr); padding: clamp(2rem, 5vw, 4.5rem) 0;
+  scroll-margin-top: 2rem;
+}
+.waypoint-case-study { background: var(--cream); border: 1px solid var(--line); padding-left: clamp(1.25rem, 3vw, 3rem); padding-right: clamp(1.25rem, 3vw, 3rem); }
+.waypoint-index { color: var(--copper-text); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; margin: 0; padding-top: 0.35rem; }
+.waypoint-meta { color: var(--pine); display: flex; flex-wrap: wrap; font-size: 0.62rem; font-weight: 800; gap: 0.65rem 1.25rem; letter-spacing: 0.12em; margin-bottom: 1.2rem; text-transform: uppercase; }
+.waypoint-meta span:first-child { color: var(--copper-text); }
+.waypoint-story h3 { font-family: var(--font-newsreader), serif; font-size: clamp(2.5rem, 5vw, 5rem); font-weight: 450; letter-spacing: -0.05em; line-height: 0.94; margin: 0; }
+.waypoint-summary { font-family: var(--font-newsreader), serif; font-size: clamp(1.25rem, 2vw, 1.8rem); line-height: 1.35; margin: 1.5rem 0 0; }
+.waypoint-purpose { line-height: 1.75; margin: 1.5rem 0 0; max-width: 44rem; }
+.technology-list { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin: 1.75rem 0 0; padding: 0; }
+.technology-list li { border: 1px solid rgba(23, 63, 53, 0.28); border-radius: 999px; color: var(--pine); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.45rem 0.7rem; }
+.waypoint-links { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; margin-top: 2rem; }
+.waypoint-links a { align-items: center; display: inline-flex; font-size: 0.7rem; font-weight: 800; gap: 0.55rem; letter-spacing: 0.05em; text-decoration-thickness: 1px; text-underline-offset: 0.3rem; }
+.waypoint-links svg { fill: none; height: 1rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; width: 1rem; }
+.waypoint-details { align-self: start; display: grid; gap: 1.5rem; }
+.waypoint-attribution { border-top: 1px solid var(--line); margin: 0; }
+.waypoint-attribution > div { border-bottom: 1px solid var(--line); display: grid; gap: 1rem; grid-template-columns: 4rem 1fr; padding: 0.9rem 0; }
+.waypoint-attribution dt { color: var(--copper-text); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.waypoint-attribution dd { font-size: 0.76rem; line-height: 1.55; margin: 0; }
+.waypoint-owned { font-family: var(--font-newsreader), serif; font-size: 1.2rem; font-style: italic; line-height: 1.45; margin: 0; }
+.waypoint-outcomes { border-left: 3px solid var(--copper); padding-left: 1rem; }
+.waypoint-outcomes p { color: var(--copper-text); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; margin: 0; text-transform: uppercase; }
+.waypoint-outcomes ul { display: grid; gap: 0.35rem; list-style: none; margin: 0.45rem 0 0; padding: 0; }
+.waypoint-outcomes li { font-size: 0.75rem; line-height: 1.6; }
+.waypoint-evidence { background: var(--pine); color: var(--cream); padding: 1.4rem; }
+.waypoint-evidence p { color: var(--copper-text-dark); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em; margin: 0 0 0.75rem; text-transform: uppercase; }
+.waypoint-evidence strong { display: block; font-family: var(--font-newsreader), serif; font-size: 1.12rem; font-weight: 450; line-height: 1.5; }
+.waypoint-privacy { border-left: 3px solid var(--copper); padding-left: 1rem; }
+.waypoint-privacy span { color: var(--copper-text); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.waypoint-privacy p { font-size: 0.75rem; line-height: 1.6; margin: 0.35rem 0 0; }
+.waypoint-compact { margin-left: clamp(0rem, 4vw, 4rem); }
+.waypoint-compact .waypoint-story h3 { font-size: clamp(2.35rem, 4vw, 4rem); }
 
 .personal-interlude { background: var(--parchment); }
 .interlude-grid { display: grid; gap: clamp(3rem, 8vw, 8rem); grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr); margin-top: clamp(4rem, 8vw, 8rem); }
@@ -154,9 +197,12 @@ footer p { margin: 0; } footer a { text-decoration: none; }
   .mountain-study { margin: 0 auto; width: min(48rem, 100vw); }
   .elevation-note { top: 2rem; }
   .scroll-cue { display: none; }
-  .about-copy, .interlude-grid { grid-template-columns: 1fr; }
+  .about-copy, .work-heading, .interlude-grid { grid-template-columns: 1fr; }
   .about { min-height: auto; padding-bottom: 8rem; }
   .section-coordinate { bottom: 1.5rem; }
+  .waypoint { grid-template-columns: 2.5rem minmax(0, 1fr); }
+  .waypoint-details { grid-column: 2; }
+  .waypoint-compact { margin-left: 0; }
 }
 
 @media (max-width: 600px) {
@@ -166,7 +212,11 @@ footer p { margin: 0; } footer a { text-decoration: none; }
   .trailhead-actions { align-items: flex-start; flex-direction: column; }
   .mountain-frame { min-height: 27rem; }
   .mountain-caption { bottom: 1rem; right: 1rem; }
-  .about, .personal-interlude, .summit { padding-bottom: 6rem; padding-top: 6rem; }
+  .about, .work, .personal-interlude, .summit { padding-bottom: 6rem; padding-top: 6rem; }
+  .waypoint, .waypoint-case-study { grid-template-columns: 1fr; padding: 2rem 0; }
+  .waypoint-case-study { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .waypoint-details { grid-column: 1; }
+  .waypoint-index { padding-top: 0; }
   .interlude-visual { min-height: 24rem; }
   .contact-list a { gap: 0.6rem; grid-template-columns: 2rem 1fr auto; padding: 1rem 0; }
   .contact-detail { display: none; }
