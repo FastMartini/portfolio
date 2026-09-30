@@ -138,7 +138,7 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .summit-heading > p:last-child { color: rgba(255, 251, 237, 0.72); margin-top: 2rem; max-width: 38rem; }
 .contact-list { border-top: 1px solid rgba(255, 251, 237, 0.25); }
 .contact-list a { align-items: center; border-bottom: 1px solid rgba(255, 251, 237, 0.25); display: grid; gap: 1rem; grid-template-columns: 3rem minmax(8rem, 0.8fr) minmax(12rem, 1.2fr) auto; min-height: 6rem; text-decoration: none; transition: color 180ms ease, padding 180ms ease; }
-.contact-list a:hover { color: #e09a70; padding-left: 0.75rem; }
+.contact-list a:hover { color: var(--copper-text-dark); padding-left: 0.75rem; }
 .contact-number, .contact-detail { color: rgba(255, 251, 237, 0.72); font-size: 0.67rem; }
 .contact-label { font-family: var(--font-newsreader), serif; font-size: clamp(1.5rem, 2.5vw, 2.4rem); }
 .contact-detail { letter-spacing: 0.03em; }
