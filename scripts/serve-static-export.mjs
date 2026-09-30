@@ -2,10 +2,16 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, resolve, sep } from "node:path";
 
-const host = "127.0.0.1";
-const port = 4173;
-const basePath = "/portfolio";
+const host = process.env.TEST_SITE_HOST;
+const port = Number.parseInt(process.env.TEST_SITE_PORT ?? "", 10);
+const basePath = process.env.TEST_SITE_BASE_PATH;
 const exportRoot = resolve("out");
+
+if (!host || !Number.isInteger(port) || !basePath?.startsWith("/")) {
+  throw new Error(
+    "Static export server requires TEST_SITE_HOST, TEST_SITE_PORT, and TEST_SITE_BASE_PATH.",
+  );
+}
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",

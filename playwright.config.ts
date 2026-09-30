@@ -1,5 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const testSite = {
+  host: "127.0.0.1",
+  port: 4173,
+  basePath: "/portfolio",
+} as const;
+
+const testOrigin = `http://${testSite.host}:${testSite.port}`;
+const testBaseUrl = `${testOrigin}${testSite.basePath}/`;
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -7,7 +16,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://127.0.0.1:4173/portfolio/",
+    baseURL: testBaseUrl,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
@@ -19,7 +28,14 @@ export default defineConfig({
   ],
   webServer: {
     command: "npm run build:test && node scripts/serve-static-export.mjs",
-    url: "http://127.0.0.1:4173/portfolio/",
+    url: testBaseUrl,
+    env: {
+      NEXT_PUBLIC_BASE_PATH: testSite.basePath,
+      NEXT_PUBLIC_SITE_URL: `${testOrigin}${testSite.basePath}`,
+      TEST_SITE_BASE_PATH: testSite.basePath,
+      TEST_SITE_HOST: testSite.host,
+      TEST_SITE_PORT: String(testSite.port),
+    },
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

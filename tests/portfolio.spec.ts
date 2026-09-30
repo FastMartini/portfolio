@@ -16,7 +16,7 @@ test("visitor understands Diego's professional identity at the Trailhead", async
   ).toBeVisible();
 });
 
-test("visitor follows Diego's story and reaches direct contact options", async ({
+test("visitor follows the Mountain Journey and reaches direct contact options", async ({
   page,
 }) => {
   await page.goto("./");
@@ -79,7 +79,7 @@ test("portfolio remains complete without client-side JavaScript", async ({
   await context.close();
 });
 
-test("keyboard visitor can enter the semantic journey", async ({ page }) => {
+test("keyboard visitor can enter the Mountain Journey", async ({ page }) => {
   await page.goto("./");
 
   await page.keyboard.press("Tab");
@@ -112,6 +112,7 @@ test("mobile visitor receives a stable, readable layout", async ({ page }) => {
   await page.goto("./");
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByText("Diego Martinez", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Contact", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Email Diego" })).toBeVisible();
 

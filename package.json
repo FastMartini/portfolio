@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:test": "NEXT_PUBLIC_BASE_PATH=/portfolio NEXT_PUBLIC_SITE_URL=http://127.0.0.1:4173/portfolio next build",
+    "build:test": "next build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
