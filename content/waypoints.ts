@@ -31,6 +31,7 @@ type Waypoint = {
   technologies: readonly string[];
   award?: string;
   outcomes: readonly string[];
+  caseStudyHref?: string;
   links: readonly WaypointLink[];
   privacy?: {
     label: string;
@@ -66,6 +67,7 @@ export const waypoints = [
     technologies: ["React", "FastAPI", "Solana devnet"],
     award: "Winner — MLH Best Use of Solana",
     outcomes: ["Working devnet trading demonstration", "Verified hackathon recognition"],
+    caseStudyHref: "/work/momentumx/",
     links: [
       {
         label: "View repository",

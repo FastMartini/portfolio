@@ -1,0 +1,127 @@
+.skipLink {
+  background: var(--cream); color: var(--pine); left: 1rem; padding: 0.75rem 1rem;
+  position: fixed; top: 1rem; transform: translateY(-200%); transition: transform 150ms ease; z-index: 20;
+}
+.skipLink:focus { transform: translateY(0); }
+.siteHeader {
+  align-items: center; background: var(--parchment); border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; padding: 1.35rem var(--page-padding);
+}
+.wordmark {
+  align-items: center; display: inline-flex; font-size: 0.72rem; font-weight: 800; gap: 0.7rem;
+  letter-spacing: 0.08em; text-decoration: none; text-transform: uppercase;
+}
+.wordmark span {
+  align-items: center; border: 1px solid var(--pine); border-radius: 50%; display: inline-flex;
+  font-family: var(--font-newsreader), serif; height: 2.2rem; justify-content: center;
+  letter-spacing: -0.06em; width: 2.2rem;
+}
+.siteHeader nav { display: flex; gap: clamp(1rem, 3vw, 2.5rem); }
+.siteHeader nav a { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-decoration: none; text-transform: uppercase; }
+.caseStudy { background: var(--parchment); }
+.caseStudy h1, .caseStudy h2, .caseStudy h3 { font-family: var(--font-newsreader), serif; font-weight: 450; letter-spacing: -0.045em; }
+.caseStudy h2 { font-size: clamp(2.8rem, 6vw, 6rem); line-height: 0.95; margin: 0; }
+.caseStudy h3 { font-size: 1.45rem; line-height: 1.2; margin: 0; }
+.caseStudy a { text-underline-offset: 0.25rem; }
+.hero {
+  display: grid; gap: clamp(3rem, 8vw, 8rem); grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+  min-height: calc(100svh - 5rem); padding: clamp(6rem, 12vw, 11rem) var(--page-padding); position: relative;
+}
+.hero::before {
+  background-image: radial-gradient(rgba(23, 63, 53, 0.14) 0.7px, transparent 0.7px); background-size: 7px 7px;
+  content: ""; inset: 0 42% 0 0; mask-image: linear-gradient(to bottom, black, transparent 86%);
+  opacity: 0.55; pointer-events: none; position: absolute;
+}
+.heroCopy { align-self: center; min-width: 0; position: relative; }
+.eyebrow, .sectionNumber { color: var(--copper-text); font-size: 0.63rem; font-weight: 800; letter-spacing: 0.13em; margin: 0 0 1.5rem; text-transform: uppercase; }
+.hero h1 { font-size: clamp(5rem, 13vw, 12rem); line-height: 0.78; margin: 0; }
+.dek { font-family: var(--font-newsreader), serif; font-size: clamp(1.55rem, 3vw, 2.65rem); line-height: 1.25; margin: 3rem 0 0; max-width: 24ch; }
+.ownership { border-left: 3px solid var(--copper); font-size: 0.95rem; line-height: 1.75; margin: 2.5rem 0 0; max-width: 38rem; padding-left: 1rem; }
+.heroActions { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin-top: 2.5rem; }
+.heroActions a { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; }
+.fieldNotes { align-self: end; border-top: 1px solid var(--line); display: grid; }
+.fieldNotes div { border-bottom: 1px solid var(--line); display: grid; gap: 0.65rem; padding: 1.25rem 0; }
+.fieldNotes span { color: var(--copper-text); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.fieldNotes strong { font-family: var(--font-newsreader), serif; font-size: 1.3rem; font-weight: 450; line-height: 1.35; }
+.introGrid, .splitSection, .decisionSection, .technologySection, .teamSection, .outcomeSection, .limitationsSection {
+  display: grid; gap: clamp(3rem, 8vw, 8rem); grid-template-columns: minmax(15rem, 0.65fr) minmax(0, 1.35fr);
+  padding: clamp(6rem, 11vw, 10rem) var(--page-padding);
+}
+.introGrid { background: var(--pine); color: var(--cream); }
+.introGrid .sectionNumber, .evidenceSection .sectionNumber, .teamSection .sectionNumber { color: var(--copper-text-dark); }
+.prose { align-self: end; max-width: 52rem; }
+.prose p { font-size: 1rem; line-height: 1.85; margin: 1.5rem 0 0; }
+.prose .lead, .lead { font-family: var(--font-newsreader), serif; font-size: clamp(1.5rem, 2.7vw, 2.4rem); line-height: 1.45; margin: 0; }
+.splitSection { background: var(--parchment-deep); }
+.factGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.factGrid article { border-left: 1px solid var(--line); border-top: 1px solid var(--line); min-height: 15rem; padding: 1.5rem; }
+.factGrid span { color: var(--copper-text); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.factGrid h3 { margin-top: 2.5rem; }
+.factGrid p { font-size: 0.78rem; line-height: 1.65; margin: 1rem 0 0; }
+.evidenceSection { background: var(--ink); color: var(--cream); padding: clamp(6rem, 11vw, 10rem) var(--page-padding); }
+.evidenceHeading { align-items: end; display: grid; gap: clamp(2rem, 8vw, 8rem); grid-template-columns: minmax(0, 1.25fr) minmax(16rem, 0.75fr); }
+.evidenceHeading > p { color: rgba(255, 251, 237, 0.7); line-height: 1.75; margin: 0; }
+.systemFlow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); list-style: none; margin: 5rem 0 0; padding: 0; }
+.systemFlow li { border: 1px solid rgba(255, 251, 237, 0.2); border-right: 0; min-width: 0; }
+.systemFlow li:last-child { border-right: 1px solid rgba(255, 251, 237, 0.2); }
+.systemFlow a { display: flex; flex-direction: column; min-height: 12rem; padding: 1.2rem; text-decoration: none; }
+.systemFlow span { color: var(--copper-text-dark); font-size: 0.58rem; letter-spacing: 0.1em; }
+.systemFlow strong { font-family: var(--font-newsreader), serif; font-size: 1.25rem; font-weight: 450; margin-top: auto; }
+.systemFlow small { color: rgba(255, 251, 237, 0.62); font-size: 0.64rem; line-height: 1.5; margin-top: 0.5rem; }
+.sourceNote { color: rgba(255, 251, 237, 0.65); font-size: 0.68rem; line-height: 1.6; margin: 1rem 0 0; }
+.surfaceGrid { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 5rem; }
+.surfaceGrid article { background: var(--cream); color: var(--ink); display: flex; flex-direction: column; min-height: 24rem; padding: clamp(1.5rem, 3vw, 2.5rem); }
+.surfaceGrid article > p { color: var(--copper-text); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.1em; margin: 0 0 2rem; text-transform: uppercase; }
+.surfaceGrid dl { border-top: 1px solid var(--line); margin: 2rem 0 0; }
+.surfaceGrid dl div { border-bottom: 1px solid var(--line); display: flex; font-size: 0.72rem; justify-content: space-between; padding: 0.75rem 0; }
+.surfaceGrid dd { font-weight: 800; margin: 0; }
+.surfaceGrid ul { display: grid; font-size: 0.75rem; gap: 0.6rem; line-height: 1.5; margin: 2rem 0 0; padding-left: 1rem; }
+.surfaceGrid article > a { font-size: 0.68rem; font-weight: 800; margin-top: auto; }
+.decisionSection { background: var(--parchment); }
+.decisionList { list-style: none; margin: 0; padding: 0; }
+.decisionList li { border-top: 1px solid var(--line); display: grid; gap: 1.5rem; grid-template-columns: 2rem 1fr; padding: 1.5rem 0; }
+.decisionList li:last-child { border-bottom: 1px solid var(--line); }
+.decisionList > li > span { color: var(--copper-text); font-size: 0.6rem; font-weight: 800; }
+.decisionList p { font-size: 0.82rem; line-height: 1.7; margin: 0.75rem 0 0; max-width: 50rem; }
+.technologySection { background: var(--parchment-deep); }
+.techList { display: flex; flex-wrap: wrap; gap: 0.65rem; list-style: none; margin: 0; padding: 0; }
+.techList li { border: 1px solid rgba(23, 63, 53, 0.28); border-radius: 999px; color: var(--pine); font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; padding: 0.65rem 0.9rem; }
+.technologySection > div:last-child > p { line-height: 1.8; margin: 2.5rem 0 0; max-width: 52rem; }
+.teamSection { background: var(--pine); color: var(--cream); }
+.teamList { border-top: 1px solid rgba(255, 251, 237, 0.24); margin: 3rem 0 0; }
+.teamList div { border-bottom: 1px solid rgba(255, 251, 237, 0.24); display: grid; gap: 2rem; grid-template-columns: minmax(9rem, 0.65fr) 1.35fr; padding: 1.15rem 0; }
+.teamList dt { font-family: var(--font-newsreader), serif; font-size: 1.2rem; }
+.teamList dd { color: rgba(255, 251, 237, 0.72); font-size: 0.78rem; line-height: 1.6; margin: 0; }
+.outcomeSection { background: var(--cream); }
+.outcomeCopy { align-self: center; }
+.award { color: var(--pine); font-family: var(--font-newsreader), serif; font-size: clamp(2.2rem, 5vw, 4.8rem); line-height: 1.05; margin: 0; }
+.outcomeCopy > p:last-child { line-height: 1.8; margin: 2rem 0 0; max-width: 48rem; }
+.limitationsSection { background: var(--parchment); }
+.limitationsGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.limitationsGrid p { border-left: 1px solid var(--line); border-top: 1px solid var(--line); font-size: 0.78rem; line-height: 1.7; margin: 0; min-height: 11rem; padding: 1.4rem; }
+.limitationsGrid strong { display: block; font-family: var(--font-newsreader), serif; font-size: 1.2rem; font-weight: 450; margin-bottom: 0.6rem; }
+.caseFooter { align-items: end; background: var(--ink); color: var(--cream); display: flex; justify-content: space-between; padding: clamp(4rem, 8vw, 7rem) var(--page-padding); }
+.caseFooter p { font-family: var(--font-newsreader), serif; font-size: clamp(1.5rem, 3vw, 2.5rem); margin: 0; }
+.caseFooter p span { color: var(--copper-text-dark); display: block; font-family: var(--font-manrope), sans-serif; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em; margin-bottom: 0.8rem; text-transform: uppercase; }
+.caseFooter > a { font-size: 0.75rem; font-weight: 800; }
+@media (max-width: 900px) {
+  .hero, .introGrid, .splitSection, .decisionSection, .technologySection, .teamSection, .outcomeSection, .limitationsSection, .evidenceHeading { grid-template-columns: 1fr; }
+  .hero { min-height: auto; }
+  .fieldNotes { align-self: auto; }
+  .systemFlow { grid-template-columns: 1fr; }
+  .systemFlow li { border-bottom: 0; border-right: 1px solid rgba(255, 251, 237, 0.2); }
+  .systemFlow li:last-child { border-bottom: 1px solid rgba(255, 251, 237, 0.2); }
+  .systemFlow a { min-height: 8rem; }
+  .surfaceGrid { grid-template-columns: 1fr; }
+  .surfaceGrid article { min-height: 19rem; }
+}
+@media (max-width: 600px) {
+  .siteHeader nav { display: none; }
+  .hero { padding-top: 5rem; }
+  .hero h1 { font-size: clamp(3.5rem, 16vw, 7rem); }
+  .factGrid, .limitationsGrid { grid-template-columns: 1fr; }
+  .factGrid article, .limitationsGrid p { min-height: auto; }
+  .teamList div { gap: 0.5rem; grid-template-columns: 1fr; }
+  .caseFooter { align-items: flex-start; flex-direction: column; gap: 2.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { .skipLink { transition-duration: 0.01ms; } }

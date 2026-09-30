@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { waypoints } from "../content/waypoints";
 
 const contactLinks = [
@@ -80,8 +82,13 @@ function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
           </ul>
         ) : null}
 
-        {waypoint.links.length > 0 ? (
+        {waypoint.links.length > 0 || "caseStudyHref" in waypoint ? (
           <div className="waypoint-links" aria-label={`${waypoint.name} public links`}>
+            {"caseStudyHref" in waypoint ? (
+              <Link href={waypoint.caseStudyHref}>
+                Read case study <ArrowIcon />
+              </Link>
+            ) : null}
             {waypoint.links.map((link) => (
               <a href={link.href} key={link.href}>
                 {link.label} <ArrowIcon />
