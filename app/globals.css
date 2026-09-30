@@ -199,7 +199,7 @@ footer { align-items: center; background: var(--ink); border-top: 1px solid rgba
 footer p { margin: 0; } footer a { text-decoration: none; }
 
 @media (max-width: 900px) {
-  .site-header nav a:not(:last-child) { display: none; }
+  .site-header:not(.site-header--case-study) nav a:not(:last-child) { display: none; }
   .trailhead { grid-template-columns: 1fr; padding-bottom: 0; }
   .trailhead-copy { padding-bottom: 4rem; }
   .mountain-frame { border-left: 0; border-top: 1px solid var(--line); margin: 0 calc(-1 * var(--page-padding)); min-height: 34rem; }

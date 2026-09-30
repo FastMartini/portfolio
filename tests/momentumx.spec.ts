@@ -79,6 +79,18 @@ test("visitor can return from MomentumX to its homepage Waypoint", async ({ page
   await expect(page.locator("#momentumx")).toBeVisible();
 });
 
+test("MomentumX keeps its complete Case Study navigation at tablet widths", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.goto("./work/momentumx/");
+
+  const navigation = page.getByRole("navigation", { name: "Case Study navigation" });
+  for (const linkName of ["Decisions", "Evidence", "Outcome"]) {
+    await expect(navigation.getByRole("link", { name: linkName })).toBeVisible();
+  }
+});
+
 test("MomentumX remains readable and accessible on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./work/momentumx/");

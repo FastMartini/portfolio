@@ -45,53 +45,54 @@ type Waypoint = {
   };
 };
 
-export const waypoints = [
-  {
-    name: "MomentumX",
-    slug: "momentumx",
-    order: 1,
-    period: "ShellHacks 2026",
-    tier: "case-study",
-    summary:
-      "A demonstration of tokenized U.S. equity trading on Solana devnet, connecting market signals to an inspectable trade flow.",
-    purpose:
-      "Help people explore a constrained trading workflow through replayed U.S. market data and devnet transactions—not a production brokerage.",
-    role: "Scanner and React interface owner",
-    team: "Four-person ShellHacks team",
-    owned:
-      "I built the momentum scanner and React frontend within the wider team product.",
-    evidence: {
-      label: "Verified recognition",
-      detail: "Winner — MLH Best Use of Solana",
-    },
-    technologies: [
-      "React",
-      "Vite",
-      "TypeScript",
-      "FastAPI",
-      "Python",
-      "SQLite",
-      "Solana devnet",
-      "Phantom",
-      "Alpaca replay data",
-    ],
-    award: "Winner — MLH Best Use of Solana",
-    outcomes: ["Working devnet trading demonstration", "Verified hackathon recognition"],
-    caseStudyHref: "/work/momentumx/",
-    links: [
-      {
-        label: "View repository",
-        href: "https://github.com/FastMartini/Shellhacks-2026",
-        kind: "repository",
-      },
-    ],
-    media: [],
-    metadata: {
-      title: "MomentumX — Tokenized U.S. Equity Trading Demo",
-      description:
-        "A ShellHacks 2026 team project pairing a momentum scanner and React interface with Solana devnet trading.",
-    },
+export const momentumXWaypoint = {
+  name: "MomentumX",
+  slug: "momentumx",
+  order: 1,
+  period: "ShellHacks 2026",
+  tier: "case-study",
+  summary:
+    "A demonstration of tokenized U.S. equity trading on Solana devnet, connecting market signals to an inspectable trade flow.",
+  purpose:
+    "Help people explore a constrained trading workflow through replayed U.S. market data and devnet transactions—not a production brokerage.",
+  role: "Scanner and React interface owner",
+  team: "Four-person ShellHacks team",
+  owned: "I built the momentum scanner and React frontend within the wider team product.",
+  evidence: {
+    label: "Verified recognition",
+    detail: "Winner — MLH Best Use of Solana",
   },
+  technologies: [
+    "React",
+    "Vite",
+    "TypeScript",
+    "FastAPI",
+    "Python",
+    "SQLite",
+    "Solana devnet",
+    "Phantom",
+    "Alpaca replay data",
+  ],
+  award: "Winner — MLH Best Use of Solana",
+  outcomes: ["Working devnet trading demonstration", "Verified hackathon recognition"],
+  caseStudyHref: "/work/momentumx/",
+  links: [
+    {
+      label: "View repository",
+      href: "https://github.com/FastMartini/Shellhacks-2026",
+      kind: "repository",
+    },
+  ],
+  media: [],
+  metadata: {
+    title: "MomentumX — Tokenized U.S. Equity Trading Demo",
+    description:
+      "A ShellHacks 2026 team project pairing a momentum scanner and React interface with Solana devnet trading.",
+  },
+} as const satisfies Waypoint;
+
+export const waypoints = [
+  momentumXWaypoint,
   {
     name: "Veritas",
     slug: "veritas",
@@ -297,5 +298,3 @@ export const waypoints = [
     },
   },
 ] as const satisfies readonly Waypoint[];
-
-export const momentumXWaypoint = waypoints[0];
