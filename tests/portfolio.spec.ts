@@ -152,16 +152,13 @@ test("Mountain Journey presents Waypoints strongest first with the approved tier
     "HaRi",
   ]);
 
-  const tiers = await waypoints.evaluateAll((elements) =>
-    elements.map((element) => element.getAttribute("data-waypoint-tier")),
-  );
-  expect(tiers).toEqual([
-    "case-study",
-    "case-study",
-    "case-study",
-    "compact",
-    "compact",
-    "compact",
+  await expect(waypoints.locator(".waypoint-meta span:first-child")).toHaveText([
+    "Full Case Study",
+    "Full Case Study",
+    "Full Case Study",
+    "Compact Waypoint",
+    "Compact Waypoint",
+    "Compact Waypoint",
   ]);
 });
 
@@ -173,8 +170,11 @@ test("Waypoint claims preserve attribution and factual boundaries", async ({ pag
   await expect(momentumX).toContainText(/scanner and React interface/i);
 
   const veritas = page.locator('[data-waypoint-slug="veritas"]');
+  await expect(veritas.locator(".waypoint-outcomes")).toContainText(
+    "Integrated extension and backend analysis flow",
+  );
   await expect(veritas).toContainText("political leaning");
-  await expect(veritas).toContainText(
+  await expect(veritas.locator(".waypoint-evidence")).toContainText(
     "not a fake-news detector or truth-verification system",
   );
 

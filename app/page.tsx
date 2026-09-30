@@ -104,6 +104,15 @@ function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
         </dl>
         <p className="waypoint-owned">{waypoint.owned}</p>
 
+        <div className="waypoint-outcomes">
+          <p>Outcomes</p>
+          <ul>
+            {waypoint.outcomes.map((outcome) => (
+              <li key={outcome}>{outcome}</li>
+            ))}
+          </ul>
+        </div>
+
         <div className="waypoint-evidence">
           <p>{waypoint.evidence.label}</p>
           <strong>{waypoint.evidence.detail}</strong>
