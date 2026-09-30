@@ -53,18 +53,28 @@ export const waypoints = [
     period: "ShellHacks 2026",
     tier: "case-study",
     summary:
-      "A tokenized U.S. equity trading demonstration on Solana devnet, built to connect market signals with an inspectable trade flow.",
+      "A demonstration of tokenized U.S. equity trading on Solana devnet, connecting market signals to an inspectable trade flow.",
     purpose:
       "Help people explore a constrained trading workflow through replayed U.S. market data and devnet transactions—not a production brokerage.",
     role: "Scanner and React interface owner",
     team: "Four-person ShellHacks team",
     owned:
-      "I built the momentum scanner and the React interface within the wider team product.",
+      "I built the momentum scanner and React frontend within the wider team product.",
     evidence: {
       label: "Verified recognition",
       detail: "Winner — MLH Best Use of Solana",
     },
-    technologies: ["React", "FastAPI", "Solana devnet"],
+    technologies: [
+      "React",
+      "Vite",
+      "TypeScript",
+      "FastAPI",
+      "Python",
+      "SQLite",
+      "Solana devnet",
+      "Phantom",
+      "Alpaca replay data",
+    ],
     award: "Winner — MLH Best Use of Solana",
     outcomes: ["Working devnet trading demonstration", "Verified hackathon recognition"],
     caseStudyHref: "/work/momentumx/",
@@ -287,3 +297,5 @@ export const waypoints = [
     },
   },
 ] as const satisfies readonly Waypoint[];
+
+export const momentumXWaypoint = waypoints[0];

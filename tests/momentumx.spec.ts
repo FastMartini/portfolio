@@ -6,7 +6,11 @@ test("visitor can load the MomentumX Case Study under the site base path", async
 }) => {
   await page.goto("./work/momentumx/");
 
-  await expect(page).toHaveTitle("MomentumX Case Study — Diego Martinez");
+  await expect(page).toHaveTitle("MomentumX — Tokenized U.S. Equity Trading Demo");
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    "A ShellHacks 2026 team project pairing a momentum scanner and React interface with Solana devnet trading.",
+  );
   await expect(
     page.getByRole("heading", { level: 1, name: "MomentumX" }),
   ).toBeVisible();

@@ -1,6 +1,14 @@
 import Link from "next/link";
 
+import { PortfolioHeader, SkipLink } from "../components/portfolio-shell";
 import { waypoints } from "../content/waypoints";
+
+const homeNavigation = [
+  { href: "#about", label: "About" },
+  { href: "#work", label: "Work" },
+  { href: "#beyond-work", label: "Beyond Work" },
+  { href: "#summit", label: "Contact" },
+] as const;
 
 const contactLinks = [
   {
@@ -139,24 +147,13 @@ function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
 export default function Home() {
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to content
-      </a>
-
-      <header className="site-header">
-        <a className="wordmark" href="#trailhead" aria-label="Diego Martinez, home">
-          <span className="wordmark-mark" aria-hidden="true">
-            DM
-          </span>
-          <span>Diego Martinez</span>
-        </a>
-        <nav aria-label="Primary navigation">
-          <a href="#about">About</a>
-          <a href="#work">Work</a>
-          <a href="#beyond-work">Beyond Work</a>
-          <a href="#summit">Contact</a>
-        </nav>
-      </header>
+      <SkipLink href="#main-content" label="Skip to content" />
+      <PortfolioHeader
+        homeHref="#trailhead"
+        homeAriaLabel="Diego Martinez, home"
+        links={homeNavigation}
+        navLabel="Primary navigation"
+      />
 
       <main id="main-content">
         <section className="trailhead" id="trailhead" aria-labelledby="trailhead-title">

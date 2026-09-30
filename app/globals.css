@@ -51,6 +51,15 @@ a:focus-visible { outline: 3px solid var(--copper); outline-offset: 5px; }
   position: absolute; transform: scaleX(0); transform-origin: right; transition: transform 180ms ease; width: 100%;
 }
 .site-header nav a:hover::after, .site-header nav a:focus-visible::after { transform: scaleX(1); transform-origin: left; }
+.site-header--case-study {
+  background: var(--parchment); border-bottom: 1px solid var(--line); padding: 1.35rem var(--page-padding);
+  position: static;
+}
+.site-header--case-study .wordmark {
+  font-size: 0.72rem; font-weight: 800; gap: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.site-header--case-study .wordmark-mark { height: 2.2rem; width: 2.2rem; }
+.site-header--case-study nav { font-size: 0.62rem; font-weight: 800; }
 
 .trailhead {
   display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(20rem, 0.9fr);
@@ -206,6 +215,7 @@ footer p { margin: 0; } footer a { text-decoration: none; }
 }
 
 @media (max-width: 600px) {
+  .site-header--case-study nav { display: none; }
   .site-header { padding-top: 1rem; }
   .trailhead { padding-top: 7.5rem; }
   h1 { font-size: clamp(3.7rem, 17vw, 5.8rem); }

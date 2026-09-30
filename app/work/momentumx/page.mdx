@@ -1,53 +1,51 @@
 import Link from "next/link";
 
+import { PortfolioHeader, SkipLink } from "../../../components/portfolio-shell";
+import { momentumXWaypoint } from "../../../content/waypoints";
 import styles from "./momentumx.module.css";
 
-export const metadata = {
-  title: "MomentumX Case Study — Diego Martinez",
-  description:
-    "How Diego Martinez built MomentumX's scanner and React interface for a Solana devnet trading demonstration.",
-};
+export const metadata = momentumXWaypoint.metadata;
 
-<a className={styles.skipLink} href="#case-study-content">Skip to Case Study</a>
-
-<header className={styles.siteHeader}>
-  <Link className={styles.wordmark} href="/#momentumx" aria-label="Return to the MomentumX Waypoint">
-    <span aria-hidden="true">DM</span>
-    Portfolio
-  </Link>
-  <nav aria-label="Case Study navigation">
-    <a href="#decisions">Decisions</a>
-    <a href="#evidence">Evidence</a>
-    <a href="#outcome">Outcome</a>
-  </nav>
-</header>
+<SkipLink href="#case-study-content" label="Skip to Case Study" />
+<PortfolioHeader
+  homeHref={`/#${momentumXWaypoint.slug}`}
+  homeLabel="Portfolio"
+  homeAriaLabel={`Return to the ${momentumXWaypoint.name} Waypoint`}
+  links={[
+    { href: "#decisions", label: "Decisions" },
+    { href: "#evidence", label: "Evidence" },
+    { href: "#outcome", label: "Outcome" },
+  ]}
+  navLabel="Case Study navigation"
+  variant="case-study"
+/>
 
 <main id="case-study-content" className={styles.caseStudy}>
   <article>
     <header className={styles.hero}>
       <div className={styles.heroCopy}>
-        <p className={styles.eyebrow}>Waypoint 01 · ShellHacks 2026</p>
-        <h1>MomentumX</h1>
-        <p className={styles.dek}>{"A demonstration of tokenized U.S. equity trading on Solana devnet, connecting market signals to an inspectable trade flow."}</p>
-        <p className={styles.ownership}>{"I built the momentum scanner and React frontend within the wider team product."}</p>
+        <p className={styles.eyebrow}>{`Waypoint ${String(momentumXWaypoint.order).padStart(2, "0")} · ${momentumXWaypoint.period}`}</p>
+        <h1>{momentumXWaypoint.name}</h1>
+        <p className={styles.dek}>{momentumXWaypoint.summary}</p>
+        <p className={styles.ownership}>{momentumXWaypoint.owned}</p>
         <div className={styles.heroActions}>
-          <a href="https://github.com/FastMartini/Shellhacks-2026">View source repository</a>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/README.md">Read the project README</a>
+          <a href={momentumXWaypoint.links[0].href}>View source repository</a>
+          <a href={`${momentumXWaypoint.links[0].href}/blob/main/README.md`}>Read the project README</a>
         </div>
       </div>
 
       <aside className={styles.fieldNotes} aria-label="MomentumX field notes">
         <div>
           <span>Recognition</span>
-          <strong>Winner — MLH Best Use of Solana</strong>
+          <strong>{momentumXWaypoint.award}</strong>
         </div>
         <div>
           <span>My role</span>
-          <strong>Scanner and React interface owner</strong>
+          <strong>{momentumXWaypoint.role}</strong>
         </div>
         <div>
           <span>Format</span>
-          <strong>Four-person weekend prototype</strong>
+          <strong>{momentumXWaypoint.team}</strong>
         </div>
       </aside>
     </header>
@@ -197,8 +195,7 @@ export const metadata = {
       </div>
       <div>
         <ul className={styles.techList} aria-label="MomentumX technologies">
-          <li>React</li><li>Vite</li><li>TypeScript</li><li>FastAPI</li><li>Python</li>
-          <li>SQLite</li><li>Solana devnet</li><li>Phantom</li><li>Alpaca replay data</li>
+          {momentumXWaypoint.technologies.map((technology) => <li key={technology}>{technology}</li>)}
         </ul>
         <p>{"The frontend exposed the scanner, stock chart, trade ticket, replay controls, holdings, and performance views. The FastAPI backend coordinated replay data, alerts, quotes, devnet execution, and the ledger."}</p>
       </div>
@@ -227,7 +224,7 @@ export const metadata = {
         <h2 id="outcome-title">Outcome</h2>
       </div>
       <div className={styles.outcomeCopy}>
-        <p className={styles.award}>Winner — MLH Best Use of Solana</p>
+        <p className={styles.award}>{momentumXWaypoint.award}</p>
         <p>{"The team delivered the must-have loop: connect a wallet, receive demo dollars, inspect a scanner alert, buy and sell mock stock tokens on devnet, and review the transaction and portfolio result. The recognition is specific to the MLH Solana category."}</p>
       </div>
     </section>
@@ -249,7 +246,7 @@ export const metadata = {
 
     <footer className={styles.caseFooter}>
       <p><span>Next bearing</span>Return to the Mountain Journey</p>
-      <Link href="/#momentumx">Back to selected work <span aria-hidden="true">↗</span></Link>
+      <Link href={`/#${momentumXWaypoint.slug}`}>Back to selected work <span aria-hidden="true">↗</span></Link>
     </footer>
   </article>
 </main>
