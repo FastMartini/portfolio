@@ -1,0 +1,32 @@
+{
+  "name": "diego-martinez-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:test": "next build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "next": "16.3.7",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.7",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
