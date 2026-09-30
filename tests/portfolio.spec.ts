@@ -67,6 +67,10 @@ test("portfolio remains complete without client-side JavaScript", async ({
     }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Engineering with intent." })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Built, tested, and learned in public." }),
+  ).toBeVisible();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
   await expect(page.getByRole("heading", { name: "Beyond the build." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Let's build what comes next." })).toBeVisible();
 
@@ -130,4 +134,85 @@ test("page has no detectable WCAG AA violations", async ({ page }) => {
     .analyze();
 
   expect(results.violations).toEqual([]);
+});
+
+test("Mountain Journey presents Waypoints strongest first with the approved tiers", async ({
+  page,
+}) => {
+  await page.goto("./");
+
+  const waypoints = page.locator("[data-waypoint-slug]");
+  await expect(waypoints).toHaveCount(6);
+  await expect(waypoints.locator("h3")).toHaveText([
+    "MomentumX",
+    "Veritas",
+    "Membership Inference Attack Study",
+    "High-Momentum Scanner",
+    "MedVoyage",
+    "HaRi",
+  ]);
+
+  const tiers = await waypoints.evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-waypoint-tier")),
+  );
+  expect(tiers).toEqual([
+    "case-study",
+    "case-study",
+    "case-study",
+    "compact",
+    "compact",
+    "compact",
+  ]);
+});
+
+test("Waypoint claims preserve attribution and factual boundaries", async ({ page }) => {
+  await page.goto("./");
+
+  const momentumX = page.locator('[data-waypoint-slug="momentumx"]');
+  await expect(momentumX).toContainText("Winner — MLH Best Use of Solana");
+  await expect(momentumX).toContainText(/scanner and React interface/i);
+
+  const veritas = page.locator('[data-waypoint-slug="veritas"]');
+  await expect(veritas).toContainText("political leaning");
+  await expect(veritas).toContainText(
+    "not a fake-news detector or truth-verification system",
+  );
+
+  const privacyStudy = page.locator(
+    '[data-waypoint-slug="membership-inference-attack"]',
+  );
+  await expect(privacyStudy).toContainText("TF-IDF and logistic regression");
+  await expect(privacyStudy).not.toContainText(/\bLLM\b/i);
+
+  const medVoyage = page.locator('[data-waypoint-slug="medvoyage"]');
+  await expect(medVoyage).toContainText("Third Place Overall at ShellHacks 2023");
+  await expect(medVoyage).toContainText("not a clinically validated medical system");
+});
+
+test("High-Momentum Scanner evidence is useful without exposing private implementation", async ({
+  page,
+}) => {
+  await page.goto("./");
+
+  const scanner = page.locator('[data-waypoint-slug="high-momentum-scanner"]');
+  await expect(scanner).toContainText("Solo project");
+  await expect(scanner).toContainText("SUNE");
+  await expect(scanner).toContainText("SUNation Energy");
+  await expect(scanner).toContainText("private Suniva");
+  await expect(scanner).toContainText("scanner-observed");
+  await expect(scanner).toContainText("likely catalyst, not proven causation");
+  await expect(scanner).toContainText("Private implementation");
+  await expect(scanner).not.toContainText(/Alpaca|Finnhub|RVOL formula|source code/i);
+});
+
+test("Trailhead reaches the first Waypoint without unfinished Case Study links", async ({
+  page,
+}) => {
+  await page.goto("./");
+
+  await page.getByRole("link", { name: "View selected work" }).click();
+  await expect(page).toHaveURL(/#momentumx$/);
+  await expect(page.locator("#momentumx")).toBeVisible();
+  await expect(page.locator('a[href*="/work/"]')).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText("Grassroots");
 });
