@@ -1,0 +1,253 @@
+import Link from "next/link";
+
+import { PortfolioHeader, SkipLink } from "../../../components/portfolio-shell";
+import { veritasWaypoint } from "../../../content/waypoints";
+import styles from "../case-study.module.css";
+
+export const metadata = veritasWaypoint.metadata;
+
+<SkipLink href="#case-study-content" label="Skip to Case Study" />
+<PortfolioHeader
+  homeHref={`/#${veritasWaypoint.slug}`}
+  homeLabel="Portfolio"
+  homeAriaLabel={`Return to the ${veritasWaypoint.name} Waypoint`}
+  links={[
+    { href: "#decisions", label: "Decisions" },
+    { href: "#evidence", label: "Evidence" },
+    { href: "#outcome", label: "Outcome" },
+  ]}
+  navLabel="Case Study navigation"
+  variant="case-study"
+/>
+
+<main id="case-study-content" className={styles.caseStudy}>
+  <article>
+    <header className={styles.hero}>
+      <div className={styles.heroCopy}>
+        <p className={styles.eyebrow}>{`Waypoint ${String(veritasWaypoint.order).padStart(2, "0")} · ${veritasWaypoint.period}`}</p>
+        <h1>{veritasWaypoint.name}</h1>
+        <p className={styles.dek}>{veritasWaypoint.summary}</p>
+        <p className={styles.ownership}>{veritasWaypoint.owned}</p>
+        <p>As team lead and developer, I guided the architecture and contributed across the FastAPI backend and Chrome extension alongside Christian Cevallos, Justin Cardenas, and Jhonny Felix.</p>
+        <div className={styles.heroActions}>
+          <a href={veritasWaypoint.links[0].href}>View source repository</a>
+          <a href={`${veritasWaypoint.links[0].href}/blob/main/README.md`}>Read the project documentation</a>
+        </div>
+      </div>
+
+      <aside className={styles.fieldNotes} aria-label="Veritas field notes">
+        <div>
+          <span>Purpose</span>
+          <strong>Political-leaning context</strong>
+        </div>
+        <div>
+          <span>My role</span>
+          <strong>{veritasWaypoint.role}</strong>
+        </div>
+        <div>
+          <span>Format</span>
+          <strong>{veritasWaypoint.team}</strong>
+        </div>
+      </aside>
+    </header>
+
+    <section className={styles.introGrid} aria-labelledby="problem-title">
+      <div>
+        <p className={styles.sectionNumber}>01 · Context</p>
+        <h2 id="problem-title">The problem</h2>
+      </div>
+      <div className={styles.prose}>
+        <p className={styles.lead}>Political articles can shape interpretation through source reputation, loaded language, and selective framing even when the question is not simply whether a sentence is true or false.</p>
+        <p>Veritas was designed for readers who want a quick, structured second look while they remain on the article page. The extension surfaces article metadata, ranked claim candidates, and an estimated leaning breakdown so the presentation is easier to inspect.</p>
+      </div>
+    </section>
+
+    <section className={styles.splitSection} aria-labelledby="users-title">
+      <div>
+        <p className={styles.sectionNumber}>02 · Frame</p>
+        <h2 id="users-title">Users and constraints</h2>
+      </div>
+      <div className={styles.factGrid}>
+        <article>
+          <span>Audience</span>
+          <h3>Readers of online political news</h3>
+          <p>The interaction starts from the active Chrome tab and keeps the explanation inside the extension popup.</p>
+        </article>
+        <article>
+          <span>Extraction constraint</span>
+          <h3>Article markup is inconsistent</h3>
+          <p>The extension searches semantic page containers and visible paragraphs, so poorly structured pages can reduce input quality.</p>
+        </article>
+        <article>
+          <span>Model constraint</span>
+          <h3>The signals are estimates</h3>
+          <p>Confidence and bias values come from model output; they are not objective ground truth or a measured accuracy score.</p>
+        </article>
+        <article>
+          <span>Product boundary</span>
+          <h3>Context, not a verdict on truth</h3>
+          <p>The system estimates presentation patterns and deliberately does not fact-check the article.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="evidence" className={styles.evidenceSection} aria-labelledby="evidence-title">
+      <div className={styles.evidenceHeading}>
+        <div>
+          <p className={styles.sectionNumber}>03 · Repository evidence</p>
+          <h2 id="evidence-title">From active tab to explained estimate.</h2>
+        </div>
+        <p>This architecture follows the public repository’s documented workflow. Each stage links to the source material behind the diagram.</p>
+      </div>
+
+      <ol className={styles.systemFlow} aria-label="Veritas system architecture">
+        <li>
+          <a href="https://github.com/FastMartini/Veritas/blob/main/extension/popup.js">
+            <span>01</span><strong>Active tab</strong><small>URL, title, date, and visible text</small>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/FastMartini/Veritas/blob/main/main.py">
+            <span>02</span><strong>/extract</strong><small>Normalize and rank claim candidates</small>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/FastMartini/Veritas/blob/main/main.py">
+            <span>03</span><strong>/analyze</strong><small>Build bounded, structured context</small>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/FastMartini/Veritas/blob/main/main.py">
+            <span>04</span><strong>Gemini</strong><small>Estimate source, language, and framing</small>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/FastMartini/Veritas/blob/main/extension/popup.js">
+            <span>05</span><strong>Popup</strong><small>Render summary, claims, and signals</small>
+          </a>
+        </li>
+      </ol>
+
+      <div className={styles.sourceNote}>Source: <a href="https://github.com/FastMartini/Veritas/blob/main/README.md#12-scope-of-the-system">system workflow</a>{" · "}<a href="https://github.com/FastMartini/Veritas/blob/main/README.md#7-sequence-diagrams">sequence diagrams</a>{" · "}<a href="https://github.com/FastMartini/Veritas/blob/main/extension/manifest.json">extension manifest</a></div>
+
+      <div className={styles.surfaceGrid}>
+        <article>
+          <p>01 · Article overview</p>
+          <h3>Show the input context</h3>
+          <ul>
+            <li>Detected source</li>
+            <li>Normalized publication date</li>
+            <li>Number of claims detected</li>
+          </ul>
+          <a href="https://github.com/FastMartini/Veritas/blob/main/extension/popup.html">Inspect popup structure →</a>
+        </article>
+        <article>
+          <p>02 · Claim extraction</p>
+          <h3>Preserve inspectable statements</h3>
+          <ul>
+            <li>Stable claim identifiers</li>
+            <li>Sentence-level ranking</li>
+            <li>Bounded claim list</li>
+          </ul>
+          <a href="https://github.com/FastMartini/Veritas/blob/main/main.py">Inspect extraction logic →</a>
+        </article>
+        <article>
+          <p>03 · Leaning summary</p>
+          <h3>Separate the signals</h3>
+          <dl>
+            <div><dt>Source</dt><dd>−1 to 1</dd></div>
+            <div><dt>Language</dt><dd>−1 to 1</dd></div>
+            <div><dt>Framing</dt><dd>−1 to 1</dd></div>
+          </dl>
+          <a href="https://github.com/FastMartini/Veritas/blob/main/README.md#48-display-bias-signals">Inspect documented output →</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="decisions" className={styles.decisionSection} aria-labelledby="decisions-title">
+      <div>
+        <p className={styles.sectionNumber}>04 · Engineering</p>
+        <h2 id="decisions-title">Key decisions</h2>
+      </div>
+      <ol className={styles.decisionList}>
+        <li>
+          <span>01</span>
+          <div><h3>Narrow the product to political leaning.</h3><p>The team moved away from generic misinformation classification and framed the output as an estimate of editorial presentation.</p></div>
+        </li>
+        <li>
+          <span>02</span>
+          <div><h3>Split extraction from analysis.</h3><p>A lightweight first stage normalizes metadata and ranks claim candidates; a separate analysis stage evaluates the broader article context.</p></div>
+        </li>
+        <li>
+          <span>03</span>
+          <div><h3>Make the model return a strict contract.</h3><p>The FastAPI backend asks Gemini for JSON, validates the response, and clamps confidence and signal values to the ranges expected by the popup.</p></div>
+        </li>
+        <li>
+          <span>04</span>
+          <div><h3>Keep “Unclear” as a valid result.</h3><p>Short, vague, non-political, or missing input should not be forced into a left-or-right label.</p></div>
+        </li>
+      </ol>
+    </section>
+
+    <section className={styles.technologySection} aria-labelledby="technology-title">
+      <div>
+        <p className={styles.sectionNumber}>05 · Build</p>
+        <h2 id="technology-title">Technology</h2>
+      </div>
+      <div>
+        <ul className={styles.techList} aria-label="Veritas technologies">
+          {veritasWaypoint.technologies.map((technology) => <li key={technology}>{technology}</li>)}
+        </ul>
+        <p>The Manifest V3 extension collects the active article and renders results. FastAPI and Pydantic define the integration contract, spaCy supports sentence segmentation and claim ranking, and a Gemini-assisted step produces the structured leaning estimate.</p>
+      </div>
+    </section>
+
+    <section className={styles.teamSection} aria-labelledby="team-title">
+      <div>
+        <p className={styles.sectionNumber}>06 · Collaboration</p>
+        <h2 id="team-title">Team and contribution</h2>
+      </div>
+      <div>
+        <p className={styles.lead}>Four collaborators developed the capstone through short, structured iterations.</p>
+        <dl className={styles.teamList}>
+          <div><dt>Diego Martinez</dt><dd>Team lead and developer; Scrum coordination, iteration goals, architecture guidance, backend, and extension development</dd></div>
+          <div><dt>Christian Cevallos</dt><dd>Implementation, documentation, testing, and debugging</dd></div>
+          <div><dt>Justin Cardenas</dt><dd>Frontend and backend development, features, and sprint deliverables</dd></div>
+          <div><dt>Jhonny Felix</dt><dd>Frontend development, integration, testing, and sprint deliverables</dd></div>
+        </dl>
+        <div className={styles.sourceNote}>Roles are summarized from the repository’s <a href="https://github.com/FastMartini/Veritas/blob/main/README.md#31-project-organization">project organization record</a>.</div>
+      </div>
+    </section>
+
+    <section id="outcome" className={styles.outcomeSection} aria-labelledby="outcome-title">
+      <div>
+        <p className={styles.sectionNumber}>07 · Result</p>
+        <h2 id="outcome-title">Outcome</h2>
+      </div>
+      <div className={styles.outcomeCopy}>
+        <p className={styles.award}>An integrated extension-to-analysis flow.</p>
+        <p>The repository documents a working capstone implementation that extracts article content, ranks claim candidates, requests a structured leaning estimate, and renders the returned context in the extension popup. No deployment, award, measured accuracy, or business impact is claimed.</p>
+      </div>
+    </section>
+
+    <section className={styles.limitationsSection} aria-labelledby="limitations-title">
+      <div>
+        <p className={styles.sectionNumber}>08 · Boundary</p>
+        <h2 id="limitations-title">Limitations</h2>
+      </div>
+      <div className={styles.limitationsGrid}>
+        <p><strong>Not truth verification.</strong> Veritas estimates political leaning; it is not a fake-news detector or truth-verification system.</p>
+        <p><strong>Model-estimated signals.</strong> Source, language, framing, and confidence values are generated estimates rather than objectively measured ground truth.</p>
+        <p><strong>Extraction varies.</strong> Poorly structured pages or unavailable article context can reduce the quality of the input.</p>
+        <p><strong>Prompt-sensitive output.</strong> Gemini responses can vary with the prompt and available context, and requests can be affected by quota limits.</p>
+        <p><strong>No accuracy claim.</strong> The public repository does not establish a validated accuracy rate, so this Case Study does not present one.</p>
+        <p><strong>Capstone scope.</strong> The repository shows the implementation and workflow; this page does not claim a public production deployment or measured user impact.</p>
+      </div>
+    </section>
+
+    <footer className={styles.caseFooter}>
+      <p><span>Next bearing</span>Return to the Mountain Journey</p>
+      <Link href={`/#${veritasWaypoint.slug}`}>Back to selected work <span aria-hidden="true">↗</span></Link>
+    </footer>
+  </article>
+</main>

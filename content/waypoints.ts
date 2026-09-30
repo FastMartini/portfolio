@@ -91,43 +91,56 @@ export const momentumXWaypoint = {
   },
 } as const satisfies Waypoint;
 
+export const veritasWaypoint = {
+  name: "Veritas",
+  slug: "veritas",
+  order: 2,
+  period: "Capstone",
+  tier: "case-study",
+  summary:
+    "A Chrome extension that estimates the political leaning of news articles from source, language, and framing signals.",
+  purpose:
+    "Give readers structured context about how political reporting is presented without judging whether an article is true or false.",
+  role: "Team lead and developer",
+  team: "Four-person capstone team",
+  owned:
+    "I led the architecture and built the backend-to-extension analysis flow with the project team.",
+  evidence: {
+    label: "Honest product boundary",
+    detail:
+      "Veritas estimates political leaning; it is not a fake-news detector or truth-verification system.",
+  },
+  technologies: [
+    "Chrome Extension",
+    "JavaScript",
+    "HTML",
+    "CSS",
+    "FastAPI",
+    "Python",
+    "spaCy",
+    "Pydantic",
+    "Gemini-assisted analysis",
+  ],
+  outcomes: ["Integrated extension and backend analysis flow"],
+  caseStudyHref: "/work/veritas/",
+  links: [
+    {
+      label: "View repository",
+      href: "https://github.com/FastMartini/Veritas",
+      kind: "repository",
+    },
+  ],
+  media: [],
+  metadata: {
+    title: "Veritas — Political-Leaning Analysis Extension",
+    description:
+      "A capstone Chrome extension for examining source, language, and framing signals in political news.",
+  },
+} as const satisfies Waypoint;
+
 export const waypoints = [
   momentumXWaypoint,
-  {
-    name: "Veritas",
-    slug: "veritas",
-    order: 2,
-    period: "Capstone",
-    tier: "case-study",
-    summary:
-      "A Chrome extension that estimates the political leaning of news articles from source, language, and framing signals.",
-    purpose:
-      "Give readers structured context about how political reporting is presented without judging whether an article is true or false.",
-    role: "Team lead and developer",
-    team: "Collaborative capstone project",
-    owned:
-      "I led the architecture and built the backend-to-extension analysis flow with the project team.",
-    evidence: {
-      label: "Honest product boundary",
-      detail:
-        "Veritas estimates political leaning; it is not a fake-news detector or truth-verification system.",
-    },
-    technologies: ["Chrome Extension", "FastAPI", "Gemini-assisted analysis"],
-    outcomes: ["Integrated extension and backend analysis flow"],
-    links: [
-      {
-        label: "View repository",
-        href: "https://github.com/FastMartini/Veritas",
-        kind: "repository",
-      },
-    ],
-    media: [],
-    metadata: {
-      title: "Veritas — Political-Leaning Analysis Extension",
-      description:
-        "A capstone Chrome extension for examining source, language, and framing signals in political news.",
-    },
-  },
+  veritasWaypoint,
   {
     name: "Membership Inference Attack Study",
     slug: "membership-inference-attack",
