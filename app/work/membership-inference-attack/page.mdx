@@ -1,0 +1,214 @@
+import Image from "next/image";
+import Link from "next/link";
+
+import { PortfolioHeader, SkipLink } from "../../../components/portfolio-shell";
+import { membershipInferenceWaypoint as study } from "../../../content/waypoints";
+import styles from "../case-study.module.css";
+
+export const metadata = study.metadata;
+
+<SkipLink href="#case-study-content" label="Skip to Case Study" />
+<PortfolioHeader
+  homeHref={`/#${study.slug}`}
+  homeLabel="Portfolio"
+  homeAriaLabel={`Return to the ${study.name} Waypoint`}
+  links={[
+    { href: "#decisions", label: "Decisions" },
+    { href: "#evidence", label: "Evidence" },
+    { href: "#outcome", label: "Results" },
+  ]}
+  navLabel="Case Study navigation"
+  variant="case-study"
+/>
+
+<main id="case-study-content" className={styles.caseStudy}>
+  <article>
+    <header className={styles.hero}>
+      <div className={styles.heroCopy}>
+        <p className={styles.eyebrow}>{`Waypoint ${String(study.order).padStart(2, "0")} · ${study.period}`}</p>
+        <h1 className={styles.studyTitle}>{study.name}</h1>
+        <p className={styles.dek}>{study.summary}</p>
+        <p className={styles.ownership}>{study.owned}</p>
+        <p>As team lead, I coordinated the project and led the design and execution of testing procedures alongside Christian Cevallos, Lucas Ramos, and Justin Cardenas.</p>
+        <div className={styles.heroActions}>
+          <a href={study.links[0].href}>View source repository</a>
+          <a href={study.links[1].href}>Read the research report</a>
+          <a href={study.links[2].href}>Watch public demo</a>
+        </div>
+      </div>
+      <aside className={styles.fieldNotes} aria-label="Membership inference field notes">
+        <div><span>Experiment</span><strong>500 member and 500 non-member reviews</strong></div>
+        <div><span>My role</span><strong>{study.role}</strong></div>
+        <div><span>Format</span><strong>{study.team}</strong></div>
+      </aside>
+    </header>
+
+    <section className={styles.introGrid} aria-labelledby="problem-title">
+      <div>
+        <p className={styles.sectionNumber}>01 · Context</p>
+        <h2 id="problem-title">The problem</h2>
+      </div>
+      <div className={styles.prose}>
+        <p className={styles.lead}>A classifier can keep its training reviews hidden and still reveal clues about which reviews it has seen.</p>
+        <p>Membership inference predicts whether a particular sample was used to train a model. It does not need to recover the original text: knowing that a record was included can itself reveal sensitive information. Our question was whether the behavior of a sentiment classifier exposed enough signal to distinguish training reviews from unseen reviews.</p>
+        <p>This was a classical machine-learning experiment: TF-IDF represented the text, and logistic regression classified sentiment. A second logistic-regression model learned to predict membership from the target classifier’s outputs.</p>
+      </div>
+    </section>
+
+    <section className={styles.splitSection} aria-labelledby="design-title">
+      <div>
+        <p className={styles.sectionNumber}>02 · Frame</p>
+        <h2 id="design-title">Experiment design</h2>
+      </div>
+      <div className={styles.factGrid}>
+        <article>
+          <span>Dataset</span><h3>Two distinct IMDB subsets</h3>
+          <p>We sampled 500 members from IMDB’s official training split and 500 non-members from its official test split. Sampling was stratified by sentiment with random seed 42; the target trained only on members.</p>
+        </article>
+        <article>
+          <span>Target model</span><h3>Words to sentiment</h3>
+          <p>TF-IDF used up to 5,000 terms and removed English stopwords. Its vocabulary was fitted only on member reviews, then applied to unseen reviews. Logistic regression predicted positive or negative sentiment.</p>
+        </article>
+        <article>
+          <span>Baseline attack</span><h3>A single confidence threshold</h3>
+          <p>The midpoint of member and non-member mean maximum confidence defined the threshold. Reviews at or above it were predicted to be members. The baseline was evaluated on all 1,000 reviews used to derive that threshold.</p>
+        </article>
+        <article>
+          <span>Learned attack</span><h3>A separate membership classifier</h3>
+          <p>The 1,000 attack-feature rows were split 70/30, stratified by membership with seed 42: 700 for attack training and 300 for evaluation. The held-out set contained 150 members and 150 non-members of the target model.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="evidence" className={styles.evidenceSection} aria-labelledby="evidence-title">
+      <div className={styles.evidenceHeading}>
+        <div>
+          <p className={styles.sectionNumber}>03 · Public evidence</p>
+          <h2 id="evidence-title">Inspect the experiment.</h2>
+        </div>
+        <p>The report records the experiment’s measurements and team contributions. The code exposes how the data, target model, and attacks were constructed; the recorded demo provides a walkthrough.</p>
+      </div>
+      <div className={styles.reportEvidence}>
+        <figure className={styles.reportFigure}>
+          <a href={study.media[0].sourceHref} aria-label="Open the original results in the research report">
+            <Image
+              src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${study.media[0].src}`}
+              alt={study.media[0].alt}
+              width={study.media[0].width}
+              height={study.media[0].height}
+              sizes="(max-width: 900px) 90vw, 50vw"
+            />
+          </a>
+          <figcaption>Original results excerpt from page 5 of the team’s report. <a href={study.media[0].sourceHref}>Read in context</a>.</figcaption>
+        </figure>
+        <div className={styles.prose}>
+          <h3>Follow the public materials</h3>
+          <p><a href={`${study.links[0].href}/blob/main/dataset.py`}>Dataset preparation</a> establishes which reviews the target sees. <a href={`${study.links[0].href}/blob/main/train.py`}>Target training</a> fits the text representation and sentiment classifier. <a href={`${study.links[0].href}/blob/main/attack.py`}>Attack implementation</a> defines the signals, threshold, learned model, and evaluation split.</p>
+          <p><a href={study.links[2].href}>Watch the recorded public demo</a> linked on the report’s cover, or <a href={`${study.links[0].href}/blob/main/README.md`}>follow the repository’s run instructions</a> to inspect the pipeline.</p>
+          <p>The measurements below reproduce the report’s recorded run. They are not a new experiment or a claim about every text classifier.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="decisions" className={styles.decisionSection} aria-labelledby="decisions-title">
+      <div>
+        <p className={styles.sectionNumber}>04 · Engineering</p>
+        <h2 id="decisions-title">Key decisions</h2>
+      </div>
+      <ol className={styles.decisionList}>
+        <li><span>01</span><div><h3>Keep membership grounded in the training boundary.</h3><p>Only the member subset trained the target classifier and TF-IDF vocabulary. Non-member reviews remained unseen by that training process, preserving the meaning of the membership labels.</p></div></li>
+        <li><span>02</span><div><h3>Start with an inspectable baseline.</h3><p>A confidence threshold made the initial question easy to test. The learned attack then combined five behavior signals rather than relying on a single score.</p></div></li>
+        <li><span>03</span><div><h3>Separate sentiment performance from attack performance.</h3><p>The target predicts sentiment; the attacker predicts membership. I led testing and evaluation across both stages, keeping the evaluation task and sample group explicit when interpreting the results.</p></div></li>
+        <li><span>04</span><div><h3>Hold out rows for the learned attack.</h3><p>The attack model’s evaluation rows were excluded from its own training. A held-out attack row can still be a member of the target’s training set: these are two different training boundaries.</p></div></li>
+      </ol>
+    </section>
+
+    <section className={styles.technologySection} aria-labelledby="features-title">
+      <div>
+        <p className={styles.sectionNumber}>05 · Signals</p>
+        <h2 id="features-title">Attack features</h2>
+      </div>
+      <div>
+        <ul className={styles.techList} aria-label="Membership inference technologies">
+          {study.technologies.map((technology) => <li key={technology}>{technology}</li>)}
+        </ul>
+        <dl className={styles.featureList}>
+          <div><dt>Maximum confidence</dt><dd>The largest predicted sentiment probability.</dd></div>
+          <div><dt>True-class confidence</dt><dd>The probability assigned to the review’s known sentiment label.</dd></div>
+          <div><dt>Loss</dt><dd>The negative log of true-class confidence; lower loss indicates a better fit to that review.</dd></div>
+          <div><dt>Entropy</dt><dd>The uncertainty across the predicted sentiment probabilities.</dd></div>
+          <div><dt>Correctness</dt><dd>Whether the predicted sentiment matches the known label.</dd></div>
+        </dl>
+        <p>The learned attack needs probability outputs and the review’s true sentiment label to construct these features. It also trains on labeled membership examples from the controlled experiment. This access is an assumption of the study.</p>
+      </div>
+    </section>
+
+    <section className={styles.teamSection} aria-labelledby="team-title">
+      <div>
+        <p className={styles.sectionNumber}>06 · Collaboration</p>
+        <h2 id="team-title">Team and contribution</h2>
+      </div>
+      <div>
+        <p className={styles.lead}>I led the project direction, coordinated development, and designed and executed the testing procedures. Development and analysis were a shared effort.</p>
+        <dl className={styles.teamList}>
+          <div><dt>Diego Martinez</dt><dd>Team lead; project direction, development coordination, and testing design and execution</dd></div>
+          <div><dt>Christian Cevallos</dt><dd>Documentation, implementation support, and refinement of the final report</dd></div>
+          <div><dt>Justin Cardenas</dt><dd>Research, theoretical foundation, and development of key components</dd></div>
+          <div><dt>Lucas Ramos</dt><dd>Presentation organization and slide design, alongside development contributions</dd></div>
+        </dl>
+        <div className={styles.sourceNote}>Attribution follows section 12, “Team Contributions,” on <a href={`${study.links[1].href}#page=8`}>page 8 of the report</a>.</div>
+      </div>
+    </section>
+
+    <section id="outcome" className={styles.outcomeSection} aria-labelledby="results-title">
+      <div>
+        <p className={styles.sectionNumber}>07 · Results</p>
+        <h2 id="results-title">Results</h2>
+      </div>
+      <div className={styles.resultsCopy}>
+        <p className={styles.lead}>The recorded run exposed a measurable membership signal in this classifier’s behavior.</p>
+        <table className={styles.resultsTable}>
+          <caption>Target sentiment classifier · 1,000 reviews</caption>
+          <thead><tr><th scope="col">Sample group</th><th scope="col">Accuracy</th><th scope="col">Evaluation context</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Members</th><td>98.2%</td><td>500 reviews used to train the target</td></tr>
+            <tr><th scope="row">Non-members</th><td>76.6%</td><td>500 reviews unseen during target training</td></tr>
+          </tbody>
+        </table>
+        <p>These are sentiment accuracy measurements, not membership-attack success rates. The training-to-unseen gap is consistent with overfitting and motivates testing for privacy leakage; the gap alone is not proof of membership for an individual review.</p>
+        <table className={styles.resultsTable}>
+          <caption>Membership prediction · reported attack metrics</caption>
+          <thead><tr><th scope="col">Metric</th><th scope="col">Baseline threshold attack</th><th scope="col">Learned attack</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Accuracy</th><td>69.2%</td><td>70.7%</td></tr>
+            <tr><th scope="row">F1</th><td>69.0%</td><td>72.3%</td></tr>
+            <tr><th scope="row">ROC-AUC</th><td>Not reported</td><td>0.765</td></tr>
+          </tbody>
+        </table>
+        <p>The baseline threshold was derived from and evaluated on all 1,000 reviews. The learned attack trained on 700 rows and was evaluated on the remaining 300. Because the evaluation sets and fitting procedures differ, 69.2% and 70.7% are not a like-for-like estimate of improvement.</p>
+        <p>The groups are balanced, so random membership guessing has an expected accuracy of 50%. F1 balances precision and recall with member as the positive class. ROC-AUC measures ranking across thresholds; 0.765 is not 76.5% accuracy. The report provides one recorded run without confidence intervals or repeated-seed analysis.</p>
+        <p>Source: section 9, “Results and Evaluation,” on <a href={study.media[0].sourceHref}>page 5 of the report</a>, with evaluation procedures in <a href={`${study.links[0].href}/blob/main/attack.py`}>the attack code</a>.</p>
+      </div>
+    </section>
+
+    <section className={styles.limitationsSection} aria-labelledby="limitations-title">
+      <div>
+        <p className={styles.sectionNumber}>08 · Boundary</p>
+        <h2 id="limitations-title">Limitations</h2>
+      </div>
+      <div className={styles.limitationsGrid}>
+        <p><strong>A controlled sample.</strong> The results cover 500 member and 500 non-member IMDB reviews, one target classifier, and one recorded run. They do not establish a general privacy guarantee or population-wide attack rate.</p>
+        <p><strong>Attacker access matters.</strong> The learned attack assumes probability outputs, known sentiment labels, and labeled membership training examples. A system that exposes less information presents a different attack setting.</p>
+        <p><strong>Different evaluation procedures.</strong> The baseline uses the same rows to derive and evaluate its threshold; the learned attack holds out 30%. A shared untouched evaluation set would support a stronger comparison.</p>
+        <p><strong>No uncertainty estimate.</strong> The report does not provide repeated runs, confidence intervals, or statistical significance tests. Small differences between methods should be interpreted cautiously.</p>
+        <p><strong>No mitigation evaluation.</strong> Differential privacy is discussed as related work but was not implemented or tested. This experiment measures leakage rather than establishing a defense.</p>
+        <p><strong>Scope of the evidence.</strong> The study uses classical text classification and public movie reviews. It neither extracts private text nor establishes how these findings transfer to other datasets or model families.</p>
+      </div>
+    </section>
+
+    <footer className={styles.caseFooter}>
+      <p><span>Next bearing</span>Return to the Mountain Journey</p>
+      <Link href={`/#${study.slug}`}>Back to selected work <span aria-hidden="true">↗</span></Link>
+    </footer>
+  </article>
+</main>
