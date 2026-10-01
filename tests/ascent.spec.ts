@@ -110,7 +110,7 @@ test("Waypoint markers provide keyboard navigation and visible focus", async ({ 
 
   const veritas = page.getByRole("link", { name: "Go to Waypoint 02: Veritas" });
   await veritas.hover();
-  expect(await veritas.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe("rgb(23, 63, 53)");
+  await expect(veritas).toHaveCSS("background-color", "rgb(23, 63, 53)");
 });
 
 for (const width of [320, 390, 768, 1440]) {

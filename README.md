@@ -25,7 +25,7 @@ npm test
 
 Playwright tests exercise the public browser boundary against the production static export rather than component internals.
 
-The Ascent suite includes desktop and mobile visual snapshots, native scrolling, direct section links, keyboard operation, and WCAG 2.2 AA checks. To intentionally refresh visual baselines, run `npm test -- --update-snapshots` and inspect the PNGs in `tests/ascent.spec.ts-snapshots/` before committing them.
+The Ascent suite includes desktop and mobile visual snapshots, native scrolling, direct section links, keyboard operation, and WCAG 2.2 AA checks. Screenshot baselines are platform-specific (`darwin` locally and `linux` in Ubuntu 24.04 CI) and retain a 1% difference allowance. To intentionally refresh visual baselines, run `npm test -- --update-snapshots` on the matching platform and inspect the PNGs in `tests/ascent.spec.ts-snapshots/` before committing them. Failed CI runs upload screenshots and traces as the `playwright-evidence` artifact.
 
 ## Deployment
 

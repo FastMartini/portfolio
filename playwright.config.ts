@@ -11,7 +11,7 @@ const testBaseUrl = `${testOrigin}${testSite.basePath}/`;
 
 export default defineConfig({
   testDir: "./tests",
-  snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}-{projectName}{ext}",
+  snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}-{projectName}-{platform}{ext}",
   expect: {
     toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
   },
