@@ -15,6 +15,7 @@
 .heroCopy { align-self: center; min-width: 0; position: relative; }
 .eyebrow, .sectionNumber { color: var(--copper-text); font-size: 0.63rem; font-weight: 800; letter-spacing: 0.13em; margin: 0 0 1.5rem; text-transform: uppercase; }
 .hero h1 { font-size: clamp(5rem, 13vw, 12rem); line-height: 0.78; margin: 0; }
+.hero .studyTitle { font-size: clamp(2.6rem, 6.5vw, 6.5rem); line-height: 0.95; }
 .dek { font-family: var(--font-newsreader), serif; font-size: clamp(1.55rem, 3vw, 2.65rem); line-height: 1.25; margin: 3rem 0 0; max-width: 24ch; }
 .ownership { border-left: 3px solid var(--copper); font-size: 0.95rem; line-height: 1.75; margin: 2.5rem 0 0; max-width: 38rem; padding-left: 1rem; }
 .heroActions { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin-top: 2.5rem; }
@@ -49,6 +50,21 @@
 .systemFlow strong { font-family: var(--font-newsreader), serif; font-size: 1.25rem; font-weight: 450; margin-top: auto; }
 .systemFlow small { color: rgba(255, 251, 237, 0.62); font-size: 0.64rem; line-height: 1.5; margin-top: 0.5rem; }
 .sourceNote { color: rgba(255, 251, 237, 0.65); font-size: 0.68rem; line-height: 1.6; margin: 1rem 0 0; }
+.reportEvidence { display: grid; gap: clamp(2rem, 5vw, 5rem); grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); margin-top: 4rem; }
+.reportFigure { margin: 0; min-width: 0; }
+.reportFigure img { background: white; display: block; height: auto; width: 100%; }
+.reportFigure figcaption { color: rgba(255, 251, 237, 0.75); font-size: 0.72rem; line-height: 1.7; margin-top: 1rem; }
+.reportEvidence .prose { align-self: center; }
+.featureList { margin: 2.5rem 0 0; }
+.featureList div { border-top: 1px solid var(--line); padding: 1rem 0; }
+.featureList dt { font-weight: 800; font-size: 0.82rem; }
+.featureList dd { font-size: 0.82rem; line-height: 1.75; margin: 0.5rem 0 0; }
+.resultsCopy { min-width: 0; }
+.resultsCopy > p:not(.lead) { font-size: 0.9rem; line-height: 1.8; margin: 1.5rem 0 0; }
+.resultsTable { border-collapse: collapse; font-size: 0.78rem; line-height: 1.6; margin-top: 2.5rem; table-layout: fixed; text-align: left; width: 100%; }
+.resultsTable caption { color: var(--pine); font-weight: 800; margin-bottom: 1rem; text-align: left; }
+.resultsTable th, .resultsTable td { border-bottom: 1px solid var(--line); overflow-wrap: break-word; padding: 0.9rem 0.5rem; vertical-align: top; }
+.resultsTable thead th { border-top: 1px solid var(--line); }
 .surfaceGrid { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 5rem; }
 .surfaceGrid article { background: var(--cream); color: var(--ink); display: flex; flex-direction: column; min-height: 24rem; padding: clamp(1.5rem, 3vw, 2.5rem); }
 .surfaceGrid article > p { color: var(--copper-text); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.1em; margin: 0 0 2rem; text-transform: uppercase; }
@@ -93,6 +109,7 @@
   .systemFlow li:last-child { border-bottom: 1px solid rgba(255, 251, 237, 0.2); }
   .systemFlow a { min-height: 8rem; }
   .surfaceGrid { grid-template-columns: 1fr; }
+  .reportEvidence { grid-template-columns: 1fr; }
   .surfaceGrid article { min-height: 19rem; }
 }
 @media (max-width: 600px) {

@@ -229,6 +229,11 @@ test("Trailhead reaches the first Waypoint and links every published Case Study"
     "href",
     "/portfolio/work/veritas/",
   );
-  await expect(page.locator('a[href*="/work/"]')).toHaveCount(2);
+  await expect(
+    page
+      .locator('[data-waypoint-slug="membership-inference-attack"]')
+      .getByRole("link", { name: "Read case study" }),
+  ).toHaveAttribute("href", "/portfolio/work/membership-inference-attack/");
+  await expect(page.locator('a[href*="/work/"]')).toHaveCount(3);
   await expect(page.locator("body")).not.toContainText("Grassroots");
 });

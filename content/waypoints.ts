@@ -10,6 +10,8 @@ type WaypointMedia = {
   kind: "image" | "diagram" | "report-figure";
   src: string;
   alt: string;
+  width: number;
+  height: number;
   sourceHref?: string;
 };
 
@@ -138,49 +140,66 @@ export const veritasWaypoint = {
   },
 } as const satisfies Waypoint;
 
+export const membershipInferenceWaypoint = {
+  name: "Membership Inference Attack Study",
+  slug: "membership-inference-attack",
+  order: 3,
+  period: "Privacy research",
+  tier: "case-study",
+  summary:
+    "A classical machine-learning privacy study asking whether model behavior can reveal which text samples appeared in training.",
+  purpose:
+    "Test membership leakage in an IMDB sentiment classifier built with TF-IDF and logistic regression.",
+  role: "Team lead · Testing and evaluation",
+  team: "Four-person research team",
+  owned:
+    "I led the testing and evaluation work across the target classifier and learned membership attack.",
+  evidence: {
+    label: "Controlled experiment",
+    detail:
+      "Across 500 member and 500 non-member IMDB reviews, the learned attack recorded 0.765 ROC-AUC; this is a scoped experiment, not a general privacy guarantee.",
+  },
+  technologies: ["Python", "scikit-learn", "TF-IDF", "Logistic regression"],
+  outcomes: ["Documented experiment with reproducible public code and report"],
+  caseStudyHref: "/work/membership-inference-attack/",
+  links: [
+    {
+      label: "View repository",
+      href: "https://github.com/FastMartini/llm-data-leakage-study",
+      kind: "repository",
+    },
+    {
+      label: "Read report",
+      href: "https://github.com/FastMartini/llm-data-leakage-study/blob/main/Group%231_Membership_Inference_Attack_Report.pdf",
+      kind: "report",
+    },
+    {
+      label: "Watch public demo",
+      href: "https://vimeo.com/1182733091/b8a659a24a",
+      kind: "project",
+    },
+  ],
+  media: [
+    {
+      kind: "report-figure",
+      src: "/work/membership-inference-attack/report-results.png",
+      alt: "Original report results excerpt showing target sentiment accuracy, confidence and loss, baseline attack metrics, and learned attack metrics. Accessible measurements and evaluation context follow in the Results section.",
+      width: 990,
+      height: 850,
+      sourceHref: "https://github.com/FastMartini/llm-data-leakage-study/blob/main/Group%231_Membership_Inference_Attack_Report.pdf#page=5",
+    },
+  ],
+  metadata: {
+    title: "Membership Inference Attack Study — Classical ML Privacy Research",
+    description:
+      "A controlled membership-inference experiment using TF-IDF and logistic regression on IMDB reviews.",
+  },
+} as const satisfies Waypoint;
+
 export const waypoints = [
   momentumXWaypoint,
   veritasWaypoint,
-  {
-    name: "Membership Inference Attack Study",
-    slug: "membership-inference-attack",
-    order: 3,
-    period: "Privacy research",
-    tier: "case-study",
-    summary:
-      "A classical machine-learning privacy study asking whether model behavior can reveal which text samples appeared in training.",
-    purpose:
-      "Test membership leakage in an IMDB sentiment classifier built with TF-IDF and logistic regression.",
-    role: "Team lead · Testing and evaluation",
-    team: "Collaborative research study",
-    owned:
-      "I led the testing and evaluation work across the target classifier and learned membership attack.",
-    evidence: {
-      label: "Controlled experiment",
-      detail:
-        "Across 500 member and 500 non-member IMDB reviews, the learned attack recorded 0.765 ROC-AUC; this is a scoped experiment, not a general privacy guarantee.",
-    },
-    technologies: ["Python", "scikit-learn", "TF-IDF", "Logistic regression"],
-    outcomes: ["Documented experiment with reproducible public code and report"],
-    links: [
-      {
-        label: "View repository",
-        href: "https://github.com/FastMartini/llm-data-leakage-study",
-        kind: "repository",
-      },
-      {
-        label: "Read report",
-        href: "https://github.com/FastMartini/llm-data-leakage-study/blob/main/Group%231_Membership_Inference_Attack_Report.pdf",
-        kind: "report",
-      },
-    ],
-    media: [],
-    metadata: {
-      title: "Membership Inference Attack Study — Classical ML Privacy Research",
-      description:
-        "A controlled membership-inference experiment using TF-IDF and logistic regression on IMDB reviews.",
-    },
-  },
+  membershipInferenceWaypoint,
   {
     name: "High-Momentum Scanner",
     slug: "high-momentum-scanner",
