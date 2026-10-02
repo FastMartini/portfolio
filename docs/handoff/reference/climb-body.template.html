@@ -1,0 +1,137 @@
+<a class="skip-link" href="#list-view">Skip to the full portfolio text</a>
+<header class="climb-header">
+  <a class="wordmark" href="#top" data-stop="0" aria-label="Diego Martinez, back to the trailhead"><span class="wordmark-mark" aria-hidden="true">DM</span><span>Diego Martinez</span></a>
+  <button type="button" class="view-toggle js-only" id="view-toggle" aria-pressed="false">List view</button>
+</header>
+
+<main id="main-content">
+  <section class="climb js-only" id="climb" aria-label="The climb: scroll to ascend, select a Waypoint to read it">
+    <div class="stage" id="stage">
+      <div class="sky" id="sky" aria-hidden="true"><div class="sun" id="sun"></div></div>
+      <div class="scene" id="scene">
+        <div class="sketch-a" id="sketch-a" aria-hidden="true"></div>
+        <div class="haze" id="haze" aria-hidden="true"></div>
+        <canvas class="snow" id="snow" aria-hidden="true"></canvas>
+        <div class="markers" id="markers"></div>
+      </div>
+
+      <div class="cards" id="cards">
+        <article class="card card-trailhead" data-card="0">
+          <p class="card-place">Trailhead</p>
+          <h1>Software engineer building intelligent, data-driven products.</h1>
+          <p>From research and systems to polished user experiences, I follow ideas all the way from first question to thoughtful product.</p>
+          <p class="card-hint">Scroll to start climbing. Each Waypoint on the trail is a project you can open.</p>
+          <div class="card-actions">
+            <button type="button" class="button button-primary" data-goto="2">Start the climb {{ARROW}}</button>
+            <button type="button" class="button button-secondary" data-goto="9">Contact me</button>
+          </div>
+          <span class="resume-note">Résumé — coming soon</span>
+        </article>
+        <article class="card" data-card="1">
+          <p class="card-place">Base camp</p>
+          <h2>Engineering with intent.</h2>
+          <p class="card-lead">I’m Diego, a software engineer who likes turning ambitious ideas into useful, understandable products. I work across research, systems, and interfaces—wherever the problem needs me.</p>
+          <p>I care about thoughtful systems, clear experiences, and the small decisions that make software feel considered from end to end.</p>
+        </article>
+        <article class="card" data-card="8">
+          <p class="card-place">A quiet overlook</p>
+          <h2>Beyond the build.</h2>
+          <p>Outside software, I spend time playing blues and electric guitar. It’s a different way to practice listening, timing, and leaving room for what comes next.</p>
+        </article>
+        <article class="card card-summit" data-card="9">
+          <p class="card-place">Summit</p>
+          <h2>Let’s build what comes next.</h2>
+          <p>If you’re assembling a team, shaping an ambitious product, or want to compare notes, I’d be glad to hear from you.</p>
+          <ul class="card-contact">
+            <li><a href="mailto:diegommart2004@gmail.com"><span>Email Diego</span><small>diegommart2004@gmail.com</small></a></li>
+            <li><a href="https://www.linkedin.com/in/diegomartinez30"><span>LinkedIn</span><small>/in/diegomartinez30</small></a></li>
+            <li><a href="https://github.com/FastMartini"><span>GitHub</span><small>@FastMartini</small></a></li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="trail-sign" id="trail-sign" aria-live="polite">
+        <div><p class="trail-sign-place" id="sign-place">Trailhead</p>
+        <p class="trail-sign-name" id="sign-name">Starting ground</p></div>
+        <button type="button" class="button button-primary" id="sign-open" hidden>Open Waypoint {{ARROW}}</button>
+      </div>
+
+      <nav class="rail" aria-label="Trail stops">
+        <ol id="rail"></ol>
+      </nav>
+
+      <aside class="panel" id="panel" aria-labelledby="panel-title" hidden>
+        <div class="panel-head">
+          <p class="panel-kicker" id="panel-kicker"></p>
+          <div class="panel-tools">
+            <button type="button" class="panel-back" id="panel-back" hidden>{{ARROW}} Summary</button>
+            <button type="button" class="panel-close" id="panel-close" aria-label="Close panel">Close</button>
+          </div>
+        </div>
+        <div class="panel-body" id="panel-body" tabindex="-1"></div>
+      </aside>
+    </div>
+    <div class="climb-track" id="climb-track" aria-hidden="true"></div>
+  </section>
+
+  <div class="list-view" id="list-view" tabindex="-1">
+    <div class="list-sections">
+      <section class="list-intro" id="top" aria-labelledby="list-title">
+        <p class="trailhead-lede"><span aria-hidden="true"></span>Software engineer · Building with intention</p>
+        <h2 id="list-title" class="list-h1">Software engineer building intelligent, data-driven products.</h2>
+        <p class="trailhead-intro">From research and systems to polished user experiences, I follow ideas all the way from first question to thoughtful product.</p>
+        <p class="resume-note">Résumé — coming soon</p>
+      </section>
+      <section class="about band-dark" id="about" aria-labelledby="about-title">
+        {{RIDGE}}
+        <p class="section-kicker"><span>01</span><span>About</span></p>
+        <div class="about-copy">
+          <h2 id="about-title">Engineering with intent.</h2>
+          <div class="about-details">
+            <p>I’m Diego, a software engineer who likes turning ambitious ideas into useful, understandable products. I work across research, systems, and interfaces—wherever the problem needs me.</p>
+            <p>I care about thoughtful systems, clear experiences, and the small decisions that make software feel considered from end to end.</p>
+          </div>
+        </div>
+      </section>
+      <section class="work" id="work" aria-labelledby="work-title">
+        <p class="section-kicker"><span>02</span><span>Selected Work</span></p>
+        <div class="work-heading">
+          <div>
+            <p class="handwritten">Evidence along the ascent</p>
+            <h2 id="work-title">Built, tested, and learned in public.</h2>
+          </div>
+          <p>Six Waypoints, ordered by the strength of the signal rather than the date. Each separates my contribution from the wider team and keeps its claims within the available evidence.</p>
+        </div>
+{{WAYPOINTS}}
+      </section>
+      <section class="personal-interlude" id="beyond-work" aria-labelledby="beyond-work-title">
+        <p class="section-kicker"><span>03</span><span>Beyond Work</span></p>
+        <div class="interlude-copy" style="margin-top:3rem">
+          <p class="handwritten">A personal interlude</p>
+          <h2 id="beyond-work-title">Beyond the build.</h2>
+          <p>Outside software, I spend time playing blues and electric guitar. It’s a different way to practice listening, timing, and leaving room for what comes next.</p>
+        </div>
+      </section>
+      <section class="summit band-dark" id="summit" aria-labelledby="summit-title">
+        {{RIDGE_SUMMIT}}
+        <p class="section-kicker"><span>04</span><span>Contact</span></p>
+        <div class="summit-heading">
+          <p class="handwritten">The next ascent</p>
+          <h2 id="summit-title">Let’s build what comes next.</h2>
+          <p>If you’re assembling a team, shaping an ambitious product, or want to compare notes, I’d be glad to hear from you.</p>
+        </div>
+        <ul class="contact-list" aria-label="Contact Diego">
+          <li><a href="mailto:diegommart2004@gmail.com"><span class="contact-label">Email Diego</span><span class="contact-detail">diegommart2004@gmail.com</span>{{ARROW}}</a></li>
+          <li><a href="https://www.linkedin.com/in/diegomartinez30"><span class="contact-label">LinkedIn</span><span class="contact-detail">/in/diegomartinez30</span>{{ARROW}}</a></li>
+          <li><a href="https://github.com/FastMartini"><span class="contact-label">GitHub</span><span class="contact-detail">@FastMartini</span>{{ARROW}}</a></li>
+        </ul>
+      </section>
+    </div>
+{{CASES}}
+  </div>
+</main>
+
+<footer class="site-footer">
+  <p>© <span id="year">2026</span> Diego Martinez</p>
+  <a href="#top">Back to the trailhead ↑</a>
+</footer>

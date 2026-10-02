@@ -154,7 +154,7 @@ function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
 // without JavaScript while the illustrated Climb is added as an enhancement.
 export function ListView() {
   return (
-    <main id="main-content">
+    <div className="list-view" id="list-view" tabIndex={-1}>
       <section className="trailhead" id="trailhead" aria-labelledby="trailhead-title">
         <div className="trailhead-copy">
           <p className="eyebrow">
@@ -305,6 +305,6 @@ export function ListView() {
           ))}
         </div>
       </section>
-    </main>
+    </div>
   );
 }

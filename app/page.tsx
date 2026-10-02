@@ -24,7 +24,9 @@ export default function Home() {
       />
 
       <Ascent sections={journeySections}>
-        <ListView />
+        <main id="main-content">
+          <ListView />
+        </main>
       </Ascent>
 
       <footer>
