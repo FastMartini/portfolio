@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 test("conventional navigation reaches sections and updates the Route Indicator on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("./");
+  await page.goto("./#list-view");
   const navigation = page.getByRole("navigation", { name: "Primary navigation" });
   const route = page.getByRole("navigation", { name: "Route Indicator" });
 
@@ -24,7 +24,7 @@ test("conventional navigation reaches sections and updates the Route Indicator o
 });
 
 test("Trailhead actions reach MomentumX and the Summit with named elevations", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
   const location = page.getByRole("complementary", { name: "Mountain Journey location" });
   await expect(location).toContainText("Starting ground");
   await page.getByRole("link", { name: "View selected work" }).click();
@@ -43,7 +43,7 @@ test("Trailhead actions reach MomentumX and the Summit with named elevations", a
 
 test("ordinary wheel and keyboard scrolling moves down and back up without changing the URL", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await page.goto("./#list-view");
   const startingUrl = page.url();
   await page.mouse.move(400, 500);
   await page.mouse.wheel(0, 650);
@@ -93,7 +93,7 @@ test("Route Indicator follows manual scrolling, deep links, and viewport changes
 
 test("Waypoint markers provide keyboard navigation and visible focus", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await page.goto("./#list-view");
   const markers = page.getByRole("link", { name: /^Go to Waypoint/ });
   await expect(markers).toHaveCount(6);
   const momentum = page.getByRole("link", { name: "Go to Waypoint 01: MomentumX" });
@@ -117,7 +117,7 @@ for (const width of [320, 390, 768, 1440]) {
   test(`SVG Ascent is readable and accessible at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("./");
+    await page.goto("./#list-view");
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     await expect(page.getByRole("navigation", { name: "Route Indicator" })).toBeInViewport();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -134,7 +134,7 @@ for (const width of [320, 390, 768, 1440]) {
 test("static SVG journey and its native links remain complete without JavaScript", async ({ browser, baseURL }) => {
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
-  await page.goto("./");
+  await page.goto("./#list-view");
   await expect(page.getByRole("link", { name: /^Go to Waypoint/ })).toHaveCount(6);
   await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true }).click();
   await expect(page).toHaveURL(/#work$/);
@@ -162,6 +162,9 @@ for (const [width, id, name] of [
     const target = page.locator(`#${id}`);
     await target.evaluate((element) => element.scrollIntoView());
     await expect(page.getByRole("navigation", { name: "Route Indicator" }).locator('[aria-current="location"]')).toHaveAttribute("href", `#${id}`);
+    // Keep these legacy snapshots focused on the unchanged durable List View.
+    // The illustrated scene receives its own baselines in phase 7.
+    await page.addStyleTag({ content: ".climb-view-toggle { visibility: hidden; }" });
     await expect(page).toHaveScreenshot(`${name}.png`, { animations: "disabled" });
   });
 }

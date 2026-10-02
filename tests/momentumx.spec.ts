@@ -17,7 +17,7 @@ test("visitor can load the MomentumX Case Study under the site base path", async
 });
 
 test("visitor can open the MomentumX Case Study from its Waypoint", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   const momentumX = page.locator('[data-waypoint-slug="momentumx"]');
   await momentumX.getByRole("link", { name: "Read case study" }).click();

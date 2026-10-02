@@ -17,7 +17,7 @@ test("visitor can load the Veritas Case Study under the site base path", async (
 });
 
 test("visitor can open the Veritas Case Study from its Waypoint", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   const veritas = page.locator('[data-waypoint-slug="veritas"]');
   await veritas.getByRole("link", { name: "Read case study" }).click();

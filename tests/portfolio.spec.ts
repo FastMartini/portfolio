@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 test("visitor understands Diego's professional identity at the Trailhead", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   await expect(page).toHaveTitle("Diego Martinez — Software Engineer");
   await expect(page.getByRole("banner")).toContainText("Diego Martinez");
@@ -19,7 +19,7 @@ test("visitor understands Diego's professional identity at the Trailhead", async
 test("visitor follows the Mountain Journey and reaches direct contact options", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   await expect(
     page.getByRole("heading", { level: 2, name: "Engineering with intent." }),
@@ -58,7 +58,7 @@ test("portfolio remains complete without client-side JavaScript", async ({
   });
   const page = await context.newPage();
 
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   await expect(
     page.getByRole("heading", {
@@ -84,7 +84,7 @@ test("portfolio remains complete without client-side JavaScript", async ({
 });
 
 test("keyboard visitor can enter the Mountain Journey", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
@@ -94,13 +94,13 @@ test("keyboard visitor can enter the Mountain Journey", async ({ page }) => {
 });
 
 test("Editorial Alpine foundation uses the approved visual tokens", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(243, 238, 221)");
   await expect(page.locator("#about")).toHaveCSS("background-color", "rgb(23, 63, 53)");
   await expect(page.locator("#summit")).toHaveCSS("background-color", "rgb(31, 38, 33)");
 
-  const headingFont = await page.locator("h1").evaluate(
+  const headingFont = await page.locator("#list-view h1").evaluate(
     (element) => getComputedStyle(element).fontFamily,
   );
   const bodyFont = await page.locator("body").evaluate(
@@ -113,7 +113,7 @@ test("Editorial Alpine foundation uses the approved visual tokens", async ({ pag
 
 test("mobile visitor receives a stable, readable layout", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByText("Diego Martinez", { exact: true })).toBeVisible();
@@ -127,7 +127,7 @@ test("mobile visitor receives a stable, readable layout", async ({ page }) => {
 });
 
 test("page has no detectable WCAG AA violations", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -139,7 +139,7 @@ test("page has no detectable WCAG AA violations", async ({ page }) => {
 test("Mountain Journey presents Waypoints strongest first with the approved tiers", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   const waypoints = page.locator("[data-waypoint-slug]");
   await expect(waypoints).toHaveCount(6);
@@ -163,7 +163,7 @@ test("Mountain Journey presents Waypoints strongest first with the approved tier
 });
 
 test("Waypoint claims preserve attribution and factual boundaries", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   const momentumX = page.locator('[data-waypoint-slug="momentumx"]');
   await expect(momentumX).toContainText("Winner — MLH Best Use of Solana");
@@ -192,7 +192,7 @@ test("Waypoint claims preserve attribution and factual boundaries", async ({ pag
 test("High-Momentum Scanner evidence is useful without exposing private implementation", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   const scanner = page.locator('[data-waypoint-slug="high-momentum-scanner"]');
   await expect(scanner).toContainText("Solo project");
@@ -208,7 +208,7 @@ test("High-Momentum Scanner evidence is useful without exposing private implemen
 test("Trailhead reaches the first Waypoint and links every published Case Study", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   await page.getByRole("link", { name: "View selected work" }).click();
   await expect(page).toHaveURL(/#momentumx$/);
