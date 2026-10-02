@@ -33,6 +33,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await expect(reference.locator("svg.mtn")).toBeAttached();
     await reference.evaluate(() => {
       // Phase 2 comparison excludes only artwork/UI scheduled for phases 3–5.
+      // Remove the phase-3 sticky compositing layer for equal SVG rasterization.
+      const stage = document.getElementById("stage");
+      if (stage) stage.style.position = "relative";
       document.querySelectorAll(".lm, .lift").forEach((element) => element.remove());
       document.querySelectorAll('svg.mtn > g[transform]:not(#a-climber), svg.mtn > g[clip-path="url(#mtn-clip)"] > g[transform]')
         .forEach((element) => element.remove());
