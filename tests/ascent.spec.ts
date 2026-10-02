@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { settledScrollY } from "./helpers/native-scroll";
 
 test("conventional navigation reaches sections and updates the Route Indicator on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -45,17 +46,18 @@ test("ordinary wheel and keyboard scrolling moves down and back up without chang
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./#list-view");
   const startingUrl = page.url();
+  await settledScrollY(page);
   await page.mouse.move(400, 500);
   await page.mouse.wheel(0, 650);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
-  const lowerPosition = await page.evaluate(() => window.scrollY);
+  const lowerPosition = await settledScrollY(page);
   await page.mouse.wheel(0, -350);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(lowerPosition);
-  const beforePageDown = await page.evaluate(() => window.scrollY);
+  const beforePageDown = await settledScrollY(page);
   await page.keyboard.press("PageDown");
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(beforePageDown);
   expect(page.url()).toBe(startingUrl);
-  const beforePageUp = await page.evaluate(() => window.scrollY);
+  const beforePageUp = await settledScrollY(page);
   await page.keyboard.press("PageUp");
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(beforePageUp);
 });

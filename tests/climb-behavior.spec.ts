@@ -4,6 +4,7 @@ import type { Page } from "@playwright/test";
 import { journeyStops } from "../content/journey";
 import { readClimbProgress } from "../components/climb/progress";
 import { colorCss, weather } from "../components/climb/weather";
+import { settledScrollY } from "./helpers/native-scroll";
 
 async function scrollToStop(page: Page, index: number) {
   await page.locator("#climb").evaluate((element, stop) => {
@@ -79,16 +80,17 @@ test("wheel and page keys remain native, reversible, and leave the URL unchanged
   await page.goto("./");
   await expect(page.locator("#climb")).toBeVisible();
   const url = page.url();
+  await settledScrollY(page);
   await page.mouse.move(1100, 500);
   await page.mouse.wheel(0, 800);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
-  const lower = await page.evaluate(() => window.scrollY);
+  const lower = await settledScrollY(page);
   await page.mouse.wheel(0, -400);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(lower);
-  const before = await page.evaluate(() => window.scrollY);
+  const before = await settledScrollY(page);
   await page.keyboard.press("PageDown");
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
-  const after = await page.evaluate(() => window.scrollY);
+  const after = await settledScrollY(page);
   await page.keyboard.press("PageUp");
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(after);
   expect(page.url()).toBe(url);
