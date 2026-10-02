@@ -2,6 +2,8 @@
 
 An Editorial Alpine portfolio that presents Diego Martinez's work as a Mountain Journey. The application is a statically exported Next.js site designed for GitHub Pages, with semantic HTML as the durable experience and progressive visual layers added over time.
 
+The homepage's SVG ridges and connected Waypoint trail remain available without JavaScript or WebGL. A Route Indicator tracks the current section and named narrative elevation from ordinary document scrolling; its landmark links remain usable before enhancement. One Motion scroll-progress signal drives section tracking and is available to future Atmospheric Layer consumers without frame-by-frame React renders. Reduced-motion preferences retain the static journey.
+
 ## Development
 
 Use Node.js 22 or newer.
@@ -22,6 +24,8 @@ npm test
 ```
 
 Playwright tests exercise the public browser boundary against the production static export rather than component internals.
+
+The Ascent suite includes desktop and mobile visual snapshots, native scrolling, direct section links, keyboard operation, and WCAG 2.2 AA checks. Screenshot baselines are platform-specific (`darwin` locally and `linux` in Ubuntu 24.04 CI) and retain a 1% difference allowance. To intentionally refresh visual baselines, run `npm test -- --update-snapshots` on the matching platform and inspect the PNGs in `tests/ascent.spec.ts-snapshots/` before committing them. Failed CI runs upload screenshots and traces as the `playwright-evidence` artifact.
 
 ## Deployment
 

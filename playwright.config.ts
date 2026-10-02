@@ -11,6 +11,10 @@ const testBaseUrl = `${testOrigin}${testSite.basePath}/`;
 
 export default defineConfig({
   testDir: "./tests",
+  snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}-{projectName}-{platform}{ext}",
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
+  },
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
