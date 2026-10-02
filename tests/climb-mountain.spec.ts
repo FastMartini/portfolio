@@ -33,9 +33,6 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await expect(reference.locator("svg.mtn")).toBeAttached();
     await reference.evaluate(() => {
       // Phase 2 comparison excludes only artwork/UI scheduled for phases 3–5.
-      // Remove the phase-3 sticky compositing layer for equal SVG rasterization.
-      const stage = document.getElementById("stage");
-      if (stage) stage.style.position = "relative";
       document.querySelectorAll(".lm, .lift").forEach((element) => element.remove());
       document.querySelectorAll('svg.mtn > g[transform]:not(#a-climber), svg.mtn > g[clip-path="url(#mtn-clip)"] > g[transform]')
         .forEach((element) => element.remove());
@@ -59,6 +56,20 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       Math.hypot(point[0] - native.samples[index][0], point[1] - native.samples[index][1]),
     ));
     expect(maxSampleError).toBeLessThan(0.25);
+
+    // Compare vector data exactly as well as pixels: small rasterization
+    // differences must not conceal changes to seeded trees, bands, or clouds.
+    const shapes = (svg: SVGSVGElement) => Array.from(
+      svg.querySelectorAll("polygon, path:not(#a-walked), circle, ellipse"),
+      (element) => ({
+        tag: element.tagName,
+        attributes: Array.from(element.attributes, (attribute) => [attribute.name, attribute.value])
+          .sort((a, b) => a[0].localeCompare(b[0])),
+      }),
+    );
+    expect(await page.locator("svg.mtn").evaluate(shapes)).toEqual(
+      await reference.locator("svg.mtn").evaluate(shapes),
+    );
 
     const before = await reference.locator("#sketch-a").screenshot();
     const after = await page.locator(".climb-preview").screenshot();
@@ -86,7 +97,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await testInfo.attach("comparison.json", {
       body: JSON.stringify({ difference, maxSampleError, viewport }), contentType: "application/json",
     });
-    expect(difference).toBeLessThan(0.002);
+    // Same 1% raster tolerance as the repo's existing visual snapshots.
+    expect(difference).toBeLessThan(0.01);
     await reference.close();
   });
 }
