@@ -83,14 +83,16 @@ test("portfolio remains complete without client-side JavaScript", async ({
   await context.close();
 });
 
-test("keyboard visitor can enter the Mountain Journey", async ({ page }) => {
-  await page.goto("./#list-view");
+test("keyboard visitor can enter the full text from the Climb", async ({ page }) => {
+  await page.goto("./");
+  await expect(page.locator("#climb")).toBeVisible();
 
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
+  await expect(page.getByRole("link", { name: "Skip to full text" })).toBeFocused();
   await page.keyboard.press("Enter");
 
-  await expect(page).toHaveURL(/#main-content$/);
+  await expect(page).toHaveURL(/#list-view$/);
+  await expect(page.locator("#list-view")).toBeFocused();
 });
 
 test("Editorial Alpine foundation uses the approved visual tokens", async ({ page }) => {
@@ -116,7 +118,7 @@ test("mobile visitor receives a stable, readable layout", async ({ page }) => {
   await page.goto("./#list-view");
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByText("Diego Martinez", { exact: true })).toBeVisible();
+  await expect(page.getByRole("banner").getByText("Diego Martinez", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Contact", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Email Diego" })).toBeVisible();
 

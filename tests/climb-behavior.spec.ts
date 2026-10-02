@@ -148,6 +148,11 @@ for (const width of [390, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("./");
     await expect(page.locator("#climb")).toBeVisible();
+    for (let index = 2; index <= 7; index++) {
+      await scrollToStop(page, index);
+      await expect(page.locator(".climb-sign-name")).toHaveText(journeyStops[index].label);
+      await expect(page.getByRole("link", { name: "Open Waypoint" })).toBeInViewport();
+    }
     for (const index of [0, 1, 8, 9]) {
       await scrollToStop(page, index);
       const card = page.locator(`[data-card="${index}"]`);
@@ -156,10 +161,14 @@ for (const width of [390, 1440]) {
     }
     const sky = await page.locator(".climb-stage").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"));
     await page.emulateMedia({ colorScheme: "dark" });
-    await expect(page.locator('[data-card="9"]')).toHaveCSS("background-color", "rgb(35, 48, 39)");
+    await expect(page.locator('[data-card="9"]')).toHaveCSS("background-color", "rgb(37, 47, 41)");
     expect(await page.locator(".climb-stage").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"))).toBe(sky);
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+    await page.getByRole("button", { name: "List view", exact: true }).click();
+    await expect(page.locator(".climb-list")).toHaveCSS("background-color", "rgb(26, 33, 29)");
+    await page.locator("#momentumx").evaluate((element) => element.scrollIntoView());
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
   });
 }
 

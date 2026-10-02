@@ -123,7 +123,7 @@ export function Climb({ children, mountain, cards }: { children: ReactNode; moun
           <a className="wordmark" href="#climb" aria-label="Diego Martinez, trailhead" onClick={(event) => {
             event.preventDefault();
             window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
-          }}><span className="wordmark-mark" aria-hidden="true">dm</span><span>Diego Martinez</span></a>
+          }}><span className="wordmark-mark" aria-hidden="true">DM</span><span>Diego Martinez</span></a>
         </header>
         <main className="climb" id="climb" ref={root} onClick={navigate}>
           <div className="climb-stage" ref={stage}>
