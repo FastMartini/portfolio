@@ -26,6 +26,11 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.goto("./climb-preview/");
     await expect(page.locator(".climb-mountain")).toHaveAttribute("data-ready", "true");
     await page.locator(".climb-preview-caption").evaluate((element) => element.remove());
+    await page.evaluate(() => {
+      document.querySelectorAll(".lm, .lift").forEach((element) => element.remove());
+      document.querySelectorAll('svg.mtn > g[transform]:not(#a-climber), svg.mtn > g[clip-path="url(#mtn-clip)"] > g[transform]')
+        .forEach((element) => element.remove());
+    });
 
     const reference = await browser.newPage({ viewport, reducedMotion: "reduce" });
     await reference.route("https://fonts.googleapis.com/**", (route) => route.abort());

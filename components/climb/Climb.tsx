@@ -5,6 +5,7 @@ import type { MouseEvent, ReactNode } from "react";
 import { journeyStops } from "../../content/journey";
 import { createHudRenderer } from "./hud";
 import { createMountainRenderer } from "./mountain/render";
+import { observeMountainMotion } from "./mountain/motion";
 import { Snow } from "./Snow";
 import type { SnowController } from "./Snow";
 import { TrailRail } from "./TrailRail";
@@ -58,6 +59,11 @@ export function Climb({ children, mountain, cards }: { children: ReactNode; moun
     renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element) };
     return () => { renderers.current = null; };
   }, [enhanced]);
+
+  useEffect(() => {
+    const art = stage.current?.querySelector<HTMLElement>(".climb-mountain");
+    if (art) return observeMountainMotion(art, !listMode);
+  }, [enhanced, listMode]);
 
   useEffect(() => {
     activeClimb.current = enhanced && !listMode;

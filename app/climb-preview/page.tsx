@@ -12,7 +12,7 @@ export default function ClimbPreview() {
       <Mountain trailPosition={0} />
       <div className="climb-preview-caption">
         <h1>Static mountain preview</h1>
-        <p>Phase 2 · Trailhead. Geometry and seeded scenery only; Landmarks and animations follow in phase 4.</p>
+        <p>Trailhead · Deterministic mountain artwork and animated Landmarks.</p>
         <Link href="/">Back to the portfolio</Link>
       </div>
     </main>
