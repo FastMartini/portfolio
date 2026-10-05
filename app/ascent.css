@@ -65,6 +65,9 @@
 }
 .waypoint-marker:is(:hover, :focus-visible, [aria-current="location"]) { background: var(--pine); border-color: var(--pine); color: var(--cream); }
 .mountain-journey .waypoint-story h3 { font-size: clamp(2.15rem, 4.4vw, 4.25rem); overflow-wrap: anywhere; }
+@media (min-width: 901px) {
+  .site-header:not(.site-header--case-study) { padding-block: 1.25rem; }
+}
 @media (max-width: 900px) {
   .site-header:not(.site-header--case-study) nav a:not(:last-child) { display: inline; }
   .site-header:not(.site-header--case-study) { align-items: flex-start; flex-direction: column; gap: 1rem; padding-bottom: 1rem; }
