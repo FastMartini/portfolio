@@ -148,7 +148,25 @@ test("snow starts at altitude, clears on live reduced-motion changes, and stops 
 });
 
 for (const width of [390, 1440]) {
-  test(`Climb cards are accessible and fit at ${width}px, with daytime scenery in either theme`, async ({ page }) => {
+  for (const index of [0, 1, 8, 9]) {
+    test(`${journeyStops[index].label} card is accessible at ${width}px in either theme`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 844 });
+      await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
+      await page.goto("./");
+      await expect(page.locator("#climb")).toBeVisible();
+      await scrollToStop(page, index);
+      const card = page.locator(`[data-card="${index}"]`);
+      await expect(card).toBeInViewport();
+      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+      const sky = await page.locator(".climb-stage").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"));
+      await page.emulateMedia({ colorScheme: "dark" });
+      await expect(card).toHaveCSS("background-color", "rgb(37, 47, 41)");
+      expect(await page.locator(".climb-stage").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"))).toBe(sky);
+      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+    });
+  }
+  test(`every Waypoint Trail Sign and action fit at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("./");
@@ -158,18 +176,13 @@ for (const width of [390, 1440]) {
       await expect(page.locator(".climb-sign-name")).toHaveText(journeyStops[index].label);
       await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toBeInViewport();
     }
-    for (const index of [0, 1, 8, 9]) {
-      await scrollToStop(page, index);
-      const card = page.locator(`[data-card="${index}"]`);
-      await expect(card).toBeInViewport();
-      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
-    }
-    const sky = await page.locator(".climb-stage").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"));
-    await page.emulateMedia({ colorScheme: "dark" });
-    await expect(page.locator('[data-card="9"]')).toHaveCSS("background-color", "rgb(37, 47, 41)");
-    expect(await page.locator(".climb-stage").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"))).toBe(sky);
-    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+  });
+  test(`dark List View is accessible at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "dark" });
+    await page.goto("./");
+    await expect(page.locator("#climb")).toBeVisible();
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await expect(page.locator(".climb-list")).toHaveCSS("background-color", "rgb(26, 33, 29)");
     await page.locator("#momentumx").evaluate((element) => element.scrollIntoView());
