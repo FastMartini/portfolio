@@ -39,6 +39,6 @@ export function chairlift(parts: Parts, A: Point, B: Point, scale: number) {
     lift += "<g>" + line("M0 0 v20 h-12 m12 0 h3 v-8", WIN, 1.6) + shape("M-13 19 h17 v4 h-17 Z", ROOF) +
       '<animateMotion dur="' + chairDur + 's" begin="' + begin + '" repeatCount="indefinite" path="' + loopPath + '"/></g>';
   }
-  
+
   return lift;
 }

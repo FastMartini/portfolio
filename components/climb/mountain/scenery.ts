@@ -36,7 +36,7 @@ function far(base: number, amplitude: number, seed: number, fill: string) {
   const points: Point[] = [[-50, 600]];
   for (let x = -50; x <= 1650; x += 70 + random() * 90) points.push([x, base - random() * amplitude]);
   points.push([1650, 600]);
-  return `<svg class="far" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice"><polygon points="${polygon(points)}" fill="${fill}" opacity="0.55"/></svg>`;
+  return `<svg class="far" aria-hidden="true" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice"><polygon points="${polygon(points)}" fill="${fill}" opacity="0.55"/></svg>`;
 }
 
 function inClearing(x: number, y: number) {
@@ -58,7 +58,7 @@ export function buildScenery() {
     return points;
   }
   function pine(x: number, y: number, size: number) {
-    return `<path d="M${x.toFixed(0)} ${(y - size * 2.1).toFixed(0)}l${(-size * 0.65).toFixed(1)} ${(size * 2.1).toFixed(1)}h${(size * 1.3).toFixed(1)}Z" fill="${random() > 0.5 ? "#203a2e" : "#2c4b39"}"/>`;
+    return `<path aria-hidden="true" d="M${x.toFixed(0)} ${(y - size * 2.1).toFixed(0)}l${(-size * 0.65).toFixed(1)} ${(size * 2.1).toFixed(1)}h${(size * 1.3).toFixed(1)}Z" fill="${random() > 0.5 ? "#203a2e" : "#2c4b39"}"/>`;
   }
   const snowEdge = jag(1320, 150, 38);
   const snow = [...snowEdge, [WORLD_WIDTH + 1210, -10], [-1010, -10]] as Point[];
@@ -139,7 +139,7 @@ export function buildScenery() {
       `<g fill="none" stroke="#fffbed" stroke-width="1.2" opacity="0.28">${contours}</g>`,
     trees,
     shade: `<polygon points="${shade}" fill="#1f2621" opacity="0.16" pointer-events="none"/>`,
-    edgeTrees: edgeTrees.sort((a, b) => a.groundY - b.groundY).map((tree) => tree.markup).join(""),
+    edgeTrees: paintDepth(edgeTrees),
     hillTrees,
     cloudsFront: `<g filter="url(#soft)" opacity="0.92">${cloudsFront}</g>`,
   };

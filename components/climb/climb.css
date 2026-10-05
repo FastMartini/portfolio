@@ -47,12 +47,13 @@
 .climb-marker:focus-visible .climb-marker-pin { outline: 3px solid #8b4428; outline-offset: 3px; }
 .climb-mountain .lm { cursor: pointer; transition: filter 200ms ease; }
 .climb-mountain .lm.is-hot { filter: drop-shadow(0 0 10px rgba(181,101,59,0.9)) brightness(1.06); }
+.climb-mountain .lm:focus-visible { outline: 3px solid #8b4428; outline-offset: 4px; }
 .climb-panel {
   --parchment: var(--climb-bg); --parchment-deep: var(--climb-surface); --ink: var(--climb-text);
   --copper-text: var(--climb-accent); --line: var(--climb-line);
   background: var(--climb-bg); border: 0; border-left: 1px solid var(--climb-line); bottom: 0; box-shadow: -24px 0 60px -40px rgba(0,0,0,0.6);
   color: var(--climb-text); flex-direction: column; height: 100svh; left: auto; margin: 0; max-height: none; max-width: 100%;
-  overflow: hidden; padding: 4.5rem 0 0; position: fixed; right: 0; top: 0; width: min(34rem, 100%);
+  overflow: hidden; padding: 4.5rem 0 0; position: fixed; right: 0; top: 0; width: min(34rem, 100%); z-index: 50;
 }
 .climb-panel[open] { display: flex; }
 .climb-panel::backdrop { background: transparent; }

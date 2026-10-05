@@ -30,7 +30,7 @@ test("each marker and its Landmark open canonical Waypoint content and return fo
     await page.keyboard.press("Escape");
     await expect(panel).toBeHidden();
     await expect(marker).toBeFocused();
-    const hit = await page.locator(`.lm[data-stop="${index}"] > ellipse[fill="transparent"]`).evaluate((element) => {
+    const hit = await page.locator(`.lm[data-stop="${index}"] ellipse[fill="transparent"]`).evaluate((element) => {
       const box = element.getBoundingClientRect(); return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
     });
     await page.mouse.click(hit.x, hit.y);

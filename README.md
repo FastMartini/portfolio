@@ -2,7 +2,7 @@
 
 An Editorial Alpine portfolio presenting Diego Martinez's work as a Mountain Journey. The application is a statically exported Next.js site for GitHub Pages.
 
-The homepage defaults to the illustrated Climb after client enhancement: ordinary scrolling follows a switchback trail through ten stops, with altitude weather, six hand-drawn Landmarks, projected Waypoint markers, a Trail Sign, and a bottom-to-top Trail Rail. The Waypoint Panel is a desktop side panel or mobile bottom sheet; Escape/Close returns focus to the originating marker. Three published MDX Case Studies open inside the panel with a Summary action.
+The homepage defaults to the illustrated Climb after client enhancement: ordinary scrolling follows a switchback trail through ten stops, with altitude weather, six hand-drawn Landmarks, projected Waypoint markers, a Trail Sign, and a bottom-to-top Trail Rail. Both visible Landmarks and markers support keyboard activation; offscreen controls leave the tab order. The Waypoint Panel is a nonmodal desktop side panel or mobile bottom sheet, keeping the header's List View toggle usable. Escape/Close restores the opening stop when necessary and returns focus to the originating marker. Three published MDX Case Studies open inside the panel with a Summary action; their components and content slots are keyed by canonical Waypoint slug.
 
 The complete server-rendered List View is visible without JavaScript and remains reachable through the view toggle or any hash targeting its content. Case Studies such as `#case-veritas` open with CSS `:target` even without script; standalone `/work/*/` routes remain available. Waypoint metadata comes from `content/waypoints.ts`, and Case Study prose stays in `app/work/*/page.mdx`.
 
@@ -27,7 +27,7 @@ npm run lint
 npm test
 ```
 
-Playwright exercises the production browser boundary: all ten stops and dwell, native wheel/page-key scrolling, keyboard markers, Landmark hover/click, Waypoint Panel content and focus return, embedded and standalone Case Studies, arbitrary List View hashes, no-JavaScript content, live reduced motion, responsive layout, and WCAG 2.2 AA in light/dark themes. Reference tests compare seeded scenery, all six Landmark builders, and every generated flag keyframe against the approved handoff.
+Playwright exercises the production browser boundary: all ten stops and dwell, native wheel/page-key scrolling, keyboard markers and Landmarks, Landmark hover/click, panel-open List View transitions, Waypoint Panel content and focus return after scrolling, embedded and standalone Case Studies, arbitrary List View hashes, no-JavaScript content, live reduced motion, responsive layout, and WCAG 2.2 AA in light/dark themes. Source-integrity and pure-builder tests also check exact stop positions and determinism; reference comparisons check seeded scenery, all six Landmark builders, and every generated flag keyframe against the approved handoff.
 
 Visual baselines are platform-specific (`darwin` locally, `linux` in Ubuntu 24.04 CI), with a 1% difference allowance. The Climb snapshots cover Trailhead, Waypoint 03, Waypoint 06, and Summit at 1440px and 390px; the durable List View keeps its own snapshots.
 

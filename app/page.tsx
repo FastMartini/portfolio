@@ -21,7 +21,8 @@ const homeNavigation = [
 export default function Home() {
   return (
     <Climb mountain={<MountainArt />} cards={<StopCards />}
-      summaries={waypoints.map((waypoint) => <WaypointContent key={waypoint.slug} waypoint={waypoint} titleId={`panel-${waypoint.slug}-title`} />)}
+      summaries={Object.fromEntries(waypoints.map((waypoint) => [waypoint.slug,
+        <WaypointContent key={waypoint.slug} waypoint={waypoint} titleId={`panel-${waypoint.slug}-title`} />]))}
       cases={caseStudySlots("panel-case-")}>
       <SkipLink href="#main-content" label="Skip to content" />
       <PortfolioHeader

@@ -1,7 +1,7 @@
 import { WORLD_WIDTH } from "../geometry";
 
 export function trailheadSign() {
-  return '<g transform="translate(' + (WORLD_WIDTH * 0.3 - 70) + ' 3152) scale(1.35)">' +
+  return '<g aria-hidden="true" transform="translate(' + (WORLD_WIDTH * 0.3 - 70) + ' 3152) scale(1.35)">' +
         '<ellipse cx="6" cy="1" rx="44" ry="5" fill="#1f2621" opacity="0.22" filter="url(#lm-blur)"/>' +
         '<rect x="-33" y="-64" width="7" height="64" rx="2" fill="#5a3d28"/><rect x="-28.5" y="-64" width="2.5" height="64" fill="#3f2b1d"/>' +
         '<rect x="26" y="-64" width="7" height="64" rx="2" fill="#5a3d28"/><rect x="30.5" y="-64" width="2.5" height="64" fill="#3f2b1d"/>' +

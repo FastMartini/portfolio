@@ -68,7 +68,10 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       svg.querySelectorAll("polygon, path:not(#a-walked), circle, ellipse"),
       (element) => ({
         tag: element.tagName,
-        attributes: Array.from(element.attributes, (attribute) => [attribute.name, attribute.value])
+        // Accessibility metadata can differ; every vector/paint attribute
+        // must still match the approved artwork exactly.
+        attributes: Array.from(element.attributes).filter((attribute) => attribute.name !== "aria-hidden")
+          .map((attribute) => [attribute.name, attribute.value])
           .sort((a, b) => a[0].localeCompare(b[0])),
       }),
     );

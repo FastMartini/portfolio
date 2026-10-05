@@ -10,6 +10,7 @@ export function setLandmarkHot(stage: HTMLElement, stop: number, hot: boolean) {
 
 export function createMarkerRenderer(stage: HTMLElement) {
   const markers = Array.from(stage.querySelectorAll<HTMLButtonElement>("[data-marker]"));
+  const landmarks = markers.map((marker) => stage.querySelector<SVGGElement>(`.lm[data-stop="${marker.dataset.marker}"]`));
   return ({ position, nearest, u }: ClimbFrame) => {
     const view = mountainView(position, stage.clientWidth, stage.clientHeight);
     markers.forEach((marker, index) => {
@@ -22,6 +23,13 @@ export function createMarkerRenderer(stage: HTMLElement) {
       marker.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
       marker.dataset.current = String(stop === nearest && Math.abs(u - nearest) < 0.3);
       marker.dataset.visited = String(journeyStops[stop].trailPosition <= position + 0.005);
+      // Share the projected viewport contract: decorative/offscreen artwork
+      // stays rendered but is excluded from focus and the accessibility tree.
+      const landmark = landmarks[index];
+      if (landmark) {
+        landmark.tabIndex = visible ? 0 : -1;
+        landmark.setAttribute("aria-hidden", String(!visible));
+      }
     });
   };
 }

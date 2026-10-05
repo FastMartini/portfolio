@@ -17,7 +17,7 @@ export function Mountain({ trailPosition = 0 }: { trailPosition?: number }) {
 
 export function MountainArt() {
   return (
-    <div className="climb-mountain" aria-hidden="true">
+    <div className="climb-mountain">
       <div className="climb-mountain-art" dangerouslySetInnerHTML={{ __html: markup }} />
     </div>
   );

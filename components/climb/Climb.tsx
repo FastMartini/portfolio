@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { MouseEvent, ReactNode, PointerEvent, FocusEvent } from "react";
+import type { MouseEvent, ReactNode, PointerEvent, FocusEvent, KeyboardEvent } from "react";
 import { journeyStops } from "../../content/journey";
 import { createHudRenderer } from "./hud";
 import { createMountainRenderer } from "./mountain/render";
@@ -28,7 +28,7 @@ function listTarget() {
 }
 
 export function Climb({ children, mountain, cards, summaries, cases }: {
-  children: ReactNode; mountain: ReactNode; cards: ReactNode; summaries: ReactNode[]; cases: ReactNode[];
+  children: ReactNode; mountain: ReactNode; cards: ReactNode; summaries: Record<string, ReactNode>; cases: Record<string, ReactNode>;
 }) {
   // The complete server-rendered List View is visible until enhancement succeeds.
   const [enhanced, setEnhanced] = useState(false);
@@ -42,6 +42,24 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
   const lastClimbScroll = useRef(0);
   const activeClimb = useRef(false);
   const returnMarker = useRef<HTMLButtonElement | null>(null);
+  const pendingFocus = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    stage.current?.querySelectorAll(".lm[data-stop]").forEach((landmark) =>
+      landmark.setAttribute("aria-expanded", String(Number(landmark.getAttribute("data-stop")) === selection?.stop)));
+    if (selection || !pendingFocus.current) return;
+    const marker = pendingFocus.current;
+    if (marker.hidden && root.current) {
+      const element = root.current;
+      const top = element.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: top + Number(marker.dataset.marker) / (journeyStops.length - 1) * (element.offsetHeight - innerHeight), behavior: "instant" });
+      // The frame renderer returns focus once the projected marker is visible,
+      // including when normal-motion camera interpolation takes several frames.
+    } else {
+      marker.focus({ preventScroll: true });
+      pendingFocus.current = null;
+    }
+  }, [selection]);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => {
@@ -56,6 +74,7 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
       }
       setListMode(true);
       setSelection(null);
+      pendingFocus.current = null;
     }
     window.addEventListener("hashchange", hashChange);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("hashchange", hashChange); };
@@ -105,11 +124,16 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
     renderers.current?.mountain(frame.position);
     renderers.current?.hud(frame);
     renderers.current?.markers(frame);
+    if (pendingFocus.current && !pendingFocus.current.hidden) {
+      pendingFocus.current.focus({ preventScroll: true });
+      pendingFocus.current = null;
+    }
     snow.current?.setWeather(sky.snow, frame.reducedMotion);
   }, []);
   useClimbProgress(root, enhanced && !listMode, render);
 
   function toggleView() {
+    pendingFocus.current = null;
     setSelection(null);
     if (listMode) {
       history.replaceState(null, "", location.pathname + location.search);
@@ -122,14 +146,25 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
     }
   }
 
+  function openWaypoint(stop: number) {
+    if (!Number.isInteger(stop) || stop < 2 || stop > 7 || !stage.current) return;
+    pendingFocus.current = null;
+    returnMarker.current = stage.current.querySelector<HTMLButtonElement>(`[data-marker="${stop}"]`);
+    setSelection({ stop, caseStudy: false });
+  }
+
+  function activateLandmark(event: KeyboardEvent<HTMLElement>) {
+    const landmark = (event.target as Element).closest<SVGGElement>(".lm[data-stop]");
+    if (!landmark || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    if (!event.repeat) openWaypoint(Number(landmark.dataset.stop));
+  }
+
   function navigate(event: MouseEvent<HTMLElement>) {
     const target = (event.target as Element).closest<HTMLElement>("[data-marker], .lm[data-stop], [data-open-stop]");
     if (target && stage.current) {
       const stop = Number(target.dataset.marker ?? target.dataset.stop ?? target.dataset.openStop);
-      if (stop >= 2 && stop <= 7) {
-        returnMarker.current = stage.current.querySelector<HTMLButtonElement>(`[data-marker="${stop}"]`);
-        setSelection({ stop, caseStudy: false });
-      }
+      openWaypoint(stop);
       return;
     }
     const button = (event.target as Element).closest<HTMLButtonElement>("button[data-goto]");
@@ -147,17 +182,14 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
     if (related instanceof Node && target.contains(related)) return;
     const stop = Number(target.dataset.marker ?? target.dataset.stop);
     const marker = stage.current.querySelector<HTMLButtonElement>(`[data-marker="${stop}"]`);
-    // Pointer exit must not clear a marker that still owns keyboard focus.
-    setLandmarkHot(stage.current, stop, hot || marker === document.activeElement);
+    const landmark = stage.current.querySelector(`.lm[data-stop="${stop}"]`);
+    // Pointer exit must not clear either control while it owns keyboard focus.
+    setLandmarkHot(stage.current, stop, hot || marker === document.activeElement || landmark === document.activeElement);
   }
 
   function closePanel() {
+    pendingFocus.current = returnMarker.current;
     setSelection(null);
-    requestAnimationFrame(() => {
-      const marker = returnMarker.current;
-      if (marker && !marker.hidden) marker.focus({ preventScroll: true });
-      else stage.current?.querySelector<HTMLButtonElement>(".climb-sign-open:not([hidden])")?.focus({ preventScroll: true });
-    });
   }
 
   return (
@@ -171,7 +203,7 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
             window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
           }}><span className="wordmark-mark" aria-hidden="true">DM</span><span>Diego Martinez</span></a>
         </header>
-        <main className="climb" id="climb" ref={root} onClick={navigate}>
+        <main className="climb" id="climb" ref={root} onClick={navigate} onKeyDown={activateLandmark}>
           <div className="climb-stage" ref={stage} data-panel-open={selection !== null}
             onPointerOver={(event) => highlight(event, true)} onPointerOut={(event) => highlight(event, false)}
             onFocus={(event) => highlight(event, true)} onBlur={(event) => highlight(event, false)}>

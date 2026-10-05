@@ -84,8 +84,7 @@ export function createParts() {
     }
     return out;
   }
-  
-  
+
   return { line, shape, rect, shadow, pulseOpacity, warmWin, smoke, bullwheel, roof, masonry };
 }
 export type Parts = ReturnType<typeof createParts>;
