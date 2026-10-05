@@ -2,43 +2,40 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { settledScrollY } from "./helpers/native-scroll";
 
-test("conventional navigation reaches sections and updates the List View sections on mobile", async ({ page }) => {
+test("conventional navigation reaches sections and keeps Climb view in the mobile header", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#list-view");
   const navigation = page.getByRole("navigation", { name: "Primary navigation" });
-  const route = page.getByRole("navigation", { name: "List View sections" });
+  await expect(navigation.getByRole("button", { name: "Climb view" })).toBeInViewport();
+  await expect(page.locator(".route-indicator")).toHaveCount(0);
 
-  for (const [label, id, location] of [
-    ["About", "about", "About"],
-    ["Work", "work", "Selected Work"],
-    ["Beyond Work", "beyond-work", "Beyond Work"],
-    ["Contact", "summit", "Contact"],
+  for (const [label, id] of [
+    ["About", "about"],
+    ["Work", "work"],
+    ["Beyond Work", "beyond-work"],
+    ["Contact", "summit"],
   ]) {
     const link = navigation.getByRole("link", { name: label, exact: true });
     await expect(link).toBeInViewport();
     await link.click();
     await expect(page).toHaveURL(new RegExp(`#${id}$`));
     await expect(link).toHaveAttribute("aria-current", "location");
-    await expect(route.getByRole("link", { name: `Go to ${location}`, exact: true })).toHaveAttribute("aria-current", "location");
+    await expect(navigation.getByRole("button", { name: "Climb view" })).toBeInViewport();
     await expect(page.locator(`#${id}`)).toBeInViewport();
   }
 });
 
-test("Trailhead actions reach MomentumX and the Summit with named elevations", async ({ page }) => {
+test("Trailhead actions reach MomentumX and the Summit without the removed orientation widget", async ({ page }) => {
   await page.goto("./#list-view");
-  const location = page.getByRole("complementary", { name: "Mountain Journey location" });
-  await expect(location).toContainText("Starting ground");
+  await expect(page.getByRole("complementary", { name: "Mountain Journey location" })).toHaveCount(0);
   await page.getByRole("link", { name: "View selected work" }).click();
   await expect(page).toHaveURL(/#momentumx$/);
-  await expect(location).toContainText("MomentumX");
-  await expect(location).toContainText("ElevationFirst ridge");
   await expect(page.getByRole("link", { name: "Go to Waypoint 01: MomentumX" })).toHaveAttribute("aria-current", "location");
 
-  await page.getByRole("navigation", { name: "List View sections" })
-    .getByRole("link", { name: "Go to Trailhead", exact: true }).click();
+  await page.getByRole("link", { name: "Diego Martinez, home", exact: true }).click();
   await page.getByRole("link", { name: "Contact me" }).click();
   await expect(page).toHaveURL(/#summit$/);
-  await expect(location).toContainText("Summit · Looking ahead");
+  await expect(page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Contact", exact: true })).toHaveAttribute("aria-current", "location");
   await expect(page.getByRole("progressbar")).toHaveCount(0);
 });
 
@@ -62,20 +59,14 @@ test("ordinary wheel and keyboard scrolling moves down and back up without chang
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(beforePageUp);
 });
 
-test("List View sections follows manual scrolling, deep links, and viewport changes", async ({ page }) => {
+test("Waypoint markers follow manual scrolling, deep links, and viewport changes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./#veritas");
-  const route = page.getByRole("navigation", { name: "List View sections" });
-  await expect(route.getByRole("link", { name: "Go to Veritas", exact: true })).toHaveAttribute("aria-current", "location");
-  for (const [id, label] of [
-    ["membership-inference-attack", "Membership Inference Attack Study"],
-    ["high-momentum-scanner", "High-Momentum Scanner"],
-    ["medvoyage", "MedVoyage"],
-    ["hari", "HaRi"],
-  ]) {
+  await expect(page.locator('[data-waypoint-marker][href="#veritas"]')).toHaveAttribute("aria-current", "location");
+  for (const id of ["membership-inference-attack", "high-momentum-scanner", "medvoyage", "hari"]) {
     await page.locator(`#${id}`).evaluate((element) => element.scrollIntoView());
-    await expect(route.getByRole("link", { name: `Go to ${label}`, exact: true })).toHaveAttribute("aria-current", "location");
-    await expect(route.locator('[aria-current="location"]')).toHaveCount(1);
+    await expect(page.locator(`[data-waypoint-marker][href="#${id}"]`)).toHaveAttribute("aria-current", "location");
+    await expect(page.locator('[data-waypoint-marker][aria-current="location"]')).toHaveCount(1);
   }
   await page.setViewportSize({ width: 390, height: 844 });
   // Let the responsive layout paint before navigating to its new anchor positions.
@@ -86,11 +77,26 @@ test("List View sections follows manual scrolling, deep links, and viewport chan
     await document.fonts.ready;
   });
   await page.locator("#hari").evaluate((element) => element.scrollIntoView());
-  await expect(route.getByRole("link", { name: "Go to HaRi", exact: true })).toHaveAttribute("aria-current", "location");
-  await route.getByRole("link", { name: "Go to HaRi", exact: true }).click();
+  const hari = page.locator('[data-waypoint-marker][href="#hari"]');
+  await expect(hari).toHaveAttribute("aria-current", "location");
+  await hari.click();
   await expect(page).toHaveURL(/#hari$/);
   await page.reload();
-  await expect(route.getByRole("link", { name: "Go to HaRi", exact: true })).toHaveAttribute("aria-current", "location");
+  await expect(hari).toHaveAttribute("aria-current", "location");
+});
+
+test("the navigation view toggle is keyboard reachable and switches both ways", async ({ page }) => {
+  await page.goto("./#list-view");
+  const navigation = page.getByRole("navigation", { name: "Primary navigation" });
+  await navigation.getByRole("link", { name: "Contact", exact: true }).focus();
+  await page.keyboard.press("Tab");
+  const toggle = navigation.getByRole("button", { name: "Climb view" });
+  await expect(toggle).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".climb")).toBeVisible();
+  await page.getByRole("button", { name: "List view", exact: true }).click();
+  await expect(toggle).toBeVisible();
+  await expect(page.locator("#list-view")).toBeFocused();
 });
 
 test("Waypoint markers provide keyboard navigation and visible focus", async ({ page }) => {
@@ -121,7 +127,14 @@ for (const width of [320, 390, 768, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("./#list-view");
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
-    await expect(page.getByRole("navigation", { name: "List View sections" })).toBeInViewport();
+    const header = page.locator(".site-header");
+    const toggle = header.getByRole("button", { name: "Climb view" });
+    await expect(toggle).toBeInViewport();
+    const buttonBox = await toggle.boundingBox();
+    const headerBox = await header.boundingBox();
+    expect(buttonBox!.height).toBeGreaterThanOrEqual(44);
+    expect(buttonBox!.y + buttonBox!.height).toBeLessThanOrEqual(headerBox!.y + headerBox!.height);
+    await expect(page.locator(".route-indicator")).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await page.locator("#momentumx").evaluate((element) => element.scrollIntoView());
     const results = await new AxeBuilder({ page })
@@ -140,7 +153,8 @@ test("static SVG journey and its native links remain complete without JavaScript
   await expect(page.getByRole("link", { name: /^Go to Waypoint/ })).toHaveCount(6);
   await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true }).click();
   await expect(page).toHaveURL(/#work$/);
-  await page.getByRole("navigation", { name: "List View sections" }).getByRole("link", { name: "Go to MomentumX", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Climb view" })).toHaveCount(0);
+  await page.getByRole("link", { name: "Go to Waypoint 01: MomentumX" }).click();
   await expect(page).toHaveURL(/#momentumx$/);
   await page.locator("#momentumx").getByRole("link", { name: "Read case study" }).click();
   await page.getByRole("link", { name: "Standalone Case Study" }).click();
@@ -164,10 +178,8 @@ for (const [width, id, name] of [
     await page.evaluate(() => document.fonts.ready);
     const target = page.locator(`#${id}`);
     await target.evaluate((element) => element.scrollIntoView());
-    await expect(page.getByRole("navigation", { name: "List View sections" }).locator('[aria-current="location"]')).toHaveAttribute("href", `#${id}`);
-    // Keep these legacy snapshots focused on the unchanged durable List View.
-    // The illustrated scene receives its own baselines in phase 7.
-    await page.addStyleTag({ content: ".climb-view-toggle { visibility: hidden; }" });
+    await expect(page.locator(".mountain-journey")).toHaveAttribute("data-enhanced", "true");
+    await expect(page.getByRole("navigation", { name: "Primary navigation" }).getByRole("button", { name: "Climb view" })).toBeInViewport();
     await expect(page).toHaveScreenshot(`${name}.png`, { animations: "disabled" });
   });
 }

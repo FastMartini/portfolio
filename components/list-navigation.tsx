@@ -91,31 +91,8 @@ export function ListNavigation({
   }, [current]);
 
   return (
-      <div className="mountain-journey" ref={root} data-enhanced={currentIndex !== null ? true : undefined}>
-        {children}
-        <aside className="route-indicator" aria-label="Mountain Journey location">
-          <p className="route-caption">Along the Ascent</p>
-          <nav aria-label="List View sections">
-            <ol>
-              {sections.map((section, index) => (
-                <li key={section.id}>
-                  <a
-                    href={`#${section.id}`}
-                    aria-label={`Go to ${section.label}`}
-                    aria-current={index === currentIndex ? "location" : undefined}
-                    title={section.label}
-                  >
-                    <span className="route-dot" aria-hidden="true" />
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-          <p className="route-location">
-            <span className="route-section">{current.label}</span>
-            <span className="route-elevation"><span>Elevation</span>{current.elevation}</span>
-          </p>
-        </aside>
-      </div>
+    <div className="mountain-journey" ref={root} data-enhanced={currentIndex !== null ? true : undefined}>
+      {children}
+    </div>
   );
 }

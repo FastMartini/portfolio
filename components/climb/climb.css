@@ -14,7 +14,6 @@
   cursor: pointer; font: inherit; font-size: 0.82rem; font-weight: 700; min-height: 44px;
   padding: 0.45rem 0.9rem; position: fixed; right: var(--page-padding); top: 0.85rem; z-index: 61;
 }
-.climb-view-toggle[data-list-mode="true"] { bottom: 1rem; top: auto; }
 .climb-enhancement button:focus-visible, .climb-view-toggle:focus-visible { outline: 3px solid var(--copper); outline-offset: 4px; }
 .climb-skip { z-index: 62; }
 .climb { height: 1000vh; position: relative; }
@@ -71,7 +70,6 @@
 .inline-case { display: none; }
 .inline-case:target, .inline-case:has(:target) { display: block; }
 .list-view:has(.inline-case:target, .inline-case :target) > .list-sections { display: none; }
-.mountain-journey:has(.inline-case:target, .inline-case :target) .route-indicator { display: none; }
 .inline-case-nav { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; padding: 6rem var(--page-padding) 2rem; }
 .inline-case { scroll-margin-top: 5rem; }
 .inline-cases { min-width: 0; }
@@ -141,9 +139,8 @@
   .climb-list .personal-interlude { background-image: linear-gradient(to bottom, #212a25, #1a211d); }
   .climb-list .summit, .climb-list footer { background-color: #121714; }
   .climb-list .about { background-color: #123129; }
-  .climb-list :is(.eyebrow, .section-kicker-dark, .waypoint-meta, .technology-list li, .interlude-stamp, .route-indicator) { color: #a9c7b5; }
+  .climb-list :is(.eyebrow, .section-kicker-dark, .waypoint-meta, .technology-list li, .interlude-stamp) { color: #a9c7b5; }
   .climb-list .technology-list li { border-color: rgba(236,230,210,0.3); }
-  .climb-list .route-indicator { background: #1a211d; }
   .climb-list .waypoint-marker { color: #173f35; }
   .climb-list .waypoint-marker:is(:hover, :focus-visible, [aria-current="location"]) { color: #fffbed; }
   .climb-list .button-secondary { border-color: #a9c7b5; color: #a9c7b5; }

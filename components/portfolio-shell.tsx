@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 type ShellLink = {
   href: string;
@@ -11,6 +12,7 @@ type PortfolioHeaderProps = {
   homeAriaLabel: string;
   links: readonly ShellLink[];
   navLabel: string;
+  action?: ReactNode;
   variant?: "home" | "case-study";
 };
 
@@ -28,6 +30,7 @@ export function PortfolioHeader({
   homeAriaLabel,
   links,
   navLabel,
+  action,
   variant = "home",
 }: PortfolioHeaderProps) {
   return (
@@ -48,6 +51,7 @@ export function PortfolioHeader({
             {link.label}
           </a>
         ))}
+        {action}
       </nav>
     </header>
   );

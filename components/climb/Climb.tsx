@@ -17,6 +17,7 @@ import { Markers } from "./Markers";
 import { createMarkerRenderer, setLandmarkHot } from "./marker-render";
 import { WaypointPanel } from "./WaypointPanel";
 import type { PanelSelection } from "./WaypointPanel";
+import { ViewContext, ViewToggle } from "./ViewToggle";
 
 import "./climb.css";
 
@@ -193,7 +194,7 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
   }
 
   return (
-    <>
+    <ViewContext.Provider value={{ enhanced, listMode, toggleView }}>
       <div className="climb-list" hidden={!listMode}>{children}</div>
       {enhanced && <div className="climb-enhancement" hidden={listMode}>
         <a className="skip-link climb-skip" href="#list-view">Skip to full text</a>
@@ -221,8 +222,7 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
           </div>
         </main>
       </div>}
-      <button type="button" className="climb-view-toggle" data-list-mode={listMode} hidden={!enhanced} onClick={toggleView}
-        aria-controls={listMode ? "climb" : "list-view"}>{listMode ? "Climb view" : "List view"}</button>
-    </>
+      {!listMode && <ViewToggle />}
+    </ViewContext.Provider>
   );
 }

@@ -3,6 +3,7 @@ import { ListNavigation } from "../components/list-navigation";
 import { ListView } from "../components/list-view";
 import { journeySections } from "../content/journey";
 import { Climb } from "../components/climb/Climb";
+import { ViewToggle } from "../components/climb/ViewToggle";
 import { MountainArt } from "../components/climb/Mountain";
 import { StopCards } from "../components/climb/StopCards";
 import { WaypointContent } from "../components/waypoint-content";
@@ -30,6 +31,7 @@ export default function Home() {
         homeAriaLabel="Diego Martinez, home"
         links={homeNavigation}
         navLabel="Primary navigation"
+        action={<ViewToggle />}
       />
 
       <ListNavigation sections={journeySections}>
