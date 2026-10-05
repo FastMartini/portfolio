@@ -2,11 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { settledScrollY } from "./helpers/native-scroll";
 
-test("conventional navigation reaches sections and updates the Route Indicator on mobile", async ({ page }) => {
+test("conventional navigation reaches sections and updates the List View sections on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#list-view");
   const navigation = page.getByRole("navigation", { name: "Primary navigation" });
-  const route = page.getByRole("navigation", { name: "Route Indicator" });
+  const route = page.getByRole("navigation", { name: "List View sections" });
 
   for (const [label, id, location] of [
     ["About", "about", "About"],
@@ -34,7 +34,7 @@ test("Trailhead actions reach MomentumX and the Summit with named elevations", a
   await expect(location).toContainText("ElevationFirst ridge");
   await expect(page.getByRole("link", { name: "Go to Waypoint 01: MomentumX" })).toHaveAttribute("aria-current", "location");
 
-  await page.getByRole("navigation", { name: "Route Indicator" })
+  await page.getByRole("navigation", { name: "List View sections" })
     .getByRole("link", { name: "Go to Trailhead", exact: true }).click();
   await page.getByRole("link", { name: "Contact me" }).click();
   await expect(page).toHaveURL(/#summit$/);
@@ -62,10 +62,10 @@ test("ordinary wheel and keyboard scrolling moves down and back up without chang
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(beforePageUp);
 });
 
-test("Route Indicator follows manual scrolling, deep links, and viewport changes", async ({ page }) => {
+test("List View sections follows manual scrolling, deep links, and viewport changes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./#veritas");
-  const route = page.getByRole("navigation", { name: "Route Indicator" });
+  const route = page.getByRole("navigation", { name: "List View sections" });
   await expect(route.getByRole("link", { name: "Go to Veritas", exact: true })).toHaveAttribute("aria-current", "location");
   for (const [id, label] of [
     ["membership-inference-attack", "Membership Inference Attack Study"],
@@ -121,7 +121,7 @@ for (const width of [320, 390, 768, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("./#list-view");
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
-    await expect(page.getByRole("navigation", { name: "Route Indicator" })).toBeInViewport();
+    await expect(page.getByRole("navigation", { name: "List View sections" })).toBeInViewport();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await page.locator("#momentumx").evaluate((element) => element.scrollIntoView());
     const results = await new AxeBuilder({ page })
@@ -140,7 +140,7 @@ test("static SVG journey and its native links remain complete without JavaScript
   await expect(page.getByRole("link", { name: /^Go to Waypoint/ })).toHaveCount(6);
   await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true }).click();
   await expect(page).toHaveURL(/#work$/);
-  await page.getByRole("navigation", { name: "Route Indicator" }).getByRole("link", { name: "Go to MomentumX", exact: true }).click();
+  await page.getByRole("navigation", { name: "List View sections" }).getByRole("link", { name: "Go to MomentumX", exact: true }).click();
   await expect(page).toHaveURL(/#momentumx$/);
   await page.locator("#momentumx").getByRole("link", { name: "Read case study" }).click();
   await page.getByRole("link", { name: "Standalone Case Study" }).click();
@@ -164,7 +164,7 @@ for (const [width, id, name] of [
     await page.evaluate(() => document.fonts.ready);
     const target = page.locator(`#${id}`);
     await target.evaluate((element) => element.scrollIntoView());
-    await expect(page.getByRole("navigation", { name: "Route Indicator" }).locator('[aria-current="location"]')).toHaveAttribute("href", `#${id}`);
+    await expect(page.getByRole("navigation", { name: "List View sections" }).locator('[aria-current="location"]')).toHaveAttribute("href", `#${id}`);
     // Keep these legacy snapshots focused on the unchanged durable List View.
     // The illustrated scene receives its own baselines in phase 7.
     await page.addStyleTag({ content: ".climb-view-toggle { visibility: hidden; }" });

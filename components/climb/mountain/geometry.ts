@@ -113,8 +113,8 @@ export function mountainView(position: number, width: number, height: number) {
   return { scale, x, y, point };
 }
 
-// Reserve the reference clearings now so adding the artwork in phase 4 cannot
-// change the seeded tree/cloud sequence. Dimensions are each builder's w/top.
+// Fixed reference clearings preserve the seeded tree/cloud sequence.
+// Dimensions are each Landmark builder's w/top.
 const landmarkSizes = [[50, -202], [75, -92], [92, -130], [62, -206], [60, -276], [80, -120]] as const;
 export const landmarkSites = landmarkSizes.map(([width, top], index) => {
   const stopIndex = index + 2;

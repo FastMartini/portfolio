@@ -145,7 +145,7 @@ export function buildScenery() {
   };
 }
 
-// Future Landmarks enter the same depth order, beneath shade. The chairlift
+// Landmarks enter the same depth order, beneath shade. The chairlift
 // remains separate so its cables can hang above the forest.
 export function paintDepth(trees: readonly DepthItem[], landmarks: readonly DepthItem[] = []) {
   return [...trees, ...landmarks].sort((a, b) => a.groundY - b.groundY).map((item) => item.markup).join("");

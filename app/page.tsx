@@ -1,5 +1,5 @@
 import { PortfolioHeader, SkipLink } from "../components/portfolio-shell";
-import { Ascent } from "../components/ascent";
+import { ListNavigation } from "../components/list-navigation";
 import { ListView } from "../components/list-view";
 import { journeySections } from "../content/journey";
 import { Climb } from "../components/climb/Climb";
@@ -31,11 +31,11 @@ export default function Home() {
         navLabel="Primary navigation"
       />
 
-      <Ascent sections={journeySections}>
+      <ListNavigation sections={journeySections}>
         <main id="main-content">
           <ListView />
         </main>
-      </Ascent>
+      </ListNavigation>
 
       <footer>
         <p>© {new Date().getFullYear()} Diego Martinez</p>

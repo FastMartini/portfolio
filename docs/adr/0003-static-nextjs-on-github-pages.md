@@ -1,3 +1,5 @@
 # Use statically exported Next.js on GitHub Pages
 
+The Three.js/React Three Fiber/Motion rendering choice below is superseded by [ADR 0004](./0004-illustrated-climb-replaces-threejs.md); the static-export deployment decision remains accepted.
+
 The portfolio will use the Next.js App Router with React, TypeScript, local typed metadata and MDX Case Studies, stable React Three Fiber over Three.js, Motion, and plain CSS custom properties. It will deploy to GitHub Pages as a build-time static export: semantic pages and every published Case Study are generated as HTML, the homepage Atmospheric Layer loads as an isolated client enhancement, and the site avoids runtime-only features such as Server Actions, API routes, ISR, middleware, and server image optimization. This accepts more build complexity than a basic static site in exchange for structured routes, metadata, and a clear server/client boundary while retaining free static hosting.

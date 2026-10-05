@@ -35,8 +35,8 @@ export const journeyStops: readonly JourneySection[] = [
   { id: "summit", label: "Summit", elevation: "Contact", navigation: "summit", trailPosition: 1 },
 ];
 
-// Temporary compatibility for the existing SVG Ascent until phase 3 replaces
-// its section-based Route Indicator with the ten-stop Trail Rail.
+// Full-text section navigation is separate from the ten-stop Trail Rail:
+// Selected Work is a List View heading, not an extra illustrated stop.
 export const journeySections: readonly JourneySection[] = [
   journeyStops[0],
   { ...journeyStops[1], label: "About", elevation: "Base camp" },
