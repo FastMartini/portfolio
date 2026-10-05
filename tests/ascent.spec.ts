@@ -143,6 +143,7 @@ test("static SVG journey and its native links remain complete without JavaScript
   await page.getByRole("navigation", { name: "Route Indicator" }).getByRole("link", { name: "Go to MomentumX", exact: true }).click();
   await expect(page).toHaveURL(/#momentumx$/);
   await page.locator("#momentumx").getByRole("link", { name: "Read case study" }).click();
+  await page.getByRole("link", { name: "Standalone Case Study" }).click();
   await expect(page).toHaveURL(/\/portfolio\/work\/momentumx\/$/);
   await expect(page.getByRole("heading", { level: 1, name: "MomentumX" })).toBeVisible();
   await context.close();

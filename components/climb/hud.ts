@@ -8,7 +8,7 @@ export function createHudRenderer(stage: HTMLElement) {
   const sign = stage.querySelector<HTMLElement>(".climb-trail-sign");
   const place = sign?.querySelector<HTMLElement>(".climb-sign-place");
   const name = sign?.querySelector<HTMLElement>(".climb-sign-name");
-  const open = sign?.querySelector<HTMLAnchorElement>(".climb-sign-open");
+  const open = sign?.querySelector<HTMLButtonElement>(".climb-sign-open");
   let lastAnnouncement = "";
   return ({ u, nearest }: ClimbFrame) => {
     const distance = Math.abs(u - nearest), waypoint = nearest >= 2 && nearest <= 7;
@@ -37,6 +37,6 @@ export function createHudRenderer(stage: HTMLElement) {
       name.textContent = text; lastAnnouncement = text;
     }
     open.hidden = !settled;
-    open.href = `#${stop.id}`;
+    open.dataset.openStop = String(nearest);
   };
 }

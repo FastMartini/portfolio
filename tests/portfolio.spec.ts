@@ -221,7 +221,7 @@ test("Trailhead reaches the first Waypoint and links every published Case Study"
       .getByRole("link", { name: "Read case study" }),
   ).toHaveAttribute(
     "href",
-    "/portfolio/work/momentumx/",
+    "#case-momentumx",
   );
   await expect(
     page
@@ -229,13 +229,13 @@ test("Trailhead reaches the first Waypoint and links every published Case Study"
       .getByRole("link", { name: "Read case study" }),
   ).toHaveAttribute(
     "href",
-    "/portfolio/work/veritas/",
+    "#case-veritas",
   );
   await expect(
     page
       .locator('[data-waypoint-slug="membership-inference-attack"]')
       .getByRole("link", { name: "Read case study" }),
-  ).toHaveAttribute("href", "/portfolio/work/membership-inference-attack/");
+  ).toHaveAttribute("href", "#case-membership-inference-attack");
   await expect(page.locator('a[href*="/work/"]')).toHaveCount(3);
   await expect(page.locator("body")).not.toContainText("Grassroots");
 });

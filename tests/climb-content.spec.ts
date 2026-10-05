@@ -45,8 +45,10 @@ test("the server List View and every published Case Study remain reachable witho
     if (!("caseStudyHref" in waypoint)) continue;
     await page.goto(`./#${waypoint.slug}`);
     const link = page.locator(`#${waypoint.slug}`).getByRole("link", { name: "Read case study" });
-    await expect(link).toHaveAttribute("href", `/portfolio${waypoint.caseStudyHref}`);
+    await expect(link).toHaveAttribute("href", `#case-${waypoint.slug}`);
     await link.click();
+    await expect(page.locator(`#case-${waypoint.slug}`)).toBeVisible();
+    await page.getByRole("link", { name: "Standalone Case Study" }).click();
     await expect(page.getByRole("heading", { level: 1, name: waypoint.name, exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: `Return to the ${waypoint.name} Waypoint` })).toHaveAttribute(
       "href", `/portfolio/#${waypoint.slug}`,

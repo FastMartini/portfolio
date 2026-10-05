@@ -61,7 +61,7 @@ test("all ten stops show their card or Trail Sign and update the bottom-to-top T
     } else {
       await expect(page.locator('.climb-card[data-active="true"]')).toHaveCount(0);
       await expect(page.locator(".climb-sign-name")).toHaveText(journeyStops[index].label);
-      await expect(page.getByRole("link", { name: "Open Waypoint" })).toHaveAttribute("href", `#${journeyStops[index].id}`);
+      await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toHaveAttribute("data-open-stop", String(index));
     }
   }
   expect(await svg!.evaluate((element) => element === document.querySelector("svg.mtn"))).toBe(true);
@@ -103,7 +103,7 @@ test("List View toggle and Waypoint hashes preserve full text, focus, routes, an
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToStop(page, 3);
   const before = await page.evaluate(() => window.scrollY);
-  await page.getByRole("link", { name: "Open Waypoint" }).click();
+  await page.evaluate(() => { location.hash = "veritas"; });
   await expect(page).toHaveURL(/#veritas$/);
   await expect(page.locator("#veritas")).toBeInViewport();
   await expect(page.locator("#list-view")).toBeFocused();
@@ -120,6 +120,9 @@ test("List View toggle and Waypoint hashes preserve full text, focus, routes, an
   await expect(page.locator("#veritas")).toBeInViewport();
   await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeVisible();
   await page.locator("#veritas").getByRole("link", { name: "Read case study" }).click();
+  await expect(page).toHaveURL(/#case-veritas$/);
+  await expect(page.locator("#case-veritas")).toBeVisible();
+  await page.getByRole("link", { name: "Standalone Case Study" }).click();
   await expect(page).toHaveURL(/\/portfolio\/work\/veritas\/$/);
   await page.getByRole("link", { name: "Back to selected work" }).click();
   await expect(page).toHaveURL(/\/portfolio\/#veritas$/);
@@ -153,7 +156,7 @@ for (const width of [390, 1440]) {
     for (let index = 2; index <= 7; index++) {
       await scrollToStop(page, index);
       await expect(page.locator(".climb-sign-name")).toHaveText(journeyStops[index].label);
-      await expect(page.getByRole("link", { name: "Open Waypoint" })).toBeInViewport();
+      await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toBeInViewport();
     }
     for (const index of [0, 1, 8, 9]) {
       await scrollToStop(page, index);

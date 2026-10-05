@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { WaypointContent } from "./waypoint-content";
+import { InlineCaseStudies } from "./climb/CaseStudies";
 
 import { JourneyRidge, WaypointTrail } from "./journey-ridge";
 import { waypoints } from "../content/waypoints";
@@ -58,9 +59,6 @@ function MountainStudy() {
 }
 
 function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
-  const tierLabel =
-    waypoint.tier === "case-study" ? "Full Case Study" : "Compact Waypoint";
-
   return (
     <article
       className={`waypoint waypoint-${waypoint.tier}`}
@@ -79,73 +77,7 @@ function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
         {String(waypoint.order).padStart(2, "0")}
       </a>
 
-      <div className="waypoint-story">
-        <div className="waypoint-meta">
-          <span>{tierLabel}</span>
-          <span>{waypoint.period}</span>
-        </div>
-        <h3 id={`${waypoint.slug}-title`}>{waypoint.name}</h3>
-        <p className="waypoint-summary">{waypoint.summary}</p>
-        <p className="waypoint-purpose">{waypoint.purpose}</p>
-
-        {waypoint.technologies.length > 0 ? (
-          <ul className="technology-list" aria-label={`${waypoint.name} technologies`}>
-            {waypoint.technologies.map((technology) => (
-              <li key={technology}>{technology}</li>
-            ))}
-          </ul>
-        ) : null}
-
-        {waypoint.links.length > 0 || "caseStudyHref" in waypoint ? (
-          <div className="waypoint-links" aria-label={`${waypoint.name} public links`}>
-            {"caseStudyHref" in waypoint ? (
-              <Link href={waypoint.caseStudyHref}>
-                Read case study <ArrowIcon />
-              </Link>
-            ) : null}
-            {waypoint.links.map((link) => (
-              <a href={link.href} key={link.href}>
-                {link.label} <ArrowIcon />
-              </a>
-            ))}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="waypoint-details">
-        <dl className="waypoint-attribution">
-          <div>
-            <dt>Role</dt>
-            <dd>{waypoint.role}</dd>
-          </div>
-          <div>
-            <dt>Team</dt>
-            <dd>{waypoint.team}</dd>
-          </div>
-        </dl>
-        <p className="waypoint-owned">{waypoint.owned}</p>
-
-        <div className="waypoint-outcomes">
-          <p>Outcomes</p>
-          <ul>
-            {waypoint.outcomes.map((outcome) => (
-              <li key={outcome}>{outcome}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="waypoint-evidence">
-          <p>{waypoint.evidence.label}</p>
-          <strong>{waypoint.evidence.detail}</strong>
-        </div>
-
-        {"privacy" in waypoint ? (
-          <div className="waypoint-privacy">
-            <span>{waypoint.privacy.label}</span>
-            <p>{waypoint.privacy.publicNote}</p>
-          </div>
-        ) : null}
-      </div>
+      <WaypointContent waypoint={waypoint} titleId={`${waypoint.slug}-title`} />
     </article>
   );
 }
@@ -155,6 +87,7 @@ function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
 export function ListView() {
   return (
     <div className="list-view" id="list-view" tabIndex={-1}>
+      <div className="list-sections">
       <section className="trailhead" id="trailhead" aria-labelledby="trailhead-title">
         <div className="trailhead-copy">
           <p className="eyebrow">
@@ -305,6 +238,8 @@ export function ListView() {
           ))}
         </div>
       </section>
+      </div>
+      <InlineCaseStudies />
     </div>
   );
 }

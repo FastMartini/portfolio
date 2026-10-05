@@ -18,6 +18,68 @@
 .climb-enhancement button:focus-visible, .climb-view-toggle:focus-visible { outline: 3px solid var(--copper); outline-offset: 4px; }
 .climb-skip { z-index: 62; }
 .climb { height: 1000vh; position: relative; }
+.climb-scene { inset: 0; position: absolute; transition: transform 500ms cubic-bezier(.2,.7,.2,1); }
+.climb-navigation { inset: 0; pointer-events: none; position: absolute; }
+.climb-navigation :is(.climb-trail-sign, .climb-rail) { pointer-events: auto; }
+.climb-navigation[inert] { visibility: hidden; }
+.climb-markers { inset: 0; pointer-events: none; position: absolute; }
+.climb-marker {
+  align-items: center; background: none; border: 0; cursor: pointer; display: flex; font: inherit; gap: 0.55rem;
+  height: 44px; left: 0; padding: 0; pointer-events: auto; position: absolute; top: 0; width: 44px;
+}
+.climb-marker[hidden] { display: none; }
+.climb-marker-pin {
+  align-items: center; background: #fffbed; border: 1.5px solid #8b4428; border-radius: 50%; box-shadow: 0 2px 0 rgba(31,38,33,0.25);
+  color: #8b4428; display: flex; flex: none; font-size: 0.74rem; font-variant-numeric: tabular-nums; font-weight: 800;
+  height: 44px; justify-content: center; position: relative; width: 44px;
+}
+.climb-marker-pin::after { background: #8b4428; content: ""; height: 0.7rem; left: 50%; position: absolute; top: 100%; width: 1.5px; }
+.climb-marker-label {
+  background: #fffbed; border: 1px solid rgba(31,38,33,0.2); color: #1f2621; font-size: 0.82rem; font-weight: 700; line-height: 1.25;
+  left: calc(100% + 0.55rem); max-width: 15rem; opacity: 0; overflow: hidden; padding: 0.45rem 0.7rem; position: absolute; text-align: left; text-overflow: ellipsis; white-space: nowrap;
+}
+.climb-marker-label small { color: #8b4428; display: block; font-size: 0.72rem; }
+.climb-marker:is(:hover, :focus-visible, [data-hot="true"], [data-current="true"]) .climb-marker-pin { background: #173f35; border-color: #173f35; color: #fffbed; }
+.climb-marker:is(:hover, :focus-visible, [data-hot="true"], [data-current="true"]) .climb-marker-label { opacity: 1; }
+.climb-marker[data-visited="true"]:not([data-current="true"]) .climb-marker-pin { background: #f1d9c6; }
+.climb-marker[data-open="true"] .climb-marker-pin { background: #8b4428; color: #fffbed; }
+.climb-marker:focus-visible { outline: none; }
+.climb-marker:focus-visible .climb-marker-pin { outline: 3px solid #8b4428; outline-offset: 3px; }
+.climb-mountain .lm { cursor: pointer; transition: filter 200ms ease; }
+.climb-mountain .lm.is-hot { filter: drop-shadow(0 0 10px rgba(181,101,59,0.9)) brightness(1.06); }
+.climb-panel {
+  --parchment: var(--climb-bg); --parchment-deep: var(--climb-surface); --ink: var(--climb-text);
+  --copper-text: var(--climb-accent); --line: var(--climb-line);
+  background: var(--climb-bg); border: 0; border-left: 1px solid var(--climb-line); bottom: 0; box-shadow: -24px 0 60px -40px rgba(0,0,0,0.6);
+  color: var(--climb-text); flex-direction: column; height: 100svh; left: auto; margin: 0; max-height: none; max-width: 100%;
+  overflow: hidden; padding: 4.5rem 0 0; position: fixed; right: 0; top: 0; width: min(34rem, 100%);
+}
+.climb-panel[open] { display: flex; }
+.climb-panel::backdrop { background: transparent; }
+.climb-panel-head { align-items: center; border-bottom: 1px solid var(--climb-line); display: flex; flex: none; gap: 1rem; justify-content: space-between; padding: 0.85rem 1.5rem; }
+.climb-panel-head p { color: var(--climb-accent); font-size: 0.82rem; font-weight: 700; margin: 0; }
+.climb-panel-tools { display: flex; flex: none; gap: 0.5rem; }
+.climb-panel-tools button { background: transparent; border: 1px solid var(--climb-line); border-radius: 999px; color: var(--climb-text); cursor: pointer; font: inherit; font-size: 0.8rem; font-weight: 700; min-height: 44px; padding: 0.4rem 0.8rem; }
+.climb-panel-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem 1.5rem 3rem; }
+.climb-panel-body:focus { outline: none; }
+.climb-panel-title { font-size: 1rem; font-weight: 450; line-height: 1.3; margin: 0 0 1.5rem; }
+.climb-panel .waypoint-story h3 { font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; }
+.climb-panel .waypoint-details { margin-top: 1.75rem; }
+.climb-panel .waypoint-meta, .climb-panel .technology-list li { color: var(--climb-text); }
+.climb-panel .waypoint-evidence { background: #173f35; color: #fffbed; }
+.inline-case { display: none; }
+.inline-case:target, .inline-case:has(:target) { display: block; }
+.list-view:has(.inline-case:target, .inline-case :target) > .list-sections { display: none; }
+.mountain-journey:has(.inline-case:target, .inline-case :target) .route-indicator { display: none; }
+.inline-case-nav { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; padding: 6rem var(--page-padding) 2rem; }
+.inline-case { scroll-margin-top: 5rem; }
+.inline-cases { min-width: 0; }
+@media (min-width: 901px) { .climb-stage[data-panel-open="true"] .climb-scene { transform: translateX(-17rem); } }
+@media (max-width: 900px) {
+  .climb-panel { border-left: 0; border-top: 1px solid var(--climb-line); border-radius: 1rem 1rem 0 0; height: 82svh; padding: 0 0 env(safe-area-inset-bottom, 0px); top: auto; }
+}
+@media (max-width: 560px) { .climb-marker-label { max-width: 10rem; } }
+@media (prefers-reduced-motion: reduce) { .climb-scene, .climb-mountain .lm { transition: none; } }
 .climb-stage { height: 100vh; height: 100svh; overflow: hidden; position: sticky; top: 0; }
 .climb-sky, .climb-haze, .climb-cards { inset: 0; position: absolute; }
 .climb-sky { background: linear-gradient(to bottom, var(--sky-top, #e7dcc0), var(--sky-bottom, #f6efdc)); }

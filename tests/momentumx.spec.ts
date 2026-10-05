@@ -21,6 +21,7 @@ test("visitor can open the MomentumX Case Study from its Waypoint", async ({ pag
 
   const momentumX = page.locator('[data-waypoint-slug="momentumx"]');
   await momentumX.getByRole("link", { name: "Read case study" }).click();
+  await page.getByRole("link", { name: "Standalone Case Study" }).click();
 
   await expect(page).toHaveURL(/\/portfolio\/work\/momentumx\/?$/);
   await expect(

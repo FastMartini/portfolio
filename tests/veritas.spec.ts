@@ -21,6 +21,7 @@ test("visitor can open the Veritas Case Study from its Waypoint", async ({ page 
 
   const veritas = page.locator('[data-waypoint-slug="veritas"]');
   await veritas.getByRole("link", { name: "Read case study" }).click();
+  await page.getByRole("link", { name: "Standalone Case Study" }).click();
 
   await expect(page).toHaveURL(/\/portfolio\/work\/veritas\/?$/);
   await expect(page.getByRole("heading", { level: 1, name: "Veritas" })).toBeVisible();
