@@ -67,12 +67,12 @@ test("visible markers tab in Waypoint order; offscreen markers are not tab stops
 });
 
 for (const width of [390, 1440]) {
-  test(`panel and all three embedded MDX Case Studies are accessible at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 844 });
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("./");
-    await expect(page.locator("#climb")).toBeVisible();
-    for (const waypoint of waypoints.slice(0, 3)) {
+  for (const waypoint of waypoints.slice(0, 3)) {
+    test(`${waypoint.name} panel and embedded MDX Case Study are accessible at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 844 });
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.goto("./");
+      await expect(page.locator("#climb")).toBeVisible();
       await stop(page, waypoint.order + 1);
       await page.locator(`[data-marker="${waypoint.order + 1}"]`).click();
       const panel = page.getByRole("dialog");
@@ -91,8 +91,8 @@ for (const width of [390, 1440]) {
       expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
       await page.emulateMedia({ colorScheme: "light" });
       await panel.getByRole("button", { name: "Close panel" }).click();
-    }
-  });
+    });
+  }
 }
 
 test("direct Case Study hashes reveal complete server content without JavaScript", async ({ browser, baseURL }) => {
