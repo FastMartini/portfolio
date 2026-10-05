@@ -107,3 +107,20 @@ test("direct Case Study hashes reveal complete server content without JavaScript
   await expect(page.locator("#case-veritas")).toBeHidden();
   await context.close();
 });
+
+test("nested Case Study hashes switch to List View and keep unique content anchors", async ({ page }) => {
+  await page.goto("./");
+  await expect(page.locator("#climb")).toBeVisible();
+  await page.evaluate(() => { location.hash = "case-veritas-decisions"; });
+  await expect(page.locator("#climb")).toBeHidden();
+  await expect(page.locator("#case-veritas")).toBeVisible();
+  await expect(page.locator("#case-veritas-decisions")).toBeInViewport();
+  const duplicates = await page.locator("[id]").evaluateAll((nodes) => {
+    const ids = nodes.map((node) => node.id); return ids.filter((id, index) => ids.indexOf(id) !== index);
+  });
+  expect(duplicates).toEqual([]);
+  await page.getByRole("button", { name: "Climb view", exact: true }).click();
+  await expect(page.locator("#climb")).toBeVisible();
+  await page.goto("./#%invalid");
+  await expect(page.locator("#climb")).toBeVisible();
+});
