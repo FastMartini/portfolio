@@ -3,6 +3,14 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { waypoints } from "../content/waypoints";
 
+async function expectAccessiblePanel(page: Page) {
+  // The nonmodal panel leaves the mountain usable. Climb/List View tests audit
+  // that background separately; these repeated scans target the reading surface.
+  const result = await new AxeBuilder({ page }).include("#waypoint-panel")
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(result.violations).toEqual([]);
+}
+
 async function stop(page: Page, index: number) {
   await page.locator("#climb").evaluate((element, i) =>
     window.scrollTo(0, i / 9 * ((element as HTMLElement).offsetHeight - innerHeight)), index);
@@ -77,18 +85,18 @@ for (const width of [390, 1440]) {
       await page.locator(`[data-marker="${waypoint.order + 1}"]`).click();
       const panel = page.getByRole("dialog");
       await expect(panel).toBeInViewport();
-      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+      await expectAccessiblePanel(page);
       await panel.getByRole("link", { name: "Read case study" }).click();
       await expect(panel.locator("#panel-title")).toHaveText(waypoint.name + " · Case Study");
       await expect(panel.getByRole("heading", { name: "Key decisions", exact: true })).toBeVisible();
-      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+      await expectAccessiblePanel(page);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
       await panel.getByRole("button", { name: "Summary" }).click();
       await expect(panel.locator("#panel-title")).toHaveText(waypoint.name);
       await page.emulateMedia({ colorScheme: "dark" });
-      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+      await expectAccessiblePanel(page);
       await panel.getByRole("link", { name: "Read case study" }).click();
-      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+      await expectAccessiblePanel(page);
       await page.emulateMedia({ colorScheme: "light" });
       await panel.getByRole("button", { name: "Close panel" }).click();
     });
