@@ -7,9 +7,9 @@ import { journeyStops } from "../../content/journey";
 
 export type PanelSelection = { stop: number; caseStudy: boolean };
 
-export function WaypointPanel({ selection, summaries, cases, onClose, onCase }: {
+export function WaypointPanel({ selection, summaries, cases, onClose, onCase, onDismissed }: {
   selection: PanelSelection | null; summaries: Record<string, ReactNode>; cases: Record<string, ReactNode>;
-  onClose: () => void; onCase: (caseStudy: boolean) => void;
+  onClose: () => void; onCase: (caseStudy: boolean) => void; onDismissed: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const body = useRef<HTMLDivElement>(null);
@@ -19,7 +19,8 @@ export function WaypointPanel({ selection, summaries, cases, onClose, onCase }: 
     if (!element) return;
     if (open && !element.open) element.show();
     if (!open && element.open) element.close();
-  }, [open]);
+    if (!open) onDismissed();
+  }, [open, onDismissed]);
   useEffect(() => {
     if (!open) return;
     // Nonmodal reading keeps the header and mountain operable. Escape must

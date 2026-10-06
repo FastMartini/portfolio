@@ -27,6 +27,8 @@ npm run dev
 
 Local development runs without a base path. Production acceptance tests build and serve the export beneath `/portfolio/`, matching GitHub Pages. Fonts remain managed by `next/font`.
 
+Tests always start their own production-export server, never reuse another worktree's export. If port 4173 is occupied, use a separate port, for example `TEST_SITE_PORT=4181 npm test`.
+
 ## Verification
 
 ```bash

@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const testSite = {
   host: "127.0.0.1",
-  port: 4173,
+  port: Number.parseInt(process.env.TEST_SITE_PORT ?? "4173", 10),
   basePath: "/portfolio",
 } as const;
 
@@ -50,7 +50,8 @@ export default defineConfig({
       TEST_SITE_HOST: testSite.host,
       TEST_SITE_PORT: String(testSite.port),
     },
-    reuseExistingServer: !process.env.CI,
+    // Never silently test a stale export or another worktree's server.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

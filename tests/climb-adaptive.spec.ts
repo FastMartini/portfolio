@@ -3,20 +3,37 @@ import { expect, test } from "@playwright/test";
 import { waypoints } from "../content/waypoints";
 import { scrollToClimbStop } from "./helpers/climb";
 
-// Change browser frame timestamps, not the quality controller's internals.
+// Simulate frames at the browser boundary, not inside the quality controller.
+// A logical frame is independent of native paint cadence: Linux WebKit's
+// software renderer can paint sparsely without turning this clock into slow motion.
 function installFrameClock() {
-  if (typeof requestAnimationFrame !== "function") return;
-  const nativeFrame = requestAnimationFrame.bind(window);
-  let previous = -1, clock = 0;
+  if (typeof requestAnimationFrame !== "function" || typeof cancelAnimationFrame !== "function") return;
+  const callbacks = new Map<number, FrameRequestCallback>();
+  let nextId = 0, clock = performance.now();
   Reflect.set(window, "frameGap", 16);
-  window.requestAnimationFrame = (callback) => nativeFrame((now) => {
-    if (now !== previous) {
-      clock = previous < 0 ? now : clock + Reflect.get(window, "frameGap");
-      previous = now;
+  window.requestAnimationFrame = (callback) => {
+    callbacks.set(++nextId, callback);
+    return nextId;
+  };
+  window.cancelAnimationFrame = (id) => { callbacks.delete(id); };
+  setInterval(() => {
+    clock += Reflect.get(window, "frameGap");
+    for (const [id, callback] of Array.from(callbacks)) {
+      if (!callbacks.delete(id)) continue;
+      callback(clock);
     }
-    callback(clock);
-  });
+  }, 16);
 }
+
+test("the frame fixture does not slow navigation when native painting is sparse", async ({ page }) => {
+  await page.goto("./");
+  await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
+  await page.evaluate(() => {
+    const deliveredFrame = requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (callback) => deliveredFrame((now) => setTimeout(() => callback(now), 500));
+  });
+  await scrollToClimbStop(page, 3);
+});
 
 test("a failed reading-panel enhancement preserves its Waypoint in List View", async ({ page }) => {
   await page.addInitScript(() => {
@@ -32,6 +49,226 @@ test("a failed reading-panel enhancement preserves its Waypoint in List View", a
   await expect(page.locator("#climb")).toBeHidden();
   await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeHidden();
 });
+
+test("throwing motion detection leaves the complete deep-linked List View usable", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.matchMedia = () => { throw new Error("Simulated motion detection failure"); };
+  });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./#case-veritas");
+  await expect(page.locator("#case-veritas")).toBeVisible();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeHidden();
+  await page.getByRole("link", { name: "Standalone Case Study" }).click();
+  await expect(page).toHaveURL(/\/portfolio\/work\/veritas\/$/);
+  expect(errors).toEqual([]);
+});
+
+test("throwing preference listener initialization leaves List View intact", async ({ page }) => {
+  await page.addInitScript(() => {
+    MediaQueryList.prototype.addEventListener = () => { throw new Error("Simulated preference listener failure"); };
+  });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./#case-veritas");
+  await expect(page.locator(".mountain-journey")).toHaveAttribute("data-enhanced", "true");
+  await expect(page.locator("#case-veritas")).toBeVisible();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test("a failed live animation pause and cleanup preserve the Case Study", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await scrollToClimbStop(page, 3);
+  await page.locator('[data-marker="3"]').click();
+  await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
+  await expect(page.locator(".climb-panel-title")).toContainText("Case Study");
+  await page.locator("svg.mtn").evaluate((svg) => {
+    (svg as SVGSVGElement).pauseAnimations = () => { throw new Error("Simulated animation pause failure"); };
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page).toHaveURL(/#case-veritas$/);
+  await expect(page.locator("#case-veritas")).toBeFocused();
+  await expect(page.locator("#case-veritas")).toBeInViewport();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  expect(errors).toEqual([]);
+});
+
+for (const caseStudy of [false, true]) {
+  test(`a failed ${caseStudy ? "Case Study" : "Waypoint"} dismissal restores its reading destination`, async ({ page }) => {
+    await page.goto("./");
+    await scrollToClimbStop(page, 3);
+    await page.locator('[data-marker="3"]').click();
+    await expect(page.getByRole("dialog").locator("#panel-title")).toHaveText("Veritas");
+    if (caseStudy) {
+      await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
+      await expect(page.locator(".climb-panel-title")).toContainText("Case Study");
+    }
+    await page.evaluate(() => {
+      HTMLDialogElement.prototype.close = () => { throw new Error("Simulated dialog dismissal failure"); };
+    });
+    await page.keyboard.press("Escape");
+    const destination = caseStudy ? "#case-veritas" : "#veritas";
+    await expect(page).toHaveURL(new RegExp(`${destination}$`));
+    await expect(page.locator(destination)).toBeFocused();
+    await expect(page.locator(destination)).toBeInViewport();
+    await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+    await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeHidden();
+  });
+}
+
+test("a failed marker focus restoration preserves the current Waypoint in List View", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await scrollToClimbStop(page, 3);
+  const marker = page.locator('[data-marker="3"]');
+  await marker.click();
+  await expect(page.getByRole("dialog").locator("#panel-title")).toHaveText("Veritas");
+  await page.evaluate(() => {
+    Element.prototype.getAnimations = () => { throw new Error("Simulated focus restoration failure"); };
+  });
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/#veritas$/);
+  await expect(page.locator("#veritas")).toBeFocused();
+  await expect(page.locator("#veritas")).toBeInViewport();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  expect(errors).toEqual([]);
+});
+
+test("throwing observer cleanup cannot replace the List View reading destination", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await scrollToClimbStop(page, 3);
+  await page.locator('[data-marker="3"]').click();
+  await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
+  await expect(page.locator(".climb-panel-title")).toContainText("Case Study");
+  await page.evaluate(() => {
+    ResizeObserver.prototype.disconnect = () => { throw new Error("Simulated observer cleanup failure"); };
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page).toHaveURL(/#case-veritas$/);
+  await expect(page.locator("#case-veritas")).toBeFocused();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  expect(errors).toEqual([]);
+});
+
+test("throwing preference listener cleanup preserves the Case Study reading destination", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await scrollToClimbStop(page, 3);
+  await page.locator('[data-marker="3"]').click();
+  await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
+  await expect(page.locator(".climb-panel-title")).toContainText("Case Study");
+  await page.evaluate(() => {
+    MediaQueryList.prototype.removeEventListener = () => { throw new Error("Simulated preference cleanup failure"); };
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page).toHaveURL(/#case-veritas$/);
+  await expect(page.locator("#case-veritas")).toBeFocused();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  expect(errors).toEqual([]);
+});
+
+test("a throwing live motion preference callback preserves the Case Study without uncaught errors", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await scrollToClimbStop(page, 3);
+  await page.locator('[data-marker="3"]').click();
+  await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
+  await expect(page.locator(".climb-panel-title")).toContainText("Case Study");
+  await page.evaluate(() => {
+    Object.defineProperty(MediaQueryList.prototype, "matches", {
+      configurable: true,
+      get() { throw new Error("Simulated live preference query failure"); },
+    });
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page).toHaveURL(/#case-veritas$/);
+  await expect(page.locator("#case-veritas")).toBeFocused();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  expect(errors).toEqual([]);
+});
+
+test("a failing live progress measurement recovers the current Case Study", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await scrollToClimbStop(page, 3);
+  await page.locator('[data-marker="3"]').click();
+  await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
+  await expect(page.locator(".climb-panel-title")).toContainText("Case Study");
+  await page.locator("#climb").evaluate((element) => {
+    element.getBoundingClientRect = () => { throw new Error("Simulated live observer callback failure"); };
+    window.dispatchEvent(new Event("resize"));
+  });
+  await expect(page).toHaveURL(/#case-veritas$/);
+  await expect(page.locator("#case-veritas")).toBeFocused();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  expect(errors).toEqual([]);
+});
+
+test("a failed Landmark accessibility update preserves the selected Waypoint", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await scrollToClimbStop(page, 3);
+  await page.locator('.lm[data-stop="3"]').evaluate((landmark) => {
+    const setAttribute = landmark.setAttribute.bind(landmark);
+    landmark.setAttribute = (name, value) => {
+      if (name === "aria-expanded") throw new Error("Simulated Landmark update failure");
+      setAttribute(name, value);
+    };
+  });
+  await page.locator('[data-marker="3"]').click();
+  await expect(page).toHaveURL(/#veritas$/);
+  await expect(page.locator("#veritas")).toBeFocused();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  expect(errors).toEqual([]);
+});
+
+test("a required browser API failure during Trail Rail navigation restores List View", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await scrollToClimbStop(page, 3);
+  await page.evaluate(() => {
+    window.matchMedia = () => { throw new Error("Simulated live motion detection failure"); };
+  });
+  await page.getByRole("button", { name: "Go to Summit", exact: true }).click();
+  await expect(page).toHaveURL(/#veritas$/);
+  await expect(page.locator("#veritas")).toBeFocused();
+  await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+  expect(errors).toEqual([]);
+});
+
+for (const [owner, feature] of [
+  ["Element", "getAnimations"], ["SVGSVGElement", "pauseAnimations"],
+  ["SVGSVGElement", "unpauseAnimations"], ["HTMLDialogElement", "close"],
+  ["DOMPoint", "matrixTransform"], ["window", "MutationObserver"],
+] as const) {
+  test(`missing ${owner}.${feature} leaves the complete List View usable`, async ({ page }) => {
+    await page.addInitScript(([owner, feature]) => {
+      const target = owner === "window" ? window : Reflect.get(window, owner).prototype;
+      Object.defineProperty(target, feature, { value: undefined, configurable: true });
+    }, [owner, feature]);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("./#case-veritas");
+    await expect(page.locator(".mountain-journey")).toHaveAttribute("data-enhanced", "true");
+    await expect(page.locator("#case-veritas")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeHidden();
+    await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
+    expect(errors).toEqual([]);
+  });
+}
 
 test.beforeEach(async ({ page }) => {
   // Fix the baseline device, not the enhancement policy. Individual capability
@@ -130,7 +367,7 @@ test("losing a running snow context stops decoration without losing the open pan
 });
 
 test("sustained slow frames first quiet decoration, then preserve the Case Study in List View", async ({ page }) => {
-  test.setTimeout(60000); // Drives 240 real browser frames, even on a busy runner.
+  test.setTimeout(60000); // Drives 240 logical frames through the browser boundary.
   await page.goto("./");
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 3);
@@ -339,6 +576,8 @@ test("reduced-motion List View keeps canonical content and accessible reading su
   }
   for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme });
+    await expect(page.locator(".climb-list")).toHaveCSS("color", colorScheme === "dark" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
+    await expect(page.locator(".site-header")).toHaveCSS("color", colorScheme === "dark" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
   }
 });

@@ -2,6 +2,7 @@ import { landmarkAnchors } from "./mountain/landmarks";
 import { mountainView } from "./mountain/geometry";
 import { journeyStops } from "../../content/journey";
 import type { ClimbFrame } from "./progress";
+import { sceneCleanup } from "./recovery";
 
 export function setLandmarkHot(stage: HTMLElement, stop: number, hot: boolean) {
   stage.querySelector<HTMLElement>(`[data-marker="${stop}"]`)?.setAttribute("data-hot", String(hot));
@@ -84,9 +85,7 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
     resize = new ResizeObserver(schedule);
     resize.observe(stage);
   } catch (error) {
-    mutation.disconnect();
-    resize?.disconnect();
-    cancelAnimationFrame(raf);
+    sceneCleanup(onFailure, () => mutation.disconnect(), () => resize?.disconnect(), () => cancelAnimationFrame(raf))();
     throw error;
   }
   scene.addEventListener("transitionrun", transition);
@@ -106,13 +105,12 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
       marker.dataset.visited = String(journeyStops[stop].trailPosition <= position + 0.005);
     });
     refreshVisibility();
-  }, dispose() {
-    cancelAnimationFrame(raf);
-    mutation.disconnect();
-    resize?.disconnect();
-    scene.removeEventListener("transitionrun", transition);
-    scene.removeEventListener("transitionend", transition);
-    scene.removeEventListener("transitioncancel", transition);
-    document.removeEventListener("visibilitychange", schedule);
-  } };
+  }, dispose: sceneCleanup(onFailure,
+    () => cancelAnimationFrame(raf),
+    () => mutation.disconnect(),
+    () => resize?.disconnect(),
+    () => scene.removeEventListener("transitionrun", transition),
+    () => scene.removeEventListener("transitionend", transition),
+    () => scene.removeEventListener("transitioncancel", transition),
+    () => document.removeEventListener("visibilitychange", schedule)) };
 }

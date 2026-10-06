@@ -7,10 +7,17 @@ function optionalHint<T>(read: () => T): T | undefined {
 }
 
 export function canEnhanceClimb() {
-  return typeof ResizeObserver === "function" && typeof DOMPoint === "function"
-    && typeof requestAnimationFrame === "function" && typeof cancelAnimationFrame === "function" && typeof matchMedia === "function"
-    && typeof SVGGraphicsElement !== "undefined" && typeof SVGGraphicsElement.prototype.getBBox === "function"
-    && typeof HTMLDialogElement !== "undefined" && typeof HTMLDialogElement.prototype.show === "function";
+  try {
+    return typeof ResizeObserver === "function" && typeof MutationObserver === "function"
+      && typeof DOMPoint === "function" && typeof DOMPoint.prototype.matrixTransform === "function"
+      && typeof requestAnimationFrame === "function" && typeof cancelAnimationFrame === "function" && typeof matchMedia === "function"
+      && typeof Element.prototype.getAnimations === "function"
+      && typeof SVGGraphicsElement !== "undefined" && typeof SVGGraphicsElement.prototype.getBBox === "function"
+      && typeof SVGSVGElement !== "undefined" && typeof SVGSVGElement.prototype.pauseAnimations === "function"
+      && typeof SVGSVGElement.prototype.unpauseAnimations === "function"
+      && typeof HTMLDialogElement !== "undefined" && typeof HTMLDialogElement.prototype.show === "function"
+      && typeof HTMLDialogElement.prototype.close === "function";
+  } catch { return false; }
 }
 
 // Quality only downgrades during a visit: responsive changes cannot repeatedly
