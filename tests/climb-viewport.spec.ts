@@ -97,7 +97,8 @@ for (const motion of ["reduce", "no-preference"] as const) {
     await expect(page.locator("#climb")).toBeVisible();
     await scrollToClimbStop(page, 5);
     const marker = page.locator('[data-marker="2"]');
-    await marker.click();
+    await marker.focus();
+    await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.locator(".climb-scene")).toHaveCSS("transform", "matrix(1, 0, 0, 1, -272, 0)");
     await expect(marker).toBeHidden();

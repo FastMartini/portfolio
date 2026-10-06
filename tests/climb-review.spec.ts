@@ -10,14 +10,18 @@ for (const waypoint of waypoints) {
     const index = waypoint.order + 1;
     await stop(page, index);
     const landmark = page.locator(`.lm[data-stop="${index}"]`);
-    await landmark.focus();
+    await expect(landmark).toHaveAttribute("tabindex", "0");
+    // Direct SVG focus can auto-scroll the document and change the camera.
+    // Keep this activation setup at its intended stop; real Tab navigation is
+    // exercised separately by the offscreen and panel-breakpoint regressions.
+    await landmark.evaluate((element) => element.focus({ preventScroll: true }));
     await expect(landmark).toBeFocused();
     await expect(landmark).toHaveAccessibleName(`Open ${waypoint.name} Landmark`);
     await expect(landmark).toHaveAttribute("role", "button");
     await expect(landmark).toHaveClass(/is-hot/);
     await expect(page.locator(`[data-marker="${index}"]`)).toHaveAttribute("data-hot", "true");
     for (const key of ["Enter", "Space"]) {
-      await landmark.focus();
+      await landmark.evaluate((element) => element.focus({ preventScroll: true }));
       await page.keyboard.press(key);
       await expect(page.getByRole("dialog").locator("#panel-title")).toHaveText(waypoint.name);
       await expect(landmark).toHaveAttribute("aria-expanded", "true");
