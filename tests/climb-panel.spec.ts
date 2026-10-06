@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { scrollToClimbStop as stop } from "./helpers/climb";
 import { waypoints } from "../content/waypoints";
 
 async function expectAccessiblePanel(page: Page) {
@@ -9,13 +10,6 @@ async function expectAccessiblePanel(page: Page) {
   const result = await new AxeBuilder({ page }).include("#waypoint-panel")
     .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(result.violations).toEqual([]);
-}
-
-async function stop(page: Page, index: number) {
-  await page.locator("#climb").evaluate((element, i) =>
-    window.scrollTo(0, i / 9 * ((element as HTMLElement).offsetHeight - innerHeight)), index);
-  await expect(page.locator("#climb")).toHaveAttribute("data-stop", String(index));
-  await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true");
 }
 
 test("each marker and its Landmark open canonical Waypoint content and return focus", async ({ page }) => {

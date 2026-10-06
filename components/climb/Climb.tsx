@@ -38,12 +38,19 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const snow = useRef<SnowController>(null);
-  const renderers = useRef<{ mountain: (position: number) => void; hud: (frame: ClimbFrame) => void; markers: (frame: ClimbFrame) => void } | null>(null);
+  const renderers = useRef<{ mountain: (position: number) => void; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
   const focusList = useRef(false);
   const lastClimbScroll = useRef(0);
   const activeClimb = useRef(false);
   const returnMarker = useRef<HTMLButtonElement | null>(null);
   const pendingFocus = useRef<HTMLButtonElement | null>(null);
+
+  const restorePendingFocus = useCallback(() => {
+    if (pendingFocus.current && !pendingFocus.current.hidden) {
+      pendingFocus.current.focus({ preventScroll: true });
+      pendingFocus.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     stage.current?.querySelectorAll(".lm[data-stop]").forEach((landmark) =>
@@ -85,9 +92,10 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
     const element = stage.current;
     const art = element?.querySelector<HTMLElement>(".climb-mountain");
     if (!element || !art) return;
-    renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element), markers: createMarkerRenderer(element) };
-    return () => { renderers.current = null; };
-  }, [enhanced]);
+    const markers = createMarkerRenderer(element, restorePendingFocus);
+    renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element), markers };
+    return () => { markers.dispose(); renderers.current = null; };
+  }, [enhanced, restorePendingFocus]);
 
   useEffect(() => {
     const art = stage.current?.querySelector<HTMLElement>(".climb-mountain");
@@ -124,11 +132,7 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
     element.style.setProperty("--sun", sky.sun.toFixed(3));
     renderers.current?.mountain(frame.position);
     renderers.current?.hud(frame);
-    renderers.current?.markers(frame);
-    if (pendingFocus.current && !pendingFocus.current.hidden) {
-      pendingFocus.current.focus({ preventScroll: true });
-      pendingFocus.current = null;
-    }
+    renderers.current?.markers.render(frame);
     snow.current?.setWeather(sky.snow, frame.reducedMotion);
   }, []);
   useClimbProgress(root, enhanced && !listMode, render);

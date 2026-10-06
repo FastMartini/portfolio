@@ -1,13 +1,6 @@
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
 import { waypoints } from "../content/waypoints";
-
-async function stop(page: Page, index: number) {
-  await page.locator("#climb").evaluate((element, i) =>
-    window.scrollTo(0, i / 9 * ((element as HTMLElement).offsetHeight - innerHeight)), index);
-  await expect(page.locator("#climb")).toHaveAttribute("data-stop", String(index));
-  await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true");
-}
+import { scrollToClimbStop as stop } from "./helpers/climb";
 
 for (const waypoint of waypoints) {
   test(`${waypoint.name} Landmark independently supports named keyboard focus and activation`, async ({ page }) => {
