@@ -32,13 +32,13 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
       marker.hidden = !visible;
       marker.tabIndex = visible ? 0 : -1;
       marker.dataset.hidden = String(!visible);
-      // A Landmark's artwork can still intersect the viewport even when its
-      // anchor/marker is clipped. Give each control its own rendered bounds.
+      // Retain the shared full-target visibility contract, and also reject
+      // Landmarks whose rendered bounds fall outside the clipping rectangle.
       const landmark = landmarks[index], box = bounds[index];
       if (landmark && box) {
-        const visible = box.width > 0 && box.height > 0 && box.right > left && box.left < right && box.bottom > top && box.top < bottom;
-        landmark.tabIndex = visible ? 0 : -1;
-        landmark.setAttribute("aria-hidden", String(!visible));
+        const landmarkVisible = visible && box.width > 0 && box.height > 0 && box.right > left && box.left < right && box.bottom > top && box.top < bottom;
+        landmark.tabIndex = landmarkVisible ? 0 : -1;
+        landmark.setAttribute("aria-hidden", String(!landmarkVisible));
       }
     });
     onVisibilityChange();
