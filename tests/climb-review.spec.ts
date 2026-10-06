@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { waypoints } from "../content/waypoints";
-import { scrollToClimbStop as stop } from "./helpers/climb";
+import { openClimb, scrollToClimbStop as stop } from "./helpers/climb";
 
 for (const waypoint of waypoints) {
   test(`${waypoint.name} Landmark independently supports named keyboard focus and activation`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("./");
+    await openClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     const index = waypoint.order + 1;
     await stop(page, index);
@@ -34,7 +34,7 @@ for (const waypoint of waypoints) {
 
 test("offscreen Landmarks are excluded from keyboard navigation and the accessibility tree", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await stop(page, 4);
   const visible = page.locator('.lm[tabindex="0"]');
@@ -53,7 +53,7 @@ for (const width of [390, 1440]) {
   test(`List View toggle remains usable from an open panel at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("./");
+    await openClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     await stop(page, 3);
     await page.locator('[data-marker="3"]').click();
@@ -79,7 +79,7 @@ for (const dismissal of ["Escape", "Close"] as const) {
     test(`${dismissal} restores the opening marker after native scroll with ${reducedMotion} motion`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.emulateMedia({ reducedMotion });
-      await page.goto("./");
+      await openClimb(page);
       await expect(page.locator("#climb")).toBeVisible();
       await stop(page, 3);
       const marker = page.locator('[data-marker="3"]');

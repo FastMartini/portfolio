@@ -6,7 +6,15 @@ The homepage defaults to the illustrated Climb after client enhancement: ordinar
 
 The complete server-rendered List View is visible without JavaScript and remains reachable through the view toggle or any hash targeting its content. Case Studies such as `#case-veritas` open with CSS `:target` even without script; standalone `/work/*/` routes remain available. Waypoint metadata comes from `content/waypoints.ts`, and Case Study prose stays in `app/work/*/page.mdx`.
 
-The large deterministic mountain SVG is built once from fixed seeds. Native scroll frames update cached transforms, trail offset, climber and marker positions without rerendering content. SVG SMIL provides landmark animation; a 2D canvas provides snow. Reduced-motion changes pause the SVG timeline and immediately clear snowfall. Hidden tabs and List View idle the scene. No WebGL, external illustration assets, or camera controls are used. The stage stays daytime while content surfaces follow light/dark themes.
+The large deterministic mountain SVG is built once from fixed seeds. Native scroll frames update cached transforms, trail offset, climber and marker positions without rerendering content. SVG SMIL provides landmark animation; an optional 2D canvas provides snow. Hidden tabs and List View idle the scene. No WebGL, external illustration assets, or camera controls are used. The stage stays daytime while content surfaces follow light/dark themes.
+
+## Adaptive and fail-safe Climb
+
+Reduced-motion visitors start in List View. Enabling that preference while reading the Climb reveals the corresponding Waypoint or Case Study with keyboard focus; relaxing it never automatically returns to Climb. The navigation toggle still permits an explicit opt-in with paused SMIL, no snow, and instant camera updates.
+
+`components/climb/quality.ts` owns required-feature detection and monotonic quality downgrades. Screens at most 600px wide, save-data requests, and available hints of at most 2 GB memory or 2 logical cores pause ambient SVG animation and omit snow without replacing the approved artwork or closing the Waypoint Panel. Missing or privacy-blocked hints do not prevent enhancement. Full-quality snow is capped at 2 million bitmap pixels, never above one pixel per CSS pixel; missing/throwing/lost canvas contexts stop only snow.
+
+Sustained slow rendering first removes decoration, then falls back to List View: two consecutive 60-frame windows with at least 45 frames over 50ms trigger each downgrade. A one-second warmup, visibility resets, and gaps over 500ms exclude startup and suspension noise. Quality never automatically upgrades during the visit. Missing required features leave the server-rendered List View intact; scene initialization, rendering, or reading-panel failures restore List View and the current reading destination. Canonical content, hashes, and standalone Case Study routes remain available independently of the enhancement.
 
 ## Development
 
@@ -24,10 +32,15 @@ Local development runs without a base path. Production acceptance tests build an
 ```bash
 npm run typecheck
 npm run lint
+npx playwright install chromium firefox webkit
 npm test
 ```
 
 Playwright exercises the production browser boundary: all ten stops and dwell, native wheel/page-key scrolling, keyboard markers and Landmarks, Landmark hover/click, panel-open List View transitions, Waypoint Panel content and focus return after scrolling, embedded and standalone Case Studies, arbitrary List View hashes, no-JavaScript content, live reduced motion, responsive layout, and WCAG 2.2 AA in light/dark themes. Source-integrity and pure-builder tests also check exact stop positions and determinism; reference comparisons check seeded scenery, all six Landmark builders, and every generated flag keyframe against the approved handoff.
+
+`tests/climb-adaptive.spec.ts` checks the production `/portfolio/` experience with simulated device hints, live preference/network changes, optional canvas failures, required-feature failures, and controlled frame timestamps. This suite runs in Chromium, Firefox, and WebKit; the existing broader suite and visual baselines remain Chromium-only. WebKit and narrow viewports are compatibility proxies, not evidence of a physical iOS Safari or installed Microsoft Edge run.
+
+On macOS 27, Firefox can fail before loading the site with `Could not find profile folder`, matching an [upstream Playwright report](https://github.com/microsoft/playwright/issues/42768). If affected, run `npm test -- --project=chromium --project=webkit-adaptive` locally and rely on the mandatory three-engine Linux CI run for Firefox verification; do not relax browser privacy permissions to run tests.
 
 Visual baselines are platform-specific (`darwin` locally, `linux` in Ubuntu 24.04 CI), with a 1% difference allowance. The Climb snapshots cover Trailhead, Waypoint 03, Waypoint 06, and Summit at 1440px and 390px; the durable List View keeps its own snapshots.
 

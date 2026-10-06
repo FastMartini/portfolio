@@ -8,7 +8,7 @@ export function setLandmarkHot(stage: HTMLElement, stop: number, hot: boolean) {
   stage.querySelector(`.lm[data-stop="${stop}"]`)?.classList.toggle("is-hot", hot);
 }
 
-export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () => void) {
+export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () => void, onFailure: () => void) {
   const scene = stage.querySelector<HTMLElement>(".climb-scene")!;
   const markers = Array.from(stage.querySelectorAll<HTMLButtonElement>("[data-marker]"));
   const landmarks = markers.map((marker) => stage.querySelector<SVGGElement>(`.lm[data-stop="${marker.dataset.marker}"]`));
@@ -65,7 +65,8 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
 
   function refresh() {
     raf = 0;
-    refreshVisibility();
+    try { refreshVisibility(); }
+    catch { onFailure(); return; }
     if (transitioning && !document.hidden) raf = requestAnimationFrame(refresh);
   }
   function schedule() {
@@ -77,9 +78,17 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
     schedule();
   }
   const mutation = new MutationObserver(schedule);
-  mutation.observe(stage, { attributes: true, attributeFilter: ["data-panel-open"] });
-  const resize = new ResizeObserver(schedule);
-  resize.observe(stage);
+  let resize: ResizeObserver | undefined;
+  try {
+    mutation.observe(stage, { attributes: true, attributeFilter: ["data-panel-open"] });
+    resize = new ResizeObserver(schedule);
+    resize.observe(stage);
+  } catch (error) {
+    mutation.disconnect();
+    resize?.disconnect();
+    cancelAnimationFrame(raf);
+    throw error;
+  }
   scene.addEventListener("transitionrun", transition);
   scene.addEventListener("transitionend", transition);
   scene.addEventListener("transitioncancel", transition);
@@ -100,7 +109,7 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
   }, dispose() {
     cancelAnimationFrame(raf);
     mutation.disconnect();
-    resize.disconnect();
+    resize?.disconnect();
     scene.removeEventListener("transitionrun", transition);
     scene.removeEventListener("transitionend", transition);
     scene.removeEventListener("transitioncancel", transition);

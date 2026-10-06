@@ -29,6 +29,16 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      name: "firefox-adaptive",
+      testMatch: "climb-adaptive.spec.ts",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit-adaptive",
+      testMatch: "climb-adaptive.spec.ts",
+      use: { ...devices["Desktop Safari"] },
+    },
   ],
   webServer: {
     command: "npm run build:test && node scripts/serve-static-export.mjs",

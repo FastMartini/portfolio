@@ -5,7 +5,7 @@ import type { RefObject } from "react";
 import { readClimbProgress } from "./progress";
 import type { ClimbFrame } from "./progress";
 
-export function useClimbProgress(root: RefObject<HTMLElement | null>, enabled: boolean, render: (frame: ClimbFrame) => void) {
+export function useClimbProgress(root: RefObject<HTMLElement | null>, enabled: boolean, render: (frame: ClimbFrame) => void, onFailure: () => void) {
   useEffect(() => {
     const element = root.current;
     if (!enabled || !element) return;
@@ -32,12 +32,19 @@ export function useClimbProgress(root: RefObject<HTMLElement | null>, enabled: b
       target = readClimbProgress((window.scrollY - top) / range);
       if (!raf) raf = requestAnimationFrame(frame);
     }
+    let observer: ResizeObserver | undefined;
+    try {
+      observer = new ResizeObserver(read);
+      observer.observe(element);
+    } catch {
+      observer?.disconnect();
+      const recovery = requestAnimationFrame(onFailure);
+      return () => cancelAnimationFrame(recovery);
+    }
     window.addEventListener("scroll", read, { passive: true });
     window.addEventListener("resize", read);
     reduce.addEventListener("change", read);
     document.addEventListener("visibilitychange", read);
-    const observer = new ResizeObserver(read);
-    observer.observe(element);
     read();
     return () => {
       cancelAnimationFrame(raf);
@@ -47,5 +54,5 @@ export function useClimbProgress(root: RefObject<HTMLElement | null>, enabled: b
       reduce.removeEventListener("change", read);
       document.removeEventListener("visibilitychange", read);
     };
-  }, [root, enabled, render]);
+  }, [root, enabled, render, onFailure]);
 }

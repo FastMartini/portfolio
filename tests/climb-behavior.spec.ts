@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { openClimb } from "./helpers/climb";
 import type { Page } from "@playwright/test";
 import { journeyStops } from "../content/journey";
 import { readClimbProgress } from "../components/climb/progress";
@@ -42,7 +43,7 @@ test("altitude weather preserves morning, snowfall, white-out, and clear summit 
 
 test("all ten stops show their card or Trail Sign and update the bottom-to-top Trail Rail", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   const root = page.locator("#climb");
   await expect(root).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Software engineer building intelligent, data-driven products.");
@@ -77,7 +78,7 @@ test("all ten stops show their card or Trail Sign and update the bottom-to-top T
 
 test("wheel and page keys remain native, reversible, and leave the URL unchanged", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   const url = page.url();
   await settledScrollY(page);
@@ -99,7 +100,7 @@ test("wheel and page keys remain native, reversible, and leave the URL unchanged
 
 test("List View toggle and Waypoint hashes preserve full text, focus, routes, and climb position", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToStop(page, 3);
   const before = await page.evaluate(() => window.scrollY);
@@ -130,7 +131,7 @@ test("List View toggle and Waypoint hashes preserve full text, focus, routes, an
 });
 
 test("snow starts at altitude, clears on live reduced-motion changes, and stops outside Climb view", async ({ page }) => {
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToStop(page, 6);
   const snow = page.locator(".climb-snow");
@@ -142,6 +143,8 @@ test("snow starts at altitude, clears on live reduced-motion changes, and stops 
     return canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data.some((channel) => channel !== 0);
   })).toBe(false);
   await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(page.locator("#list-view")).toBeVisible();
+  await page.getByRole("button", { name: "Climb view", exact: true }).click();
   await expect(snow).toHaveAttribute("data-flakes", "320");
   await page.getByRole("button", { name: "List view", exact: true }).click();
   await expect(snow).toHaveAttribute("data-flakes", "0");
@@ -152,7 +155,7 @@ for (const width of [390, 1440]) {
     test(`${journeyStops[index].label} card is accessible at ${width}px in either theme`, async ({ page }) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
-      await page.goto("./");
+      await openClimb(page);
       await expect(page.locator("#climb")).toBeVisible();
       await scrollToStop(page, index);
       const card = page.locator(`[data-card="${index}"]`);
@@ -169,7 +172,7 @@ for (const width of [390, 1440]) {
   test(`every Waypoint Trail Sign and action fit at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("./");
+    await openClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     for (let index = 2; index <= 7; index++) {
       await scrollToStop(page, index);
@@ -181,7 +184,7 @@ for (const width of [390, 1440]) {
   test(`dark List View is accessible at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "dark" });
-    await page.goto("./");
+    await openClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await expect(page.locator(".climb-list")).toHaveCSS("background-color", "rgb(26, 33, 29)");
