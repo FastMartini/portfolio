@@ -17,10 +17,11 @@ test("visitor can load the Veritas Case Study under the site base path", async (
 });
 
 test("visitor can open the Veritas Case Study from its Waypoint", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
 
   const veritas = page.locator('[data-waypoint-slug="veritas"]');
   await veritas.getByRole("link", { name: "Read case study" }).click();
+  await page.getByRole("link", { name: "Standalone Case Study" }).click();
 
   await expect(page).toHaveURL(/\/portfolio\/work\/veritas\/?$/);
   await expect(page.getByRole("heading", { level: 1, name: "Veritas" })).toBeVisible();

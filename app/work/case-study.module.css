@@ -1,4 +1,26 @@
 .caseStudy { background: var(--parchment); }
+.caseStudy > article { background: var(--parchment); }
+:global(.climb-panel) .caseStudy { background: transparent; }
+:global(.climb-panel) .hero { gap: 1.25rem; grid-template-columns: 1fr; min-height: auto; padding: 0.5rem 0 2rem; }
+:global(.climb-panel) .hero h2 { font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; }
+:global(.climb-panel) .dek { font-size: 1.4rem; margin-top: 1.5rem; max-width: none; }
+:global(.climb-panel) :is(.introGrid, .splitSection, .decisionSection, .technologySection, .teamSection, .outcomeSection, .limitationsSection, .evidenceHeading, .reportEvidence) { gap: 1.25rem; grid-template-columns: 1fr; padding: 2rem 1rem; }
+:global(.climb-panel) :is(.evidenceSection, .evidenceHeading) { padding: 2rem 1rem; }
+:global(.climb-panel) :is(.factGrid, .limitationsGrid, .surfaceGrid, .systemFlow, .teamList div) { grid-template-columns: 1fr; }
+:global(.climb-panel) .fieldNotes { align-self: auto; }
+:global(.climb-panel) :is(.caseStudy h2, .caseStudy .award) { font-size: 2rem; line-height: 1.15; }
+:global(.climb-panel) .systemFlow a { min-height: 8rem; }
+:global(.climb-panel) .surfaceGrid article { min-height: 19rem; }
+:global(.climb-panel) .teamList div { gap: 0.5rem; }
+:global(.climb-panel) :is(.systemFlow, .surfaceGrid, .reportEvidence) { margin-top: 2rem; }
+:global(.climb-case-content) .evidenceSection { background: #1f2621; color: #fffbed; }
+:global(.climb-case-content) .surfaceGrid article { background: #fffbed; color: #1f2621; }
+@media (prefers-color-scheme: dark) {
+  :global(.climb-case-content) :is(.techList li, .resultsTable caption, .award) { color: #a9c7b5; }
+  :global(.climb-case-content) .techList li { border-color: rgba(236,230,210,0.3); }
+  :global(.climb-case-content) .outcomeSection { background: #252f29; }
+  :global(.climb-case-content) .surfaceGrid article > p { color: #8b4428; }
+}
 .caseStudy h1, .caseStudy h2, .caseStudy h3 { font-family: var(--font-newsreader), serif; font-weight: 450; letter-spacing: -0.045em; }
 .caseStudy h2 { font-size: clamp(2.8rem, 6vw, 6rem); line-height: 0.95; margin: 0; }
 .caseStudy h3 { font-size: 1.45rem; line-height: 1.2; margin: 0; }

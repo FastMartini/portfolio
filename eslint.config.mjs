@@ -5,5 +5,6 @@ import nextTypeScript from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
-  globalIgnores([".next/**", "out/**", "playwright-report/**", "test-results/**"]),
+  // The handoff's browser prototype is design evidence, not application code.
+  globalIgnores([".next/**", "out/**", "playwright-report/**", "test-results/**", "docs/handoff/**"]),
 ]);

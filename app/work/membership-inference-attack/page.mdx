@@ -21,12 +21,14 @@ export const metadata = study.metadata;
   variant="case-study"
 />
 
-<main id="case-study-content" className={styles.caseStudy}>
-  <article>
+export function CaseStudyContent({ idPrefix = "", embedded = false }) {
+  const Title = embedded ? "h2" : "h1";
+  return (
+<article className={styles.caseStudy}>
     <header className={styles.hero}>
       <div className={styles.heroCopy}>
         <p className={styles.eyebrow}>{`Waypoint ${String(study.order).padStart(2, "0")} · ${study.period}`}</p>
-        <h1 className={styles.studyTitle}>{study.name}</h1>
+        <Title className={styles.studyTitle}>{study.name}</Title>
         <p className={styles.dek}>{study.summary}</p>
         <p className={styles.ownership}>{study.owned}</p>
         <p>As team lead, I coordinated the project and led the design and execution of testing procedures alongside Christian Cevallos, Lucas Ramos, and Justin Cardenas.</p>
@@ -43,10 +45,10 @@ export const metadata = study.metadata;
       </aside>
     </header>
 
-    <section className={styles.introGrid} aria-labelledby="problem-title">
+    <section className={styles.introGrid} aria-labelledby={`${idPrefix}problem-title`}>
       <div>
         <p className={styles.sectionNumber}>01 · Context</p>
-        <h2 id="problem-title">The problem</h2>
+        <h2 id={`${idPrefix}problem-title`}>The problem</h2>
       </div>
       <div className={styles.prose}>
         <p className={styles.lead}>A classifier can keep its training reviews hidden and still reveal clues about which reviews it has seen.</p>
@@ -55,10 +57,10 @@ export const metadata = study.metadata;
       </div>
     </section>
 
-    <section className={styles.splitSection} aria-labelledby="design-title">
+    <section className={styles.splitSection} aria-labelledby={`${idPrefix}design-title`}>
       <div>
         <p className={styles.sectionNumber}>02 · Frame</p>
-        <h2 id="design-title">Experiment design</h2>
+        <h2 id={`${idPrefix}design-title`}>Experiment design</h2>
       </div>
       <div className={styles.factGrid}>
         <article>
@@ -80,11 +82,11 @@ export const metadata = study.metadata;
       </div>
     </section>
 
-    <section id="evidence" className={styles.evidenceSection} aria-labelledby="evidence-title">
+    <section id={`${idPrefix}evidence`} className={styles.evidenceSection} aria-labelledby={`${idPrefix}evidence-title`}>
       <div className={styles.evidenceHeading}>
         <div>
           <p className={styles.sectionNumber}>03 · Public evidence</p>
-          <h2 id="evidence-title">Inspect the experiment.</h2>
+          <h2 id={`${idPrefix}evidence-title`}>Inspect the experiment.</h2>
         </div>
         <p>The report records the experiment’s measurements and team contributions. The code exposes how the data, target model, and attacks were constructed; the recorded demo provides a walkthrough.</p>
       </div>
@@ -110,10 +112,10 @@ export const metadata = study.metadata;
       </div>
     </section>
 
-    <section id="decisions" className={styles.decisionSection} aria-labelledby="decisions-title">
+    <section id={`${idPrefix}decisions`} className={styles.decisionSection} aria-labelledby={`${idPrefix}decisions-title`}>
       <div>
         <p className={styles.sectionNumber}>04 · Engineering</p>
-        <h2 id="decisions-title">Key decisions</h2>
+        <h2 id={`${idPrefix}decisions-title`}>Key decisions</h2>
       </div>
       <ol className={styles.decisionList}>
         <li><span>01</span><div><h3>Keep membership grounded in the training boundary.</h3><p>Only the member subset trained the target classifier and TF-IDF vocabulary. Non-member reviews remained unseen by that training process, preserving the meaning of the membership labels.</p></div></li>
@@ -123,10 +125,10 @@ export const metadata = study.metadata;
       </ol>
     </section>
 
-    <section className={styles.technologySection} aria-labelledby="features-title">
+    <section className={styles.technologySection} aria-labelledby={`${idPrefix}features-title`}>
       <div>
         <p className={styles.sectionNumber}>05 · Signals</p>
-        <h2 id="features-title">Attack features</h2>
+        <h2 id={`${idPrefix}features-title`}>Attack features</h2>
       </div>
       <div>
         <ul className={styles.techList} aria-label="Membership inference technologies">
@@ -143,10 +145,10 @@ export const metadata = study.metadata;
       </div>
     </section>
 
-    <section className={styles.teamSection} aria-labelledby="team-title">
+    <section className={styles.teamSection} aria-labelledby={`${idPrefix}team-title`}>
       <div>
         <p className={styles.sectionNumber}>06 · Collaboration</p>
-        <h2 id="team-title">Team and contribution</h2>
+        <h2 id={`${idPrefix}team-title`}>Team and contribution</h2>
       </div>
       <div>
         <p className={styles.lead}>I led the project direction, coordinated development, and designed and executed the testing procedures. Development and analysis were a shared effort.</p>
@@ -160,10 +162,10 @@ export const metadata = study.metadata;
       </div>
     </section>
 
-    <section id="outcome" className={styles.outcomeSection} aria-labelledby="results-title">
+    <section id={`${idPrefix}outcome`} className={styles.outcomeSection} aria-labelledby={`${idPrefix}results-title`}>
       <div>
         <p className={styles.sectionNumber}>07 · Results</p>
-        <h2 id="results-title">Results</h2>
+        <h2 id={`${idPrefix}results-title`}>Results</h2>
       </div>
       <div className={styles.resultsCopy}>
         <p className={styles.lead}>The recorded run exposed a measurable membership signal in this classifier’s behavior.</p>
@@ -191,10 +193,10 @@ export const metadata = study.metadata;
       </div>
     </section>
 
-    <section className={styles.limitationsSection} aria-labelledby="limitations-title">
+    <section className={styles.limitationsSection} aria-labelledby={`${idPrefix}limitations-title`}>
       <div>
         <p className={styles.sectionNumber}>08 · Boundary</p>
-        <h2 id="limitations-title">Limitations</h2>
+        <h2 id={`${idPrefix}limitations-title`}>Limitations</h2>
       </div>
       <div className={styles.limitationsGrid}>
         <p><strong>A controlled sample.</strong> The results cover 500 member and 500 non-member IMDB reviews, one target classifier, and one recorded run. They do not establish a general privacy guarantee or population-wide attack rate.</p>
@@ -206,9 +208,14 @@ export const metadata = study.metadata;
       </div>
     </section>
 
-    <footer className={styles.caseFooter}>
+    {!embedded && <footer className={styles.caseFooter}>
       <p><span>Next bearing</span>Return to the Mountain Journey</p>
       <Link href={`/#${study.slug}`}>Back to selected work <span aria-hidden="true">↗</span></Link>
-    </footer>
+    </footer>}
   </article>
+  );
+}
+
+<main id="case-study-content" className={styles.caseStudy}>
+  <CaseStudyContent />
 </main>

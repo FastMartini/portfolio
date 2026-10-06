@@ -24,11 +24,12 @@ test("membership inference Case Study loads directly and refreshes under the Pag
 });
 
 test("visitor can navigate from the membership Waypoint and return to it", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./#list-view");
   await page
     .locator('[data-waypoint-slug="membership-inference-attack"]')
     .getByRole("link", { name: "Read case study" })
     .click();
+  await page.getByRole("link", { name: "Standalone Case Study" }).click();
   await expect(page).toHaveURL(/\/portfolio\/work\/membership-inference-attack\/?$/);
   await expect(page.getByRole("heading", { name: "Experiment design" })).toBeVisible();
 

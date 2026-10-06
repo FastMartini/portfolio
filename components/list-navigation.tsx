@@ -1,20 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { useScroll } from "motion/react";
-import type { MotionValue } from "motion/react";
 
 import type { JourneySection } from "../content/journey";
 
-const AscentProgressContext = createContext<MotionValue<number> | null>(null);
-
-// Future atmospheric consumers share this signal without rerendering on each frame.
-export function useAscentProgress() {
-  return useContext(AscentProgressContext);
-}
-
-export function Ascent({
+export function ListNavigation({
   children,
   sections,
 }: {
@@ -22,7 +13,6 @@ export function Ascent({
   sections: readonly JourneySection[];
 }) {
   const root = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ trackContentSize: true });
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const activeIndex = useRef(-1);
   const current = sections[currentIndex ?? 0];
@@ -37,6 +27,7 @@ export function Ascent({
     let resizeFrame = 0;
 
     const updateLocation = (scrollPosition: number) => {
+      if (!element.getClientRects().length) return;
       const readingLine = scrollPosition + readingOffset;
       let nextIndex = 0;
       for (let index = 0; index < positions.length; index++) {
@@ -68,22 +59,20 @@ export function Ascent({
       resizeFrame = requestAnimationFrame(measure);
     };
 
-    // Motion owns scrolling; this subscriber only reads it and updates section boundaries.
-    const unsubscribe = scrollYProgress.on("change", (progress) => {
-      updateLocation(progress * scrollRange);
-    });
+    const readScroll = () => updateLocation(window.scrollY);
     const resizeObserver = new ResizeObserver(scheduleMeasure);
     resizeObserver.observe(element);
     window.addEventListener("resize", scheduleMeasure);
+    window.addEventListener("scroll", readScroll, { passive: true });
     scheduleMeasure();
 
     return () => {
-      unsubscribe();
       resizeObserver.disconnect();
       window.removeEventListener("resize", scheduleMeasure);
+      window.removeEventListener("scroll", readScroll);
       cancelAnimationFrame(resizeFrame);
     };
-  }, [scrollYProgress, sections]);
+  }, [sections]);
 
   useEffect(() => {
     const markers = root.current?.querySelectorAll<HTMLAnchorElement>("[data-waypoint-marker]");
@@ -102,33 +91,8 @@ export function Ascent({
   }, [current]);
 
   return (
-    <AscentProgressContext.Provider value={scrollYProgress}>
-      <div className="mountain-journey" ref={root} data-enhanced={currentIndex !== null ? true : undefined}>
-        {children}
-        <aside className="route-indicator" aria-label="Mountain Journey location">
-          <p className="route-caption">Along the Ascent</p>
-          <nav aria-label="Route Indicator">
-            <ol>
-              {sections.map((section, index) => (
-                <li key={section.id}>
-                  <a
-                    href={`#${section.id}`}
-                    aria-label={`Go to ${section.label}`}
-                    aria-current={index === currentIndex ? "location" : undefined}
-                    title={section.label}
-                  >
-                    <span className="route-dot" aria-hidden="true" />
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-          <p className="route-location">
-            <span className="route-section">{current.label}</span>
-            <span className="route-elevation"><span>Elevation</span>{current.elevation}</span>
-          </p>
-        </aside>
-      </div>
-    </AscentProgressContext.Provider>
+    <div className="mountain-journey" ref={root} data-enhanced={currentIndex !== null ? true : undefined}>
+      {children}
+    </div>
   );
 }

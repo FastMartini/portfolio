@@ -41,7 +41,20 @@ jobs:
         run: npm run lint
 
       - name: Test the production static export
+        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
         run: npm test
+
+      - name: Refresh Linux visual baselines on a manually selected branch
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        run: npm test -- --update-snapshots
+
+      - name: Upload refreshed Linux visual baselines
+        if: success() && github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines-linux
+          path: tests/*-snapshots/*-linux.png
+          retention-days: 7
 
       - name: Upload visual test evidence
         if: failure()
@@ -50,7 +63,7 @@ jobs:
           name: playwright-evidence
           path: |
             test-results/
-            tests/ascent.spec.ts-snapshots/
+            tests/*-snapshots/
           retention-days: 7
 
   build-pages:

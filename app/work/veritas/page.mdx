@@ -20,12 +20,14 @@ export const metadata = veritasWaypoint.metadata;
   variant="case-study"
 />
 
-<main id="case-study-content" className={styles.caseStudy}>
-  <article>
+export function CaseStudyContent({ idPrefix = "", embedded = false }) {
+  const Title = embedded ? "h2" : "h1";
+  return (
+<article className={styles.caseStudy}>
     <header className={styles.hero}>
       <div className={styles.heroCopy}>
         <p className={styles.eyebrow}>{`Waypoint ${String(veritasWaypoint.order).padStart(2, "0")} · ${veritasWaypoint.period}`}</p>
-        <h1>{veritasWaypoint.name}</h1>
+        <Title>{veritasWaypoint.name}</Title>
         <p className={styles.dek}>{veritasWaypoint.summary}</p>
         <p className={styles.ownership}>{veritasWaypoint.owned}</p>
         <p>As team lead and developer, I guided the architecture and contributed across the FastAPI backend and Chrome extension alongside Christian Cevallos, Justin Cardenas, and Jhonny Felix.</p>
@@ -51,10 +53,10 @@ export const metadata = veritasWaypoint.metadata;
       </aside>
     </header>
 
-    <section className={styles.introGrid} aria-labelledby="problem-title">
+    <section className={styles.introGrid} aria-labelledby={`${idPrefix}problem-title`}>
       <div>
         <p className={styles.sectionNumber}>01 · Context</p>
-        <h2 id="problem-title">The problem</h2>
+        <h2 id={`${idPrefix}problem-title`}>The problem</h2>
       </div>
       <div className={styles.prose}>
         <p className={styles.lead}>Political articles can shape interpretation through source reputation, loaded language, and selective framing even when the question is not simply whether a sentence is true or false.</p>
@@ -62,10 +64,10 @@ export const metadata = veritasWaypoint.metadata;
       </div>
     </section>
 
-    <section className={styles.splitSection} aria-labelledby="users-title">
+    <section className={styles.splitSection} aria-labelledby={`${idPrefix}users-title`}>
       <div>
         <p className={styles.sectionNumber}>02 · Frame</p>
-        <h2 id="users-title">Users and constraints</h2>
+        <h2 id={`${idPrefix}users-title`}>Users and constraints</h2>
       </div>
       <div className={styles.factGrid}>
         <article>
@@ -91,11 +93,11 @@ export const metadata = veritasWaypoint.metadata;
       </div>
     </section>
 
-    <section id="evidence" className={styles.evidenceSection} aria-labelledby="evidence-title">
+    <section id={`${idPrefix}evidence`} className={styles.evidenceSection} aria-labelledby={`${idPrefix}evidence-title`}>
       <div className={styles.evidenceHeading}>
         <div>
           <p className={styles.sectionNumber}>03 · Repository evidence</p>
-          <h2 id="evidence-title">From active tab to explained estimate.</h2>
+          <h2 id={`${idPrefix}evidence-title`}>From active tab to explained estimate.</h2>
         </div>
         <p>This architecture follows the public repository’s documented workflow. Each stage links to the source material behind the diagram.</p>
       </div>
@@ -164,10 +166,10 @@ export const metadata = veritasWaypoint.metadata;
       </div>
     </section>
 
-    <section id="decisions" className={styles.decisionSection} aria-labelledby="decisions-title">
+    <section id={`${idPrefix}decisions`} className={styles.decisionSection} aria-labelledby={`${idPrefix}decisions-title`}>
       <div>
         <p className={styles.sectionNumber}>04 · Engineering</p>
-        <h2 id="decisions-title">Key decisions</h2>
+        <h2 id={`${idPrefix}decisions-title`}>Key decisions</h2>
       </div>
       <ol className={styles.decisionList}>
         <li>
@@ -189,10 +191,10 @@ export const metadata = veritasWaypoint.metadata;
       </ol>
     </section>
 
-    <section className={styles.technologySection} aria-labelledby="technology-title">
+    <section className={styles.technologySection} aria-labelledby={`${idPrefix}technology-title`}>
       <div>
         <p className={styles.sectionNumber}>05 · Build</p>
-        <h2 id="technology-title">Technology</h2>
+        <h2 id={`${idPrefix}technology-title`}>Technology</h2>
       </div>
       <div>
         <ul className={styles.techList} aria-label="Veritas technologies">
@@ -202,10 +204,10 @@ export const metadata = veritasWaypoint.metadata;
       </div>
     </section>
 
-    <section className={styles.teamSection} aria-labelledby="team-title">
+    <section className={styles.teamSection} aria-labelledby={`${idPrefix}team-title`}>
       <div>
         <p className={styles.sectionNumber}>06 · Collaboration</p>
-        <h2 id="team-title">Team and contribution</h2>
+        <h2 id={`${idPrefix}team-title`}>Team and contribution</h2>
       </div>
       <div>
         <p className={styles.lead}>Four collaborators developed the capstone through short, structured iterations.</p>
@@ -219,10 +221,10 @@ export const metadata = veritasWaypoint.metadata;
       </div>
     </section>
 
-    <section id="outcome" className={styles.outcomeSection} aria-labelledby="outcome-title">
+    <section id={`${idPrefix}outcome`} className={styles.outcomeSection} aria-labelledby={`${idPrefix}outcome-title`}>
       <div>
         <p className={styles.sectionNumber}>07 · Result</p>
-        <h2 id="outcome-title">Outcome</h2>
+        <h2 id={`${idPrefix}outcome-title`}>Outcome</h2>
       </div>
       <div className={styles.outcomeCopy}>
         <p className={styles.award}>An integrated extension-to-analysis flow.</p>
@@ -230,10 +232,10 @@ export const metadata = veritasWaypoint.metadata;
       </div>
     </section>
 
-    <section className={styles.limitationsSection} aria-labelledby="limitations-title">
+    <section className={styles.limitationsSection} aria-labelledby={`${idPrefix}limitations-title`}>
       <div>
         <p className={styles.sectionNumber}>08 · Boundary</p>
-        <h2 id="limitations-title">Limitations</h2>
+        <h2 id={`${idPrefix}limitations-title`}>Limitations</h2>
       </div>
       <div className={styles.limitationsGrid}>
         <p><strong>Not truth verification.</strong> Veritas estimates political leaning; it is not a fake-news detector or truth-verification system.</p>
@@ -245,9 +247,14 @@ export const metadata = veritasWaypoint.metadata;
       </div>
     </section>
 
-    <footer className={styles.caseFooter}>
+    {!embedded && <footer className={styles.caseFooter}>
       <p><span>Next bearing</span>Return to the Mountain Journey</p>
       <Link href={`/#${veritasWaypoint.slug}`}>Back to selected work <span aria-hidden="true">↗</span></Link>
-    </footer>
+    </footer>}
   </article>
+  );
+}
+
+<main id="case-study-content" className={styles.caseStudy}>
+  <CaseStudyContent />
 </main>

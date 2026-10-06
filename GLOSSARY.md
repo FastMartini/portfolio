@@ -9,12 +9,24 @@ The portfolio's central narrative, framing Diego's personal and professional gro
 _Avoid_: Timeline, career ladder
 
 **Ascent**:
-The Mountain Journey's scrolling experience: visitors scroll normally downward while restrained camera movement, atmosphere, and Waypoint reveals create the visual impression of climbing upward. It never blocks content behind an intro, free-orbit control, or scroll-jacking.
+The Mountain Journey's scrolling experience, following a switchback trail up an illustrated mountain from Trailhead to Summit. Visitors scroll normally, with brief pauses at each stop and Waypoints to explore along the way.
 _Avoid_: Reverse scroll, scroll-jacking
 
-**Atmospheric Layer**:
-The progressively enhanced Three.js scene that adds dimensional terrain, lighting, and motion behind accessible page content without owning navigation or project information. It moves subtly from misty parchment at the Trailhead through clearer pine elevations to restrained copper light near the Summit; capable mobile devices receive a simplified scene, while reduced-motion, failed-WebGL, and poor-performance cases receive a static HTML/SVG atmosphere.
-_Avoid_: 3D site, WebGL content layer
+**Landmark**:
+The illustration marking a Waypoint's place on the mountain, such as a watchtower, lodge, or high-pass sign.
+_Avoid_: Project icon, decorative badge
+
+**Trail Sign**:
+The orientation card naming the current position along the Ascent and offering an action to open the current Waypoint.
+_Avoid_: Toast, notification
+
+**Waypoint Panel**:
+The reading surface opened from a Waypoint's marker or Landmark, containing its summary, contribution, evidence, and available Case Study.
+_Avoid_: Project popup, modal card
+
+**List View**:
+The complete full-text version of the portfolio, offering every Waypoint and published Case Study independently of the illustrated Ascent.
+_Avoid_: Fallback page, plain mode
 
 **Editorial Alpine**:
 The portfolio's visual character, combining quiet editorial sophistication with restrained mountain details, generous space, and deliberate motion.
@@ -24,8 +36,8 @@ _Avoid_: Rugged outdoors, generic tech minimalism
 The opening of the Mountain Journey, introducing Diego, his professional focus, and clear actions to view selected work or contact him.
 _Avoid_: Splash screen, intro animation
 
-**Route Indicator**:
-A subtle vertical orientation aid that shows the visitor's current section and elevation during the Ascent without presenting the journey as a game.
+**Trail Rail**:
+The vertical orientation aid running from Trailhead at the bottom to Summit at the top, with a navigable stop for each position along the Ascent. It replaces the former Route Indicator.
 _Avoid_: Progress bar, game HUD
 
 **Waypoint**:
