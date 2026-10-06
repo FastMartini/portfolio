@@ -12,6 +12,18 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
   const scene = stage.querySelector<HTMLElement>(".climb-scene")!;
   const markers = Array.from(stage.querySelectorAll<HTMLButtonElement>("[data-marker]"));
   const landmarks = markers.map((marker) => stage.querySelector<SVGGElement>(`.lm[data-stop="${marker.dataset.marker}"]`));
+  // Cache each Landmark's world bounds once. Chromium can retain stale SVG
+  // client rectangles after a CSS camera transform; local SVG bounds plus the
+  // current camera and scene origin stay consistent with the painted position.
+  const landmarkBounds = landmarks.map((landmark) => {
+    if (!landmark) return null;
+    const box = landmark.getBBox(), matrix = landmark.transform.baseVal.consolidate()!.matrix;
+    const corners = [[box.x, box.y], [box.x + box.width, box.y],
+      [box.x, box.y + box.height], [box.x + box.width, box.y + box.height]]
+      .map(([x, y]) => new DOMPoint(x, y).matrixTransform(matrix));
+    return { left: Math.min(...corners.map((point) => point.x)), right: Math.max(...corners.map((point) => point.x)),
+      top: Math.min(...corners.map((point) => point.y)), bottom: Math.max(...corners.map((point) => point.y)) };
+  });
   let view: ReturnType<typeof mountainView> | null = null;
   let raf = 0, transitioning = false;
 
@@ -22,7 +34,6 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
     const clip = stage.getBoundingClientRect(), origin = scene.getBoundingClientRect();
     const left = Math.max(0, clip.left), right = Math.min(innerWidth, clip.right);
     const top = Math.max(76, clip.top), bottom = Math.min(innerHeight, clip.bottom);
-    const bounds = landmarks.map((landmark) => landmark?.getBoundingClientRect());
     const camera = view;
     markers.forEach((marker, index) => {
       const anchor = landmarkAnchors[index];
@@ -34,9 +45,12 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
       marker.dataset.hidden = String(!visible);
       // Retain the shared full-target visibility contract, and also reject
       // Landmarks whose rendered bounds fall outside the clipping rectangle.
-      const landmark = landmarks[index], box = bounds[index];
+      const landmark = landmarks[index], box = landmarkBounds[index];
       if (landmark && box) {
-        const landmarkVisible = visible && box.width > 0 && box.height > 0 && box.right > left && box.left < right && box.bottom > top && box.top < bottom;
+        const landmarkVisible = visible && origin.left + camera.x + box.right * camera.scale > left
+          && origin.left + camera.x + box.left * camera.scale < right
+          && origin.top + camera.y + box.bottom * camera.scale > top
+          && origin.top + camera.y + box.top * camera.scale < bottom;
         landmark.tabIndex = landmarkVisible ? 0 : -1;
         landmark.setAttribute("aria-hidden", String(!landmarkVisible));
       }
