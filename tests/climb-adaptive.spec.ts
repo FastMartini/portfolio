@@ -578,6 +578,11 @@ test("reduced-motion List View keeps canonical content and accessible reading su
     await page.emulateMedia({ colorScheme });
     await expect(page.locator(".climb-list")).toHaveCSS("color", colorScheme === "dark" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
     await expect(page.locator(".site-header")).toHaveCSS("color", colorScheme === "dark" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
+    // Linux WebKit can update the parent's color before inherited text styles.
+    // Audit the settled reading surface, not that transient theme-change frame.
+    for (const text of await page.locator(".site-header a, .site-header span").all()) {
+      await expect(text).toHaveCSS("color", colorScheme === "dark" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
+    }
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
   }
 });
