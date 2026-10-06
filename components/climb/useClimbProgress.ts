@@ -19,10 +19,10 @@ export function useClimbProgress(root: RefObject<HTMLElement | null>, enabled: b
       shown = reduce.matches || !initialized || Math.abs(target.position - shown) < 0.0004
         ? target.position : shown + (target.position - shown) * (1 - Math.exp(-dt * 7));
       initialized = true;
-      render({ ...target, position: shown, reducedMotion: reduce.matches || document.hidden });
       element!.dataset.position = shown.toFixed(4);
       element!.dataset.stop = String(target.nearest);
       element!.dataset.settled = String(shown === target.position);
+      render({ ...target, position: shown, reducedMotion: reduce.matches || document.hidden });
       if (shown !== target.position && !document.hidden) raf = requestAnimationFrame(frame);
       else last = 0;
     }

@@ -46,7 +46,12 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
   const pendingFocus = useRef<HTMLButtonElement | null>(null);
 
   const restorePendingFocus = useCallback(() => {
-    if (pendingFocus.current && !pendingFocus.current.hidden) {
+    if (pendingFocus.current && !pendingFocus.current.hidden && root.current?.dataset.settled === "true") {
+      // A marker can briefly re-enter and leave the viewport while the camera
+      // and closing scene move in opposite directions. Restore focus only once
+      // both are stable, so hiding it again cannot drop focus to the document.
+      const scene = stage.current?.querySelector<HTMLElement>(".climb-scene");
+      if (scene?.getAnimations().some((animation) => animation.playState !== "finished")) return;
       pendingFocus.current.focus({ preventScroll: true });
       pendingFocus.current = null;
     }
