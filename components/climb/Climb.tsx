@@ -69,10 +69,9 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
       // The frame renderer returns focus once the projected marker is visible,
       // including when normal-motion camera interpolation takes several frames.
     } else {
-      marker.focus({ preventScroll: true });
-      pendingFocus.current = null;
+      restorePendingFocus();
     }
-  }, [selection]);
+  }, [selection, restorePendingFocus]);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => {
