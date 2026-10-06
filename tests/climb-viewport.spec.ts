@@ -90,6 +90,35 @@ test("open-panel visibility refreshes through breakpoint changes, camera movemen
 });
 
 for (const motion of ["reduce", "no-preference"] as const) {
+  test(`List View deep-link startup exposes visible Landmarks to Tab with ${motion} motion`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: motion });
+    await page.goto("./#case-veritas");
+    await expect(page.locator("#climb")).toBeHidden();
+    await page.getByRole("button", { name: "Climb view", exact: true }).click();
+    await expect(page.locator("#climb")).toBeVisible();
+    await scrollToClimbStop(page, 5);
+
+    const momentum = page.locator('.lm[data-stop="2"]');
+    await expect(page.locator('[data-marker="2"]')).toBeVisible();
+    const box = (await momentum.boundingBox())!;
+    expect(box.width).toBeGreaterThan(0);
+    expect(box.height).toBeGreaterThan(0);
+    expect(box.x + box.width).toBeGreaterThan(0);
+    expect(box.x).toBeLessThan(1440);
+    expect(box.y + box.height).toBeGreaterThan(76);
+    expect(box.y).toBeLessThan(900);
+    // Avoid native SVG focus scrolling: only the real Tab step should change focus.
+    await page.locator('.lm[data-stop="3"]').evaluate((element) => element.focus({ preventScroll: true }));
+    await page.keyboard.press("Tab");
+    await expect(momentum).toBeFocused();
+    await expect(momentum).toHaveAttribute("tabindex", "0");
+    await expect(momentum).toHaveAttribute("aria-hidden", "false");
+    await expect(momentum).toHaveClass(/is-hot/);
+    await expect(page.locator('[data-marker="2"]')).toHaveAttribute("data-hot", "true");
+    await expectVisibleTabTargets(page);
+  });
+
   test(`dismissal restores a marker clipped by panel movement with ${motion} motion`, async ({ page }) => {
     await page.setViewportSize({ width: 901, height: 900 });
     await page.emulateMedia({ reducedMotion: motion });

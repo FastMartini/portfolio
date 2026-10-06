@@ -12,18 +12,10 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
   const scene = stage.querySelector<HTMLElement>(".climb-scene")!;
   const markers = Array.from(stage.querySelectorAll<HTMLButtonElement>("[data-marker]"));
   const landmarks = markers.map((marker) => stage.querySelector<SVGGElement>(`.lm[data-stop="${marker.dataset.marker}"]`));
-  // Cache each Landmark's world bounds once. Chromium can retain stale SVG
-  // client rectangles after a CSS camera transform; local SVG bounds plus the
-  // current camera and scene origin stay consistent with the painted position.
-  const landmarkBounds = landmarks.map((landmark) => {
-    if (!landmark) return null;
-    const box = landmark.getBBox(), matrix = landmark.transform.baseVal.consolidate()!.matrix;
-    const corners = [[box.x, box.y], [box.x + box.width, box.y],
-      [box.x, box.y + box.height], [box.x + box.width, box.y + box.height]]
-      .map(([x, y]) => new DOMPoint(x, y).matrixTransform(matrix));
-    return { left: Math.min(...corners.map((point) => point.x)), right: Math.max(...corners.map((point) => point.x)),
-      top: Math.min(...corners.map((point) => point.y)), bottom: Math.max(...corners.map((point) => point.y)) };
-  });
+  // List View deep links mount the Climb while hidden. Cache world bounds only
+  // once measurable; Chromium's SVG client rectangles can go stale after camera
+  // transforms, so keep projecting local bounds with the current camera/origin.
+  const landmarkBounds: ({ left: number; right: number; top: number; bottom: number } | null)[] = landmarks.map(() => null);
   let view: ReturnType<typeof mountainView> | null = null;
   let raf = 0, transitioning = false;
 
@@ -32,6 +24,19 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
     // Read rendered geometry in one batch before writing visibility. The scene
     // can move independently of the mountain camera while a panel animates.
     const clip = stage.getBoundingClientRect(), origin = scene.getBoundingClientRect();
+    if (clip.width <= 0 || clip.height <= 0) return;
+    landmarks.forEach((landmark, index) => {
+      if (!landmark || landmarkBounds[index]) return;
+      const box = landmark.getBBox();
+      // A not-yet-measurable SVG must not permanently poison the cache.
+      if (box.width <= 0 || box.height <= 0) return;
+      const matrix = landmark.transform.baseVal.consolidate()!.matrix;
+      const corners = [[box.x, box.y], [box.x + box.width, box.y],
+        [box.x, box.y + box.height], [box.x + box.width, box.y + box.height]]
+        .map(([x, y]) => new DOMPoint(x, y).matrixTransform(matrix));
+      landmarkBounds[index] = { left: Math.min(...corners.map((point) => point.x)), right: Math.max(...corners.map((point) => point.x)),
+        top: Math.min(...corners.map((point) => point.y)), bottom: Math.max(...corners.map((point) => point.y)) };
+    });
     const left = Math.max(0, clip.left), right = Math.min(innerWidth, clip.right);
     const top = Math.max(76, clip.top), bottom = Math.min(innerHeight, clip.bottom);
     const camera = view;
@@ -46,11 +51,11 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
       // Retain the shared full-target visibility contract, and also reject
       // Landmarks whose rendered bounds fall outside the clipping rectangle.
       const landmark = landmarks[index], box = landmarkBounds[index];
-      if (landmark && box) {
-        const landmarkVisible = visible && origin.left + camera.x + box.right * camera.scale > left
+      if (landmark) {
+        const landmarkVisible = Boolean(box && visible && origin.left + camera.x + box.right * camera.scale > left
           && origin.left + camera.x + box.left * camera.scale < right
           && origin.top + camera.y + box.bottom * camera.scale > top
-          && origin.top + camera.y + box.top * camera.scale < bottom;
+          && origin.top + camera.y + box.top * camera.scale < bottom);
         landmark.tabIndex = landmarkVisible ? 0 : -1;
         landmark.setAttribute("aria-hidden", String(!landmarkVisible));
       }
