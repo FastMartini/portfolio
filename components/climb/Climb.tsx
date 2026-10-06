@@ -18,6 +18,10 @@ import { createMarkerRenderer, setLandmarkHot } from "./marker-render";
 import { WaypointPanel } from "./WaypointPanel";
 import type { PanelSelection } from "./WaypointPanel";
 import { ViewContext, ViewToggle } from "./ViewToggle";
+import { canEnhanceClimb, observeClimbQuality, watchClimbPerformance } from "./quality";
+import type { ClimbQuality } from "./quality";
+import { SceneRecovery } from "./SceneRecovery";
+import { sceneCleanup, sceneTask } from "./recovery";
 
 import "./climb.css";
 
@@ -35,48 +39,108 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
   const [enhanced, setEnhanced] = useState(false);
   const [listMode, setListMode] = useState(true);
   const [selection, setSelection] = useState<PanelSelection | null>(null);
+  const [quality, setQuality] = useState<ClimbQuality>("full");
+  const currentQuality = useRef<ClimbQuality>("full");
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const snow = useRef<SnowController>(null);
   const renderers = useRef<{ mountain: (position: number) => void; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
-  const focusList = useRef(false);
+  const focusList = useRef<boolean | string>(false);
+  const reading = useRef<PanelSelection | null>(null);
+  // Recovery outlives the enhancement subtree: its DOM refs can already be
+  // cleared by a child effect/teardown error before SceneRecovery notifies us.
+  const lastRenderedStop = useRef(0);
   const lastClimbScroll = useRef(0);
   const activeClimb = useRef(false);
   const returnMarker = useRef<HTMLButtonElement | null>(null);
   const pendingFocus = useRef<HTMLButtonElement | null>(null);
 
-  const restorePendingFocus = useCallback(() => {
-    if (pendingFocus.current && !pendingFocus.current.hidden && root.current?.dataset.settled === "true") {
-      // A marker can briefly re-enter and leave the viewport while the camera
-      // and closing scene move in opposite directions. Restore focus only once
-      // both are stable, so hiding it again cannot drop focus to the document.
-      const scene = stage.current?.querySelector<HTMLElement>(".climb-scene");
-      if (scene?.getAnimations().some((animation) => animation.playState !== "finished")) return;
-      pendingFocus.current.focus({ preventScroll: true });
-      pendingFocus.current = null;
-    }
+  const revealList = useCallback(() => {
+    if (!activeClimb.current) return;
+    lastClimbScroll.current = window.scrollY;
+    const selected = reading.current;
+    const stop = selected?.stop ?? lastRenderedStop.current;
+    const id = journeyStops[stop]?.id ?? "list-view";
+    const target = listTarget()?.id ?? (selected?.caseStudy ? `case-${id}` : id);
+    // Native hash navigation activates CSS :target Case Studies; replaceState
+    // changes the URL but does not update :target in Chromium.
+    activeClimb.current = false;
+    location.replace(`#${target}`);
+    focusList.current = target;
+    pendingFocus.current = null;
+    setSelection(null);
+    setListMode(true);
+  }, []);
+
+  const failScene = useCallback(() => {
+    revealList();
+    setListMode(true);
+    setEnhanced(false);
+  }, [revealList]);
+
+  const lighten = useCallback(() => {
+    currentQuality.current = "light";
+    setQuality("light");
   }, []);
 
   useEffect(() => {
-    stage.current?.querySelectorAll(".lm[data-stop]").forEach((landmark) =>
-      landmark.setAttribute("aria-expanded", String(Number(landmark.getAttribute("data-stop")) === selection?.stop)));
-    if (selection || !pendingFocus.current) return;
-    const marker = pendingFocus.current;
-    if (marker.hidden && root.current) {
-      const element = root.current;
-      const top = element.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: top + Number(marker.dataset.marker) / (journeyStops.length - 1) * (element.offsetHeight - innerHeight), behavior: "instant" });
-      // The frame renderer returns focus once the projected marker is visible,
-      // including when normal-motion camera interpolation takes several frames.
-    } else {
-      restorePendingFocus();
-    }
-  }, [selection, restorePendingFocus]);
+    if (!enhanced || listMode) return;
+    return watchClimbPerformance(() => {
+      if (currentQuality.current === "full") lighten();
+      else failScene();
+    });
+  }, [enhanced, listMode, lighten, failScene]);
+
+  const restorePendingFocus = useCallback(() => {
+    try {
+      if (pendingFocus.current && !pendingFocus.current.hidden && root.current?.dataset.settled === "true") {
+        // A marker can briefly re-enter and leave the viewport while the camera
+        // and closing scene move in opposite directions. Restore focus only once
+        // both are stable, so hiding it again cannot drop focus to the document.
+        const scene = stage.current?.querySelector<HTMLElement>(".climb-scene");
+        if (scene?.getAnimations().some((animation) => animation.playState !== "finished")) return;
+        pendingFocus.current.focus({ preventScroll: true });
+        pendingFocus.current = null;
+      }
+    } catch { queueMicrotask(failScene); }
+  }, [failScene]);
+
+  const finishDismissal = useCallback(() => { reading.current = null; }, []);
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      setEnhanced(true);
-      setListMode(Boolean(listTarget()));
+    sceneTask(failScene, () => {
+      // Keep the reading destination until the child confirms native dismissal.
+      // A failing close() unmounts the scene before recovery can inspect it.
+      if (selection) reading.current = selection;
+      stage.current?.querySelectorAll(".lm[data-stop]").forEach((landmark) =>
+        landmark.setAttribute("aria-expanded", String(Number(landmark.getAttribute("data-stop")) === selection?.stop)));
+      if (selection || !pendingFocus.current) return;
+      const marker = pendingFocus.current;
+      if (marker.hidden && root.current) {
+        const element = root.current;
+        const top = element.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: top + Number(marker.dataset.marker) / (journeyStops.length - 1) * (element.offsetHeight - innerHeight), behavior: "instant" });
+        // The frame renderer returns focus once the projected marker is visible,
+        // including when normal-motion camera interpolation takes several frames.
+      } else {
+        restorePendingFocus();
+      }
+    })();
+  }, [selection, restorePendingFocus, failScene]);
+
+  useEffect(() => {
+    if (!canEnhanceClimb()) return;
+    let preference: MediaQueryList;
+    try {
+      preference = matchMedia("(prefers-reduced-motion: reduce)");
+      if (typeof preference.matches !== "boolean" || typeof preference.addEventListener !== "function"
+        || typeof preference.removeEventListener !== "function") return;
+    }
+    catch { return; } // The durable List View is already visible at startup.
+    let stopQuality: (() => void) | undefined;
+    let raf = 0;
+    const motionChange = sceneTask(failScene, () => {
+      if (preference.matches) revealList();
     });
     function hashChange() {
       if (!listTarget()) return;
@@ -88,34 +152,61 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
       setSelection(null);
       pendingFocus.current = null;
     }
-    window.addEventListener("hashchange", hashChange);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("hashchange", hashChange); };
-  }, []);
+    const cleanup = sceneCleanup(failScene,
+      () => cancelAnimationFrame(raf),
+      () => window.removeEventListener("hashchange", hashChange),
+      () => preference.removeEventListener("change", motionChange),
+      () => stopQuality?.());
+    try {
+      raf = requestAnimationFrame(() => {
+        try {
+          stopQuality = observeClimbQuality(lighten);
+          setListMode(Boolean(listTarget()) || preference.matches);
+          setEnhanced(true);
+        } catch { failScene(); }
+      });
+      window.addEventListener("hashchange", hashChange);
+      preference.addEventListener("change", motionChange);
+    } catch { cleanup(); return; }
+    return cleanup;
+  }, [revealList, lighten, failScene]);
 
   useEffect(() => {
     const element = stage.current;
     const art = element?.querySelector<HTMLElement>(".climb-mountain");
     if (!element || !art) return;
-    const markers = createMarkerRenderer(element, restorePendingFocus);
-    renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element), markers };
-    return () => { markers.dispose(); renderers.current = null; };
-  }, [enhanced, restorePendingFocus]);
+    try {
+      const markers = createMarkerRenderer(element, restorePendingFocus, failScene);
+      renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element), markers };
+      return () => { markers.dispose(); renderers.current = null; };
+    } catch {
+      const raf = requestAnimationFrame(failScene);
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [enhanced, restorePendingFocus, failScene]);
 
   useEffect(() => {
     const art = stage.current?.querySelector<HTMLElement>(".climb-mountain");
-    if (art) return observeMountainMotion(art, !listMode);
-  }, [enhanced, listMode]);
+    try {
+      if (art) return observeMountainMotion(art, !listMode && quality === "full", failScene);
+    } catch {
+      const raf = requestAnimationFrame(failScene);
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [enhanced, listMode, quality, failScene]);
 
   useEffect(() => {
     activeClimb.current = enhanced && !listMode;
-    if (!enhanced) return;
+    if (!enhanced && !focusList.current) return;
     const snowController = snow.current;
     const raf = requestAnimationFrame(() => {
       if (listMode) {
         const target = listTarget();
         target?.scrollIntoView();
         if (focusList.current) {
-          const focus = target?.matches("a, button, [tabindex]") ? target : document.getElementById("list-view");
+          const focus = typeof focusList.current === "string" ? document.getElementById(focusList.current)
+            : target?.matches("a, button, [tabindex]") ? target : document.getElementById("list-view");
+          if (focus && !focus.matches("a, button, [tabindex]")) focus.tabIndex = -1;
           focus?.focus({ preventScroll: true });
           focusList.current = false;
         }
@@ -129,17 +220,20 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
   const render = useCallback((frame: ClimbFrame) => {
     const element = stage.current;
     if (!element) return;
-    const sky = weather(frame.position);
-    element.style.setProperty("--sky-top", colorCss(sky.top));
-    element.style.setProperty("--sky-bottom", colorCss(sky.bottom));
-    element.style.setProperty("--haze", sky.haze.toFixed(3));
-    element.style.setProperty("--sun", sky.sun.toFixed(3));
-    renderers.current?.mountain(frame.position);
-    renderers.current?.hud(frame);
-    renderers.current?.markers.render(frame);
-    snow.current?.setWeather(sky.snow, frame.reducedMotion);
-  }, []);
-  useClimbProgress(root, enhanced && !listMode, render);
+    lastRenderedStop.current = frame.nearest;
+    try {
+      const sky = weather(frame.position);
+      element.style.setProperty("--sky-top", colorCss(sky.top));
+      element.style.setProperty("--sky-bottom", colorCss(sky.bottom));
+      element.style.setProperty("--haze", sky.haze.toFixed(3));
+      element.style.setProperty("--sun", sky.sun.toFixed(3));
+      renderers.current?.mountain(frame.position);
+      renderers.current?.hud(frame);
+      renderers.current?.markers.render(frame);
+      snow.current?.setWeather(sky.snow, frame.reducedMotion);
+    } catch { failScene(); }
+  }, [failScene]);
+  useClimbProgress(root, enhanced && !listMode, render, failScene);
 
   function toggleView() {
     pendingFocus.current = null;
@@ -159,7 +253,8 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
     if (!Number.isInteger(stop) || stop < 2 || stop > 7 || !stage.current) return;
     pendingFocus.current = null;
     returnMarker.current = stage.current.querySelector<HTMLButtonElement>(`[data-marker="${stop}"]`);
-    setSelection({ stop, caseStudy: false });
+    reading.current = { stop, caseStudy: false };
+    setSelection(reading.current);
   }
 
   function activateLandmark(event: KeyboardEvent<HTMLElement>) {
@@ -204,32 +299,41 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
   return (
     <ViewContext.Provider value={{ enhanced, listMode, toggleView }}>
       <div className="climb-list" hidden={!listMode}>{children}</div>
-      {enhanced && <div className="climb-enhancement" hidden={listMode}>
+      {enhanced && <SceneRecovery onFailure={failScene}><div className="climb-enhancement" hidden={listMode} data-quality={quality}>
         <a className="skip-link climb-skip" href="#list-view">Skip to full text</a>
         <header className="climb-header">
-          <a className="wordmark" href="#climb" aria-label="Diego Martinez, trailhead" onClick={(event) => {
+          <a className="wordmark" href="#climb" aria-label="Diego Martinez, trailhead" onClick={(event) => sceneTask(failScene, () => {
             event.preventDefault();
             window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
-          }}><span className="wordmark-mark" aria-hidden="true">DM</span><span>Diego Martinez</span></a>
+          })()}><span className="wordmark-mark" aria-hidden="true">DM</span><span>Diego Martinez</span></a>
         </header>
-        <main className="climb" id="climb" ref={root} onClick={navigate} onKeyDown={activateLandmark}>
+        <main className="climb" id="climb" ref={root}
+          onClick={(event) => sceneTask(failScene, navigate)(event)}
+          onKeyDown={(event) => sceneTask(failScene, activateLandmark)(event)}>
           <div className="climb-stage" ref={stage} data-panel-open={selection !== null}
-            onPointerOver={(event) => highlight(event, true)} onPointerOut={(event) => highlight(event, false)}
-            onFocus={(event) => highlight(event, true)} onBlur={(event) => highlight(event, false)}>
+            onPointerOver={(event) => sceneTask(failScene, () => highlight(event, true))()}
+            onPointerOut={(event) => sceneTask(failScene, () => highlight(event, false))()}
+            onFocus={(event) => sceneTask(failScene, () => highlight(event, true))()}
+            onBlur={(event) => sceneTask(failScene, () => highlight(event, false))()}>
             <div className="climb-sky" aria-hidden="true" />
             <div className="climb-sun" aria-hidden="true" />
             <div className="climb-scene">
             {mountain}
             <div className="climb-haze" aria-hidden="true" />
-            <Snow ref={snow} />
+            {quality === "full" && <Snow ref={snow} />}
             <Markers openStop={selection?.stop ?? null} />
             </div>
             <div className="climb-navigation" inert={selection !== null}>{cards}<TrailSign /><TrailRail /></div>
             <WaypointPanel selection={selection} summaries={summaries} cases={cases} onClose={closePanel}
-              onCase={(caseStudy) => setSelection((previous) => previous ? { ...previous, caseStudy } : null)} />
+              onDismissed={finishDismissal}
+              onCase={(caseStudy) => {
+                if (!reading.current) return;
+                reading.current = { ...reading.current, caseStudy };
+                setSelection(reading.current);
+              }} />
           </div>
         </main>
-      </div>}
+      </div></SceneRecovery>}
       {!listMode && <ViewToggle />}
     </ViewContext.Provider>
   );

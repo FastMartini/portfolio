@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { scrollToClimbStop } from "./helpers/climb";
+import { openClimb, scrollToClimbStop } from "./helpers/climb";
 
 async function expectVisibleTabTargets(page: Page) {
   await expect.poll(() => page.locator('.lm[tabindex="0"], .climb-marker[tabindex="0"]').evaluateAll((nodes) =>
@@ -13,7 +13,7 @@ async function expectVisibleTabTargets(page: Page) {
 test("Tab skips controls clipped by the open panel at the desktop breakpoint", async ({ page }) => {
   await page.setViewportSize({ width: 901, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 5);
   await page.locator('[data-marker="5"]').click();
@@ -38,7 +38,7 @@ test("Tab skips controls clipped by the open panel at the desktop breakpoint", a
 test("visibility tracks intermediate scene positions without camera scrolling", async ({ page }) => {
   await page.setViewportSize({ width: 901, height: 900 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 5);
   // Seek the real CSS transition to deterministic intermediate frames, rather
@@ -65,7 +65,7 @@ test("visibility tracks intermediate scene positions without camera scrolling", 
 test("open-panel visibility refreshes through breakpoint changes, camera movement, and close", async ({ page }) => {
   await page.setViewportSize({ width: 901, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 5);
   await page.locator('[data-marker="5"]').click();
@@ -122,7 +122,7 @@ for (const motion of ["reduce", "no-preference"] as const) {
   test(`dismissal restores a marker clipped by panel movement with ${motion} motion`, async ({ page }) => {
     await page.setViewportSize({ width: 901, height: 900 });
     await page.emulateMedia({ reducedMotion: motion });
-    await page.goto("./");
+    await openClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     await scrollToClimbStop(page, 5);
     const marker = page.locator('[data-marker="2"]');

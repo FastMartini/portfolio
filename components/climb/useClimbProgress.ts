@@ -4,15 +4,19 @@ import { useEffect } from "react";
 import type { RefObject } from "react";
 import { readClimbProgress } from "./progress";
 import type { ClimbFrame } from "./progress";
+import { sceneCleanup, sceneTask } from "./recovery";
 
-export function useClimbProgress(root: RefObject<HTMLElement | null>, enabled: boolean, render: (frame: ClimbFrame) => void) {
+export function useClimbProgress(root: RefObject<HTMLElement | null>, enabled: boolean, render: (frame: ClimbFrame) => void, onFailure: () => void) {
   useEffect(() => {
     const element = root.current;
     if (!enabled || !element) return;
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-    let raf = 0, last = 0, shown = 0, initialized = false;
+    let reduce: MediaQueryList;
+    try { reduce = matchMedia("(prefers-reduced-motion: reduce)"); }
+    catch { queueMicrotask(onFailure); return; }
+    let raf = 0, last = 0, shown = 0, initialized = false, disposed = false;
     let target = readClimbProgress(0);
-    function frame(now: number) {
+    const frame = sceneTask(onFailure, (now: number) => {
+      if (disposed) return;
       raf = 0;
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0.016;
       last = now;
@@ -25,27 +29,32 @@ export function useClimbProgress(root: RefObject<HTMLElement | null>, enabled: b
       render({ ...target, position: shown, reducedMotion: reduce.matches || document.hidden });
       if (shown !== target.position && !document.hidden) raf = requestAnimationFrame(frame);
       else last = 0;
-    }
-    function read() {
+    });
+    const read = sceneTask(onFailure, () => {
+      if (disposed) return;
       const top = element!.getBoundingClientRect().top + window.scrollY;
       const range = Math.max(1, element!.offsetHeight - window.innerHeight);
       target = readClimbProgress((window.scrollY - top) / range);
       if (!raf) raf = requestAnimationFrame(frame);
-    }
-    window.addEventListener("scroll", read, { passive: true });
-    window.addEventListener("resize", read);
-    reduce.addEventListener("change", read);
-    document.addEventListener("visibilitychange", read);
-    const observer = new ResizeObserver(read);
-    observer.observe(element);
-    read();
-    return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-      window.removeEventListener("scroll", read);
-      window.removeEventListener("resize", read);
-      reduce.removeEventListener("change", read);
-      document.removeEventListener("visibilitychange", read);
-    };
-  }, [root, enabled, render]);
+    });
+    let observer: ResizeObserver | undefined;
+    const cleanup = sceneCleanup(onFailure,
+      () => { disposed = true; },
+      () => cancelAnimationFrame(raf),
+      () => observer?.disconnect(),
+      () => window.removeEventListener("scroll", read),
+      () => window.removeEventListener("resize", read),
+      () => reduce.removeEventListener("change", read),
+      () => document.removeEventListener("visibilitychange", read));
+    try {
+      observer = new ResizeObserver(read);
+      observer.observe(element);
+      window.addEventListener("scroll", read, { passive: true });
+      window.addEventListener("resize", read);
+      reduce.addEventListener("change", read);
+      document.addEventListener("visibilitychange", read);
+      read();
+    } catch { cleanup(); queueMicrotask(onFailure); }
+    return cleanup;
+  }, [root, enabled, render, onFailure]);
 }

@@ -19,7 +19,7 @@ export function ListNavigation({
 
   useEffect(() => {
     const element = root.current;
-    if (!element) return;
+    if (!element || typeof requestAnimationFrame !== "function" || typeof cancelAnimationFrame !== "function") return;
 
     let positions: number[] = [];
     let scrollRange = 0;
@@ -60,14 +60,21 @@ export function ListNavigation({
     };
 
     const readScroll = () => updateLocation(window.scrollY);
-    const resizeObserver = new ResizeObserver(scheduleMeasure);
-    resizeObserver.observe(element);
+    // Section orientation is optional: durable content must also hydrate when
+    // the browser cannot supply the Climb's required observer.
+    let resizeObserver: ResizeObserver | undefined;
+    try {
+      if (typeof ResizeObserver === "function") {
+        resizeObserver = new ResizeObserver(scheduleMeasure);
+        resizeObserver.observe(element);
+      }
+    } catch { resizeObserver?.disconnect(); resizeObserver = undefined; }
     window.addEventListener("resize", scheduleMeasure);
     window.addEventListener("scroll", readScroll, { passive: true });
     scheduleMeasure();
 
     return () => {
-      resizeObserver.disconnect();
+      resizeObserver?.disconnect();
       window.removeEventListener("resize", scheduleMeasure);
       window.removeEventListener("scroll", readScroll);
       cancelAnimationFrame(resizeFrame);

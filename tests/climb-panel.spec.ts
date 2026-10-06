@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { scrollToClimbStop as stop } from "./helpers/climb";
+import { openClimb, scrollToClimbStop as stop } from "./helpers/climb";
 import { waypoints } from "../content/waypoints";
 
 async function expectAccessiblePanel(page: Page) {
@@ -14,7 +14,7 @@ async function expectAccessiblePanel(page: Page) {
 
 test("each marker and its Landmark open canonical Waypoint content and return focus", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   const panel = page.getByRole("dialog");
   for (const waypoint of waypoints) {
@@ -44,7 +44,7 @@ test("each marker and its Landmark open canonical Waypoint content and return fo
 
 test("visible markers tab in Waypoint order; offscreen markers are not tab stops", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await stop(page, 4);
   const visible = page.locator(".climb-marker:not([hidden])");
@@ -73,7 +73,7 @@ for (const width of [390, 1440]) {
     test(`${waypoint.name} panel and embedded MDX Case Study are accessible at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ reducedMotion: "reduce" });
-      await page.goto("./");
+      await openClimb(page);
       await expect(page.locator("#climb")).toBeVisible();
       await stop(page, waypoint.order + 1);
       await page.locator(`[data-marker="${waypoint.order + 1}"]`).click();
@@ -111,7 +111,7 @@ test("direct Case Study hashes reveal complete server content without JavaScript
 });
 
 test("nested Case Study hashes switch to List View and keep unique content anchors", async ({ page }) => {
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await page.evaluate(() => { location.hash = "case-veritas-decisions"; });
   await expect(page.locator("#climb")).toBeHidden();

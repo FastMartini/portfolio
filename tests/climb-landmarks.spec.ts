@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expect, test } from "@playwright/test";
+import { openClimb } from "./helpers/climb";
 import { buildLandmarks } from "../components/climb/mountain/landmarks";
 import { summitFlag } from "../components/climb/mountain/landmarks/summitFlag";
 
@@ -11,7 +12,7 @@ test("Landmarks and the generated traveling-wave flag are deterministic", () => 
 
 test("all six Landmarks and flag keyframes match approved reference artwork", async ({ page, browser }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await openClimb(page);
   await expect(page.locator(".lm")).toHaveCount(6);
   const reference = await browser.newPage({ reducedMotion: "reduce" });
   await reference.route("https://fonts.googleapis.com/**", (route) => route.abort());
@@ -34,7 +35,7 @@ test("all six Landmarks and flag keyframes match approved reference artwork", as
 });
 
 test("chairs follow one closed loop and the scene pauses on live reduced-motion changes", async ({ page }) => {
-  await page.goto("./");
+  await openClimb(page);
   const svg = page.locator("svg.mtn");
   await expect(svg).toBeAttached();
   await expect(page.locator(".lift animateMotion")).toHaveCount(12);
@@ -56,6 +57,8 @@ test("chairs follow one closed loop and the scene pauses on live reduced-motion 
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   expect(await svg.evaluate((node) => (node as SVGSVGElement).getCurrentTime())).toBe(time);
   await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(page.locator("#list-view")).toBeVisible();
+  await page.getByRole("button", { name: "Climb view", exact: true }).click();
   await expect.poll(() => svg.evaluate((node) => (node as SVGSVGElement).animationsPaused())).toBe(false);
   await page.getByRole("button", { name: "List view", exact: true }).click();
   await expect.poll(() => svg.evaluate((node) => (node as SVGSVGElement).animationsPaused())).toBe(true);
