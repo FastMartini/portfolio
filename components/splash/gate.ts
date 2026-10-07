@@ -8,7 +8,10 @@ export const SPLASH_GATE_SCRIPT = `(()=>{
     document.documentElement.dataset.splash="seen";return;
   }
   try{
-    if(sessionStorage.getItem("splash-seen"))document.documentElement.dataset.splash="seen";
-    else sessionStorage.setItem("splash-seen","1");
+    if(sessionStorage.getItem("splash-seen")){
+      document.documentElement.dataset.splash="seen";return;
+    }
+    sessionStorage.setItem("splash-seen","1");
   }catch{}
+  document.documentElement.dataset.splash="active";
 })()`;

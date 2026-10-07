@@ -164,20 +164,53 @@ for (const viewport of [
   });
 }
 
-test("the decorative intro reveals the usable homepage without JavaScript", async ({ browser, browserName, baseURL }) => {
+test("without JavaScript the homepage and keyboard focus are immediately unobscured", async ({ browser, browserName, baseURL }) => {
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false, reducedMotion: "no-preference" });
   const page = await context.newPage();
   await page.goto("./");
   const splash = page.locator("body > .splash");
-  await expect(splash).toBeVisible();
+  await expect(splash).toHaveCSS("display", "none");
   await expect(splash).toHaveAttribute("aria-hidden", "true");
   await expect(splash).toHaveCSS("pointer-events", "none");
   await expect(splash.locator("a, button, input, select, textarea, [tabindex]")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await tabToLink(page, browserName);
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
-  await expect(splash).toBeHidden({ timeout: 5000 });
+  await expect(page.getByRole("link", { name: "Skip to content" })).toBeInViewport();
   await page.getByRole("link", { name: "View selected work" }).click();
   await expect(page).toHaveURL(/#momentumx$/);
   await context.close();
+});
+
+for (const destination of ["./#case-veritas", "./work/veritas/"]) {
+  test(`without JavaScript reading entry and keyboard focus are unobscured: ${destination}`, async ({ browser, browserName, baseURL }) => {
+    const context = await browser.newContext({ baseURL, javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    await page.goto(destination);
+    await expect(page.locator(".splash")).toHaveCSS("display", "none");
+    const standalone = destination.includes("/work/");
+    if (standalone) await expect(page.getByRole("heading", { level: 1 })).toHaveText("Veritas");
+    else await expect(page.locator("#case-veritas")).toBeVisible();
+    await tabToLink(page, browserName);
+    // Native fragment navigation starts Tab at the targeted inline Case Study;
+    // a standalone route starts at its skip link. Both must show visible focus.
+    const focused = page.getByRole("link", { name: standalone ? "Skip to Case Study" : "← Back to selected work", exact: true });
+    await expect(focused).toBeFocused();
+    await expect(focused).toBeInViewport();
+    expect(await focused.evaluate((link) => getComputedStyle(link).outlineStyle)).toBe("solid");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(standalone ? /#case-study-content$/ : /#veritas$/);
+    await expect(page.locator(".splash")).toHaveCSS("display", "none");
+    await context.close();
+  });
+}
+
+test("an eligible intro still exits in CSS when client bundles cannot hydrate", async ({ page }) => {
+  await page.route("**/_next/static/**/*.js", (route) => route.abort());
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("./");
+  await expect(page.locator(".splash")).toBeVisible();
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 5000 });
+  await page.getByRole("link", { name: "View selected work" }).click();
+  await expect(page).toHaveURL(/#momentumx$/);
 });

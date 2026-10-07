@@ -5,6 +5,7 @@ import { JourneyRidge, WaypointTrail } from "./journey-ridge";
 import { waypoints } from "../content/waypoints";
 import { TrailheadPhoto } from "./trailhead-photo";
 import { contactLinks } from "../content/contact";
+import { PortfolioLink } from "./portfolio-link";
 
 function ArrowIcon() {
   return (
@@ -177,12 +178,12 @@ export function ListView() {
         </div>
         <div className="contact-list" aria-label="Contact Diego">
           {contactLinks.map((link, index) => (
-            <a href={link.href} key={link.label}>
+            <PortfolioLink href={link.href} key={link.label}>
               <span className="contact-number">0{index + 1}</span>
               <span className="contact-label">{link.label}</span>
               <span className="contact-detail">{link.detail}</span>
               <ArrowIcon />
-            </a>
+            </PortfolioLink>
           ))}
         </div>
       </section>

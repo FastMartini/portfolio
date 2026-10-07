@@ -1,4 +1,5 @@
 import { waypoints } from "../content/waypoints";
+import { PortfolioLink } from "./portfolio-link";
 
 function ArrowIcon() {
   return <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M4 10h11M11 5l5 5-5 5" /></svg>;
@@ -33,9 +34,9 @@ export function WaypointContent({ waypoint, titleId }: { waypoint: (typeof waypo
               </a>
             ) : null}
             {waypoint.links.map((link) => (
-              <a href={link.href} key={link.href}>
+              <PortfolioLink href={link.href} key={link.href}>
                 {link.label} <ArrowIcon />
-              </a>
+              </PortfolioLink>
             ))}
           </div>
         ) : null}

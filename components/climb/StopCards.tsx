@@ -1,5 +1,6 @@
 import { TrailheadPhoto } from "../trailhead-photo";
 import { contactLinks } from "../../content/contact";
+import { PortfolioLink } from "../portfolio-link";
 
 export function StopCards() {
   return (
@@ -16,7 +17,7 @@ export function StopCards() {
         <span className="resume-note">Résumé — coming soon</span>
       </article>
       <figure className="climb-portrait" data-photo-stop="0" inert aria-hidden="true">
-        <TrailheadPhoto />
+        <TrailheadPhoto climb />
       </figure>
       <article className="climb-card" data-card="1" inert aria-hidden="true">
         <p className="climb-card-place">Base camp</p>
@@ -35,7 +36,7 @@ export function StopCards() {
         <p>If you’re assembling a team, shaping an ambitious product, or want to compare notes, I’d be glad to hear from you.</p>
         <ul className="climb-card-contact">
           {contactLinks.map((link) => (
-            <li key={link.label}><a href={link.href}><span>{link.label}</span><small>{link.detail}</small></a></li>
+            <li key={link.label}><PortfolioLink href={link.href}><span>{link.label}</span><small>{link.detail}</small></PortfolioLink></li>
           ))}
         </ul>
       </article>

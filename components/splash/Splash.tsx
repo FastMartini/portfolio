@@ -38,7 +38,7 @@ export function Splash() {
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || document.documentElement.dataset.splash === "seen") return;
+    if (!el || document.documentElement.dataset.splash !== "active") return;
 
     let active = true;
     const remember = () => {

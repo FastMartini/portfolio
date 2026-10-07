@@ -1,5 +1,33 @@
 import { expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
+import type { Response } from "@playwright/test";
+
+for (const profile of [
+  { width: 390, deviceScaleFactor: 1, javaScriptEnabled: false, selectedWidth: 480, budget: 150_000 },
+  { width: 390, deviceScaleFactor: 2, javaScriptEnabled: false, selectedWidth: 800, budget: 200_000 },
+  { width: 390, deviceScaleFactor: 2, javaScriptEnabled: true, selectedWidth: 800, budget: 200_000 },
+  { width: 1440, deviceScaleFactor: 1, javaScriptEnabled: true, selectedWidth: 800, budget: 200_000 },
+]) {
+test(`List View downloads a small responsive portrait at ${profile.width}px, ${profile.deviceScaleFactor}x, JavaScript ${profile.javaScriptEnabled}`, async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, javaScriptEnabled: profile.javaScriptEnabled, viewport: { width: profile.width, height: 844 }, deviceScaleFactor: profile.deviceScaleFactor });
+  const page = await context.newPage();
+  const responses: Response[] = [];
+  page.on("response", (response) => { if (response.request().resourceType() === "image") responses.push(response); });
+  await page.goto("./#trailhead");
+  const portrait = page.getByRole("img", { name: "Diego Martinez" });
+  await expect.poll(() => portrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  const selected = await portrait.evaluate((image: HTMLImageElement) => ({ src: image.currentSrc, srcset: image.parentElement?.querySelector("source")?.srcset ?? image.srcset, width: image.naturalWidth }));
+  const response = responses.find((response) => response.url() === selected.src);
+  expect(response).toBeDefined();
+  expect((await response!.body()).byteLength).toBeLessThan(profile.budget);
+  expect(selected.src).toContain("/portfolio/photos/");
+  expect(selected.srcset).toContain("480w");
+  expect(selected.src).toContain(`/photos/dm-${profile.selectedWidth}.webp`);
+  await expect(portrait).toHaveAttribute("width", "480");
+  await expect(portrait).toHaveAttribute("height", "640");
+  await context.close();
+});
+}
 
 test("List View introduces Diego with his photo instead of Field note 01, without JavaScript", async ({ browser, baseURL }) => {
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
@@ -58,10 +86,10 @@ test("Climb shows Diego to the right of Trailhead and fades the photo with its i
   // Observe the same rendered fade on both reading surfaces, not a second timer.
   await expect(page.locator('[data-card="0"]')).toHaveCSS("opacity", /0\.[4-8]\d*/);
   const opacity = await page.locator('[data-card="0"]').evaluate((element) => getComputedStyle(element).opacity);
-  await expect(portrait.locator("..")).toHaveCSS("opacity", opacity);
+  await expect(portrait.locator("xpath=ancestor::figure")).toHaveCSS("opacity", opacity);
   await scrollToClimbStop(page, 1);
   await expect(page.getByRole("img", { name: "Diego Martinez" })).toHaveCount(0);
   await scrollToClimbStop(page, 0);
   await expect(portrait).toBeInViewport();
-  await expect(portrait.locator("..")).toHaveCSS("opacity", "1");
+  await expect(portrait.locator("xpath=ancestor::figure")).toHaveCSS("opacity", "1");
 });
