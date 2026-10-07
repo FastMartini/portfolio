@@ -1,0 +1,166 @@
+/* ==========================================================================
+   Splash intro: "Diego Martinez" blooms in, a climber plants a flag, the pine
+   panel lifts away to reveal the Trailhead.
+
+   - Uses tokens that already exist in globals.css (--pine, --cream, --copper,
+     --copper-text-dark, --page-padding) and the next/font variables
+     (--font-newsreader). Add no new tokens.
+   - Every selector is prefixed .splash-* on purpose. ascent.css already defines
+     .ridge-near, .ridge-distance, .ridge-route, so generic names would collide.
+   - The overlay is purely decorative: pointer-events none, aria-hidden, not
+     focusable, and removed by CSS alone (no JS needed to get rid of it).
+
+   Timeline (ms):
+     300   climber sets out, copper trail draws behind (1400)
+     600   "Diego" blooms in letter by letter (85 apart)
+     900   "Martinez" starts
+     1700  climber reaches summit, flag pole drops in
+     2000  flag cloth unfurls, then flutters (2480, 4 beats)
+     1900  "Software engineer" fades in
+     2950  pine panel lifts away (950), total ~3.9s
+   ========================================================================== */
+
+html[data-splash="seen"] .splash { display: none; }
+
+.splash {
+  --splash-name-size: clamp(3.8rem, 11.5vw, 10.5rem);
+  align-content: center;
+  animation: splash-exit 950ms cubic-bezier(0.76, 0, 0.24, 1) 2950ms forwards;
+  background: var(--pine);
+  color: var(--cream);
+  display: grid;
+  inset: 0;
+  overflow: visible;
+  padding: 0 var(--page-padding);
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 260ms ease, visibility 0s linear 260ms;
+  z-index: 100; /* above .site-header (60) and .skip-link (20) */
+}
+/* copper hairline on the panel's trailing edge */
+.splash::after {
+  background: var(--copper);
+  content: "";
+  height: 1px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 100%;
+}
+.splash.splash--skipped { animation: none; opacity: 0; visibility: hidden; }
+@keyframes splash-exit {
+  to { transform: translateY(-100%); visibility: hidden; }
+}
+
+/* ---------- Scene ---------- */
+.splash-art { height: 100%; inset: 0; position: absolute; width: 100%; }
+@media (max-aspect-ratio: 8/5) {
+  /* When the viewport is taller than the scene, fit it along the bottom rather than crop its flag. */
+  .splash-art { aspect-ratio: 1440 / 900; bottom: 0; height: auto; inset: auto 0 0 0; }
+}
+.splash-ridge-far { fill: var(--cream); opacity: 0.05; }
+.splash-ridge-near { fill: var(--cream); opacity: 0.07; }
+.splash-ridge-contour { fill: none; opacity: 0.1; stroke: var(--cream); stroke-width: 1; }
+
+.splash-route { fill: none; stroke: var(--copper-text-dark); stroke-dasharray: 2 10; stroke-linecap: round; stroke-width: 2; }
+/* The route is revealed by drawing a solid, invisible-to-the-eye mask stroke along the same path. */
+.splash-route-mask {
+  animation: splash-draw 1400ms cubic-bezier(0.45, 0, 0.25, 1) 300ms forwards;
+  fill: none; stroke: #fff; stroke-dasharray: 1; stroke-dashoffset: 1; stroke-width: 10;
+}
+@keyframes splash-draw { to { stroke-dashoffset: 0; } }
+
+/* Climber: a dot that leads the trail. Same duration, delay and easing as the mask above.
+   Progressive enhancement: browsers without offset-path just skip it. */
+.splash-climber { display: none; }
+@supports (offset-path: path("M 0 0")) {
+  .splash-climber {
+    animation: splash-climb 1400ms cubic-bezier(0.45, 0, 0.25, 1) 300ms forwards;
+    display: block;
+    fill: var(--cream);
+    offset-path: path("M -20 860 C 160 830 280 740 430 735 C 600 730 680 690 820 650 C 960 610 1040 560 1120 520 C 1190 485 1220 460 1260 430");
+    offset-rotate: 0deg;
+    opacity: 0;
+  }
+}
+@keyframes splash-climb {
+  0%   { offset-distance: 0%;   opacity: 1; }
+  96%  { offset-distance: 96%;  opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* Summit marker + flag */
+.splash-summit { animation: splash-appear 300ms ease 1700ms forwards; opacity: 0; }
+.splash-summit-ring { fill: none; stroke: var(--copper-text-dark); stroke-width: 1.5; }
+.splash-summit-dot { fill: var(--copper-text-dark); }
+@keyframes splash-appear { to { opacity: 1; } }
+
+.splash-flag-pole, .splash-flag-cloth, .splash-flag-flutter { transform-box: fill-box; }
+.splash-flag-pole {
+  animation: splash-plant 320ms cubic-bezier(0.3, 1.4, 0.5, 1) 1700ms both;
+  stroke: var(--cream); stroke-linecap: round; stroke-width: 2.5; transform-origin: 50% 100%;
+}
+@keyframes splash-plant { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.splash-flag-cloth {
+  animation: splash-unfurl 480ms cubic-bezier(0.2, 0.8, 0.2, 1) 2000ms both;
+  fill: var(--copper); transform-origin: 0 50%;
+}
+@keyframes splash-unfurl { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.splash-flag-flutter { animation: splash-flutter 620ms ease-in-out 2480ms 4 alternate both; transform-origin: 0 50%; }
+@keyframes splash-flutter { from { transform: skewY(-2.5deg); } to { transform: skewY(2.5deg); } }
+
+/* ---------- Name: weight bloom ----------
+   Each letter sits in a fixed-width cell (a hidden ghost of the letter at its
+   final weight) holding the visible glyph, so animating font-weight never
+   nudges neighbouring letters. This needs the VARIABLE Newsreader files, so
+   do not pass a `weight` array to next/font/google in layout.tsx. */
+.splash-name { position: relative; z-index: 2; }
+.splash-name-line {
+  display: block;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: var(--splash-name-size);
+  font-weight: 450;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+}
+.splash-char { display: inline-grid; }
+.splash-char::before { content: attr(data-c); font-weight: 450; grid-area: 1 / 1; visibility: hidden; }
+.splash-glyph {
+  animation: splash-bloom 1000ms cubic-bezier(0.3, 0.6, 0.3, 1) both;
+  contain: inline-size;
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+.splash-name-line:nth-child(1) .splash-glyph { animation-delay: calc(600ms + var(--i) * 85ms); }
+.splash-name-line:nth-child(2) .splash-glyph { animation-delay: calc(900ms + var(--i) * 85ms); }
+@keyframes splash-bloom {
+  0%   { opacity: 0; font-weight: 300; }
+  30%  { opacity: 1; }
+  60%  { font-weight: 700; }
+  100% { opacity: 1; font-weight: 450; }
+}
+.splash-role {
+  animation: splash-appear 600ms ease 1900ms forwards;
+  color: rgba(255, 251, 237, 0.78);
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 1.75rem 0 0;
+  opacity: 0;
+}
+
+/* ---------- Reduced motion ----------
+   Nothing draws, blooms or slides. The finished card (name, trail, planted
+   flag) holds still for about 1.5s and fades out. Opacity only. */
+@media (prefers-reduced-motion: reduce) {
+  .splash { animation: splash-fade 2000ms ease forwards; }
+  .splash-route-mask { animation: none; stroke-dashoffset: 0; }
+  .splash-climber { display: none; }
+  .splash-summit, .splash-role { animation: none; opacity: 1; }
+  .splash-flag-pole, .splash-flag-cloth, .splash-flag-flutter { animation: none; transform: none; }
+  .splash-glyph { animation: none; opacity: 1; }
+}
+@keyframes splash-fade {
+  0%, 75% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}

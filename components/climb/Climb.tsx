@@ -17,7 +17,7 @@ import { Markers } from "./Markers";
 import { createMarkerRenderer, setLandmarkHot } from "./marker-render";
 import { WaypointPanel } from "./WaypointPanel";
 import type { PanelSelection } from "./WaypointPanel";
-import { ViewContext, ViewToggle } from "./ViewToggle";
+import { ViewContext } from "./ViewToggle";
 import { canEnhanceClimb, observeClimbQuality, watchClimbPerformance } from "./quality";
 import type { ClimbQuality } from "./quality";
 import { SceneRecovery } from "./SceneRecovery";
@@ -32,8 +32,8 @@ function listTarget() {
   } catch { return null; }
 }
 
-export function Climb({ children, mountain, cards, summaries, cases }: {
-  children: ReactNode; mountain: ReactNode; cards: ReactNode; summaries: Record<string, ReactNode>; cases: Record<string, ReactNode>;
+export function Climb({ children, header, mountain, cards, summaries, cases }: {
+  children: ReactNode; header: ReactNode; mountain: ReactNode; cards: ReactNode; summaries: Record<string, ReactNode>; cases: Record<string, ReactNode>;
 }) {
   // The complete server-rendered List View is visible until enhancement succeeds.
   const [enhanced, setEnhanced] = useState(false);
@@ -43,6 +43,7 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
   const currentQuality = useRef<ClimbQuality>("full");
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const navigation = useRef<HTMLDivElement>(null);
   const snow = useRef<SnowController>(null);
   const renderers = useRef<{ mountain: (position: number) => void; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
   const focusList = useRef<boolean | string>(false);
@@ -177,7 +178,7 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
     if (!element || !art) return;
     try {
       const markers = createMarkerRenderer(element, restorePendingFocus, failScene);
-      renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element), markers };
+      renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element, navigation.current), markers };
       return () => { markers.dispose(); renderers.current = null; };
     } catch {
       const raf = requestAnimationFrame(failScene);
@@ -273,10 +274,27 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
     }
     const button = (event.target as Element).closest<HTMLButtonElement>("button[data-goto]");
     if (!button || !root.current) return;
-    const index = Number(button.dataset.goto);
+    goToStop(Number(button.dataset.goto));
+  }
+
+  function goToStop(index: number) {
+    if (!root.current) return;
     const top = root.current.getBoundingClientRect().top + window.scrollY;
     const range = root.current.offsetHeight - window.innerHeight;
     window.scrollTo({ top: top + index / (journeyStops.length - 1) * range, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  }
+
+  function navigateHeader(event: MouseEvent<HTMLDivElement>) {
+    if (listMode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = (event.target as Element).closest<HTMLAnchorElement>("a[href^='#']");
+    if (!link) return;
+    const id = link.hash.slice(1);
+    const index = journeyStops.findIndex((stop) => stop.id === id || stop.navigation === id);
+    if (index < 0) return; // The skip link still opens the durable full text.
+    event.preventDefault();
+    pendingFocus.current = null;
+    setSelection(null);
+    goToStop(index);
   }
 
   function highlight(event: PointerEvent<HTMLDivElement> | FocusEvent<HTMLDivElement>, hot: boolean) {
@@ -298,15 +316,16 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
 
   return (
     <ViewContext.Provider value={{ enhanced, listMode, toggleView }}>
+      {/* Keep navigation outside both reading modes and scene recovery. */}
+      <div className="portfolio-navigation" ref={navigation}
+        onClickCapture={(event) => sceneTask(failScene, navigateHeader)(event)}>
+        <a className="skip-link climb-skip" href={listMode ? "#main-content" : "#list-view"}>
+          {listMode ? "Skip to content" : "Skip to full text"}
+        </a>
+        {header}
+      </div>
       <div className="climb-list" hidden={!listMode}>{children}</div>
       {enhanced && <SceneRecovery onFailure={failScene}><div className="climb-enhancement" hidden={listMode} data-quality={quality}>
-        <a className="skip-link climb-skip" href="#list-view">Skip to full text</a>
-        <header className="climb-header">
-          <a className="wordmark" href="#climb" aria-label="Diego Martinez, trailhead" onClick={(event) => sceneTask(failScene, () => {
-            event.preventDefault();
-            window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
-          })()}><span className="wordmark-mark" aria-hidden="true">DM</span><span>Diego Martinez</span></a>
-        </header>
         <main className="climb" id="climb" ref={root}
           onClick={(event) => sceneTask(failScene, navigate)(event)}
           onKeyDown={(event) => sceneTask(failScene, activateLandmark)(event)}>
@@ -334,7 +353,6 @@ export function Climb({ children, mountain, cards, summaries, cases }: {
           </div>
         </main>
       </div></SceneRecovery>}
-      {!listMode && <ViewToggle />}
     </ViewContext.Provider>
   );
 }

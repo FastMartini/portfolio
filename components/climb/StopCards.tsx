@@ -1,3 +1,6 @@
+import { TrailheadPhoto } from "../trailhead-photo";
+import { contactLinks } from "../../content/contact";
+
 export function StopCards() {
   return (
     <div className="climb-cards">
@@ -12,6 +15,9 @@ export function StopCards() {
         </div>
         <span className="resume-note">Résumé — coming soon</span>
       </article>
+      <figure className="climb-portrait" data-photo-stop="0" inert aria-hidden="true">
+        <TrailheadPhoto />
+      </figure>
       <article className="climb-card" data-card="1" inert aria-hidden="true">
         <p className="climb-card-place">Base camp</p>
         <h2>Engineering with intent.</h2>
@@ -28,9 +34,9 @@ export function StopCards() {
         <h2>Let&apos;s build what comes next.</h2>
         <p>If you’re assembling a team, shaping an ambitious product, or want to compare notes, I’d be glad to hear from you.</p>
         <ul className="climb-card-contact">
-          <li><a href="mailto:diegommart2004@gmail.com"><span>Email Diego</span><small>diegommart2004@gmail.com</small></a></li>
-          <li><a href="https://www.linkedin.com/in/diegomartinez30"><span>LinkedIn</span><small>/in/diegomartinez30</small></a></li>
-          <li><a href="https://github.com/FastMartini"><span>GitHub</span><small>@FastMartini</small></a></li>
+          {contactLinks.map((link) => (
+            <li key={link.label}><a href={link.href}><span>{link.label}</span><small>{link.detail}</small></a></li>
+          ))}
         </ul>
       </article>
     </div>

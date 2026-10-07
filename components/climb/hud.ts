@@ -2,9 +2,11 @@ import { journeyStops } from "../../content/journey";
 import { clamp } from "./mountain/geometry";
 import type { ClimbFrame } from "./progress";
 
-export function createHudRenderer(stage: HTMLElement) {
-  const cards = stage.querySelectorAll<HTMLElement>("[data-card]");
+export function createHudRenderer(stage: HTMLElement, header: HTMLElement | null) {
+  // The Trailhead portrait shares the card's scroll-driven fade and visibility.
+  const cards = stage.querySelectorAll<HTMLElement>("[data-card], [data-photo-stop]");
   const rail = stage.querySelectorAll<HTMLButtonElement>("[data-rail]");
+  const links = header?.querySelectorAll<HTMLAnchorElement>("nav a");
   const sign = stage.querySelector<HTMLElement>(".climb-trail-sign");
   const place = sign?.querySelector<HTMLElement>(".climb-sign-place");
   const name = sign?.querySelector<HTMLElement>(".climb-sign-name");
@@ -12,8 +14,12 @@ export function createHudRenderer(stage: HTMLElement) {
   let lastAnnouncement = "";
   return ({ u, nearest }: ClimbFrame) => {
     const distance = Math.abs(u - nearest), waypoint = nearest >= 2 && nearest <= 7;
+    links?.forEach((link) => {
+      if (link.hash === `#${journeyStops[nearest].navigation}`) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    });
     cards.forEach((card) => {
-      const opacity = clamp(1 - (Math.abs(u - Number(card.dataset.card)) - 0.22) / 0.25, 0, 1);
+      const opacity = clamp(1 - (Math.abs(u - Number(card.dataset.card ?? card.dataset.photoStop)) - 0.22) / 0.25, 0, 1);
       const active = opacity > 0.35;
       card.style.opacity = opacity.toFixed(3);
       card.dataset.active = String(active);

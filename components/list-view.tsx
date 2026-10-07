@@ -3,57 +3,13 @@ import { InlineCaseStudies } from "./climb/CaseStudies";
 
 import { JourneyRidge, WaypointTrail } from "./journey-ridge";
 import { waypoints } from "../content/waypoints";
-
-const contactLinks = [
-  {
-    label: "Email Diego",
-    detail: "diegommart2004@gmail.com",
-    href: "mailto:diegommart2004@gmail.com",
-  },
-  {
-    label: "LinkedIn",
-    detail: "/in/diegomartinez30",
-    href: "https://www.linkedin.com/in/diegomartinez30",
-  },
-  {
-    label: "GitHub",
-    detail: "@FastMartini",
-    href: "https://github.com/FastMartini",
-  },
-];
+import { TrailheadPhoto } from "./trailhead-photo";
+import { contactLinks } from "../content/contact";
 
 function ArrowIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 20 20">
       <path d="M4 10h11M11 5l5 5-5 5" />
-    </svg>
-  );
-}
-
-function MountainStudy() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="mountain-study"
-      viewBox="0 0 720 660"
-      preserveAspectRatio="xMidYMax meet"
-    >
-      <circle className="mountain-sun" cx="532" cy="138" r="72" />
-      <path
-        className="mountain-back"
-        d="M0 523 118 410l72 47 161-250 88 137 73-67 208 246v137H0Z"
-      />
-      <path
-        className="mountain-front"
-        d="M0 576 156 446l77 63 91-112 79 73 91-164 226 270v84H0Z"
-      />
-      <path className="mountain-ridge" d="m324 397 45 42 34 31 91-164 48 58" />
-      <g className="mountain-contours" fill="none">
-        <path d="M80 622c110-32 170-4 245-65s130-16 188-81 94-14 147-3" />
-        <path d="M60 645c110-32 170-4 245-65s130-16 188-81 94-14 147-3" />
-        <path d="M100 598c110-32 170-4 245-65s130-16 188-81 94-14 147-3" />
-      </g>
-      <path className="mountain-route" d="M125 660c82-27 72-84 151-105s29-51 68-79 105-21 110-77 24-55 40-93" fill="none" />
     </svg>
   );
 }
@@ -111,17 +67,9 @@ export function ListView() {
           </div>
         </div>
 
-        <div className="mountain-frame">
-          <div className="elevation-note" aria-hidden="true">
-            <span>Trailhead</span>
-            <span>Field note 01</span>
-          </div>
-          <MountainStudy />
-          <p className="mountain-caption">
-            <span>Trailhead</span>
-            A portfolio about the work behind the climb.
-          </p>
-        </div>
+        <figure className="trailhead-portrait">
+          <TrailheadPhoto />
+        </figure>
 
         <a className="scroll-cue" href="#about">
           <span>Begin the journey</span>
