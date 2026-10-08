@@ -1,5 +1,5 @@
 import { journeyStops } from "../../content/journey";
-import { clamp } from "./mountain/geometry";
+import { smooth } from "./progress";
 import type { ClimbFrame } from "./progress";
 
 export function createHudRenderer(stage: HTMLElement, header: HTMLElement | null) {
@@ -19,9 +19,11 @@ export function createHudRenderer(stage: HTMLElement, header: HTMLElement | null
       else link.removeAttribute("aria-current");
     });
     cards.forEach((card) => {
-      const opacity = clamp(1 - (Math.abs(u - Number(card.dataset.card ?? card.dataset.photoStop)) - 0.22) / 0.25, 0, 1);
+      const opacity = 1 - smooth(0.08, 0.47, Math.abs(u - Number(card.dataset.card ?? card.dataset.photoStop)));
       const active = opacity > 0.35;
       card.style.opacity = opacity.toFixed(3);
+      // Finish the visual fade after the card stops accepting interaction.
+      card.dataset.visible = String(opacity > 0);
       card.dataset.active = String(active);
       card.inert = !active;
       card.setAttribute("aria-hidden", String(!active));
@@ -32,6 +34,7 @@ export function createHudRenderer(stage: HTMLElement, header: HTMLElement | null
     });
     if (!sign || !place || !name || !open) return;
     const hidden = !waypoint && distance < 0.47;
+    sign.style.opacity = (waypoint ? 1 - 0.55 * smooth(0.08, 0.47, distance) : 0.45).toFixed(3);
     sign.dataset.hidden = String(hidden); sign.inert = hidden;
     sign.setAttribute("aria-hidden", String(hidden));
     const stop = journeyStops[nearest];

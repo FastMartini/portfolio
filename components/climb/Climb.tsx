@@ -25,6 +25,10 @@ import { sceneCleanup, sceneTask } from "./recovery";
 
 import "./climb.css";
 
+function traceStartup(step: string, detail?: unknown) {
+  if (process.env.NODE_ENV === "development") console.warn("[DEBUG-climb-startup]", step, detail);
+}
+
 function listTarget() {
   try {
     const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
@@ -74,6 +78,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   }, []);
 
   const failScene = useCallback(() => {
+    traceStartup("scene recovery", new Error("Climb recovery caller").stack);
     revealList();
     setListMode(true);
     setEnhanced(false);
@@ -130,14 +135,31 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   }, [selection, restorePendingFocus, failScene]);
 
   useEffect(() => {
-    if (!canEnhanceClimb()) return;
+    traceStartup("checking capabilities", { ready: document.readyState, hidden: document.hidden });
+    if (!canEnhanceClimb()) {
+      traceStartup("capability check failed", {
+        resize: typeof ResizeObserver, mutation: typeof MutationObserver, point: typeof DOMPoint,
+        raf: typeof requestAnimationFrame, media: typeof matchMedia, animations: typeof Element.prototype.getAnimations,
+        cancelRaf: typeof cancelAnimationFrame,
+        pointMatrix: typeof DOMPoint === "undefined" ? "undefined" : typeof DOMPoint.prototype.matrixTransform,
+        bbox: typeof SVGGraphicsElement === "undefined" ? "undefined" : typeof SVGGraphicsElement.prototype.getBBox,
+        pause: typeof SVGSVGElement === "undefined" ? "undefined" : typeof SVGSVGElement.prototype.pauseAnimations,
+        unpause: typeof SVGSVGElement === "undefined" ? "undefined" : typeof SVGSVGElement.prototype.unpauseAnimations,
+        dialogShow: typeof HTMLDialogElement === "undefined" ? "undefined" : typeof HTMLDialogElement.prototype.show,
+        dialogClose: typeof HTMLDialogElement === "undefined" ? "undefined" : typeof HTMLDialogElement.prototype.close,
+      });
+      return;
+    }
     let preference: MediaQueryList;
     try {
       preference = matchMedia("(prefers-reduced-motion: reduce)");
       if (typeof preference.matches !== "boolean" || typeof preference.addEventListener !== "function"
-        || typeof preference.removeEventListener !== "function") return;
+        || typeof preference.removeEventListener !== "function") {
+        traceStartup("invalid motion query");
+        return;
+      }
     }
-    catch { return; } // The durable List View is already visible at startup.
+    catch (error) { traceStartup("motion query failed", error); return; } // The durable List View is already visible at startup.
     let stopQuality: (() => void) | undefined;
     let raf = 0;
     const motionChange = sceneTask(failScene, () => {
@@ -160,15 +182,18 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       () => stopQuality?.());
     try {
       raf = requestAnimationFrame(() => {
+        traceStartup("initialization frame entered");
         try {
           stopQuality = observeClimbQuality(lighten);
           setListMode(Boolean(listTarget()) || preference.matches);
           setEnhanced(true);
-        } catch { failScene(); }
+          traceStartup("enhancement enabled", { listTarget: listTarget()?.id, reducedMotion: preference.matches });
+        } catch (error) { traceStartup("initialization frame failed", error); failScene(); }
       });
+      traceStartup("initialization frame scheduled", raf);
       window.addEventListener("hashchange", hashChange);
       preference.addEventListener("change", motionChange);
-    } catch { cleanup(); return; }
+    } catch (error) { traceStartup("startup listeners failed", error); cleanup(); return; }
     return cleanup;
   }, [revealList, lighten, failScene]);
 
@@ -180,7 +205,8 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       const markers = createMarkerRenderer(element, restorePendingFocus, failScene);
       renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element, navigation.current), markers };
       return () => { markers.dispose(); renderers.current = null; };
-    } catch {
+    } catch (error) {
+      traceStartup("renderers failed", error);
       const raf = requestAnimationFrame(failScene);
       return () => cancelAnimationFrame(raf);
     }
@@ -190,7 +216,8 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     const art = stage.current?.querySelector<HTMLElement>(".climb-mountain");
     try {
       if (art) return observeMountainMotion(art, !listMode && quality === "full", failScene);
-    } catch {
+    } catch (error) {
+      traceStartup("mountain motion failed", error);
       const raf = requestAnimationFrame(failScene);
       return () => cancelAnimationFrame(raf);
     }
@@ -232,7 +259,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       renderers.current?.hud(frame);
       renderers.current?.markers.render(frame);
       snow.current?.setWeather(sky.snow, frame.reducedMotion);
-    } catch { failScene(); }
+    } catch (error) { traceStartup("scene frame failed", error); failScene(); }
   }, [failScene]);
   useClimbProgress(root, enhanced && !listMode, render, failScene);
 

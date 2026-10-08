@@ -90,13 +90,14 @@
   padding: clamp(1.4rem, 2.5vw, 2.25rem); pointer-events: none; position: absolute; top: calc(50% + var(--home-header-height) / 2);
   transform: translateY(-50%); visibility: hidden; width: min(30rem, 40vw);
 }
-.climb-card[data-active="true"] { pointer-events: auto; visibility: visible; }
+.climb-card[data-visible="true"] { visibility: visible; }
+.climb-card[data-active="true"] { pointer-events: auto; }
 .climb-portrait {
   margin: 0; opacity: 0; pointer-events: none; position: absolute;
   right: clamp(4.5rem, 6vw, 6rem); top: calc(50% + var(--home-header-height) / 2); transform: translateY(-50%);
   visibility: hidden; width: min(28vw, 24rem, calc(75svh - 6rem));
 }
-.climb-portrait[data-active="true"] { visibility: visible; }
+.climb-portrait[data-visible="true"] { visibility: visible; }
 .climb-card .climb-card-place { color: var(--climb-accent); font-family: var(--font-newsreader), serif; font-size: 1.05rem; font-style: italic; margin-bottom: 0.75rem; }
 .climb-card h1, .climb-card h2 { font-size: clamp(2rem, 3.4vw, 3.25rem); letter-spacing: -0.035em; line-height: 1; margin: 0 0 1rem; max-width: none; }
 .climb-card p { color: var(--climb-muted); line-height: 1.7; margin: 0 0 0.9rem; }
