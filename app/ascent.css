@@ -1,25 +1,27 @@
 /* The SVG/HTML journey is the durable layer, including before hydration. */
+:root { --home-header-height: 5.25rem; }
 .site-header:not(.site-header--case-study) {
   background: var(--parchment);
   border-bottom: 1px solid var(--line);
   position: fixed;
+  height: var(--home-header-height);
+  z-index: 60;
 }
 .site-header nav a[aria-current="location"]::after { transform: scaleX(1); }
 .site-header:not(.site-header--case-study) nav { align-items: center; }
-.site-header .climb-view-toggle { letter-spacing: normal; position: static; text-transform: none; }
+.site-header .climb-view-toggle { letter-spacing: normal; min-width: 6.8rem; position: static; text-transform: none; }
 .mountain-journey :is(section, .waypoint) { scroll-margin-top: 6rem; }
 .mountain-journey .trailhead { padding-bottom: 5rem; }
 .mountain-journey h1 { font-size: clamp(3.25rem, 6vw, 6rem); }
 .mountain-journey .scroll-cue { min-height: 1.5rem; }
-.mountain-journey .mountain-study { width: 100%; }
 .mountain-journey :is(.about, .work, .personal-interlude, .summit) {
   isolation: isolate;
   overflow: hidden;
   position: relative;
 }
-.mountain-contours { opacity: 0.22; stroke: var(--cream); stroke-width: 1; }
-.mountain-route { stroke: var(--cream); stroke-dasharray: 3 8; stroke-linecap: round; stroke-width: 2; }
 .journey-ridge { bottom: 0; height: 38rem; left: 0; pointer-events: none; position: absolute; width: 100%; z-index: -1; }
+.journey-ridge--summit { height: auto; }
+.mountain-journey .summit { min-height: max(90svh, calc(100vw * 700 / 1440)); }
 .ridge-distance { fill: var(--pine); opacity: 0.035; }
 .ridge-near { fill: var(--pine); opacity: 0.05; }
 .ridge-contours { opacity: 0.14; stroke: var(--pine); stroke-width: 1; }
@@ -69,6 +71,7 @@
   .site-header:not(.site-header--case-study) { padding-block: 1.25rem; }
 }
 @media (max-width: 900px) {
+  :root { --home-header-height: 6.5rem; }
   .site-header:not(.site-header--case-study) nav a:not(:last-child) { display: inline; }
   .site-header:not(.site-header--case-study) { align-items: flex-start; flex-direction: column; gap: 1rem; padding-bottom: 1rem; }
   .site-header:not(.site-header--case-study) nav { font-size: 0.62rem; gap: clamp(1rem, 4vw, 2rem); }
@@ -82,7 +85,7 @@
   .mountain-journey h1 { font-size: clamp(2.9rem, 12.5vw, 3.5rem); }
   .mountain-journey .waypoint { --trail-width: 2.25rem; column-gap: 0.75rem; }
   .waypoint-marker { font-size: 0.58rem; height: 2.25rem; width: 2.25rem; }
-  .journey-ridge { height: 30rem; }
+  .journey-ridge:not(.journey-ridge--summit) { height: 30rem; }
   .waypoint-details { min-width: 0; }
   .waypoint-attribution > div { gap: 0.65rem; grid-template-columns: 3rem minmax(0, 1fr); }
   .waypoint-evidence { padding: 1rem; }

@@ -1,3 +1,4 @@
+import { PortfolioLink } from "../../../components/portfolio-link";
 import Link from "next/link";
 
 import { PortfolioHeader, SkipLink } from "../../../components/portfolio-shell";
@@ -31,8 +32,8 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
         <p className={styles.dek}>{momentumXWaypoint.summary}</p>
         <p className={styles.ownership}>{momentumXWaypoint.owned}</p>
         <div className={styles.heroActions}>
-          <a href={momentumXWaypoint.links[0].href}>View source repository</a>
-          <a href={`${momentumXWaypoint.links[0].href}/blob/main/README.md`}>Read the project README</a>
+          <PortfolioLink href={momentumXWaypoint.links[0].href}>View source repository</PortfolioLink>
+          <PortfolioLink href={`${momentumXWaypoint.links[0].href}/blob/main/README.md`}>Read the project README</PortfolioLink>
         </div>
       </div>
 
@@ -103,33 +104,33 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
 
       <ol className={styles.systemFlow} aria-label="MomentumX system flow">
         <li>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/replay.py">
+          <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/replay.py">
             <span>01</span><strong>Replay clock</strong><small>One shared market time</small>
-          </a>
+          </PortfolioLink>
         </li>
         <li>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/scanner.py">
+          <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/scanner.py">
             <span>02</span><strong>Scanner</strong><small>Price + relative volume</small>
-          </a>
+          </PortfolioLink>
         </li>
         <li>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/frontend/src/App.tsx">
+          <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/frontend/src/App.tsx">
             <span>03</span><strong>Alert + ticket</strong><small>Signal becomes an action</small>
-          </a>
+          </PortfolioLink>
         </li>
         <li>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/chain.py">
+          <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/chain.py">
             <span>04</span><strong>Vault swap</strong><small>Phantom signs first</small>
-          </a>
+          </PortfolioLink>
         </li>
         <li>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/ledger.py">
+          <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/ledger.py">
             <span>05</span><strong>Ledger + stats</strong><small>Result stays inspectable</small>
-          </a>
+          </PortfolioLink>
         </li>
       </ol>
 
-      <div className={styles.sourceNote}>Source: <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/BUILD_SPEC.md">build specification</a>{" · "}<a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/DECISIONS.md">decision log</a></div>
+      <div className={styles.sourceNote}>Source: <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/BUILD_SPEC.md">build specification</PortfolioLink>{" · "}<PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/DECISIONS.md">decision log</PortfolioLink></div>
 
       <div className={styles.surfaceGrid}>
         <article>
@@ -140,7 +141,7 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
             <div><dt>Relative volume</dt><dd>≥ 2×</dd></div>
             <div><dt>News</dt><dd>Context</dd></div>
           </dl>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/tests/test_scanner.py">Inspect scanner tests →</a>
+          <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/tests/test_scanner.py">Inspect scanner tests →</PortfolioLink>
         </article>
         <article>
           <p>02 · Trade ticket preview</p>
@@ -150,7 +151,7 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
             <li>Quote expires in 30 seconds</li>
             <li>Phantom approval</li>
           </ul>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/frontend/src/api/trade.ts">Inspect trade handling →</a>
+          <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/frontend/src/api/trade.ts">Inspect trade handling →</PortfolioLink>
         </article>
         <article>
           <p>03 · Portfolio overview</p>
@@ -160,7 +161,7 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
             <li>Trade history</li>
             <li>Average win and loss</li>
           </ul>
-          <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/stats.py">Inspect stats logic →</a>
+          <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/backend/app/stats.py">Inspect stats logic →</PortfolioLink>
         </article>
       </div>
     </section>
@@ -216,7 +217,7 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
           <div><dt>Matthew</dt><dd>Solana vault, replay data loader, and replay system</dd></div>
           <div><dt>Justin Cardenas</dt><dd>Setup scripts, stock-list checks, Devpost, and slides</dd></div>
         </dl>
-        <div className={styles.sourceNote}>Roles are reproduced from the repository’s <a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/README.md#team">team record</a>{" and "}<a href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/BUILD_SPEC.md#architecture">build specification</a>.</div>
+        <div className={styles.sourceNote}>Roles are reproduced from the repository’s <PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/README.md#team">team record</PortfolioLink>{" and "}<PortfolioLink href="https://github.com/FastMartini/Shellhacks-2026/blob/main/docs/BUILD_SPEC.md#architecture">build specification</PortfolioLink>.</div>
       </div>
     </section>
 

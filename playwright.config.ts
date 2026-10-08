@@ -31,12 +31,12 @@ export default defineConfig({
     },
     {
       name: "firefox-adaptive",
-      testMatch: "climb-adaptive.spec.ts",
+      testMatch: ["climb-adaptive.spec.ts", "splash.spec.ts"],
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit-adaptive",
-      testMatch: "climb-adaptive.spec.ts",
+      testMatch: ["climb-adaptive.spec.ts", "splash.spec.ts"],
       use: { ...devices["Desktop Safari"] },
     },
   ],

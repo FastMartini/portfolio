@@ -1,4 +1,4 @@
-import { PortfolioHeader, SkipLink } from "../components/portfolio-shell";
+import { PortfolioHeader } from "../components/portfolio-shell";
 import { ListNavigation } from "../components/list-navigation";
 import { ListView } from "../components/list-view";
 import { journeySections } from "../content/journey";
@@ -22,18 +22,16 @@ const homeNavigation = [
 export default function Home() {
   return (
     <Climb mountain={<MountainArt />} cards={<StopCards />}
-      summaries={Object.fromEntries(waypoints.map((waypoint) => [waypoint.slug,
-        <WaypointContent key={waypoint.slug} waypoint={waypoint} titleId={`panel-${waypoint.slug}-title`} />]))}
-      cases={caseStudySlots("panel-case-")}>
-      <SkipLink href="#main-content" label="Skip to content" />
-      <PortfolioHeader
+      header={<PortfolioHeader
         homeHref="#trailhead"
         homeAriaLabel="Diego Martinez, home"
         links={homeNavigation}
         navLabel="Primary navigation"
         action={<ViewToggle />}
-      />
-
+      />}
+      summaries={Object.fromEntries(waypoints.map((waypoint) => [waypoint.slug,
+        <WaypointContent key={waypoint.slug} waypoint={waypoint} titleId={`panel-${waypoint.slug}-title`} />]))}
+      cases={caseStudySlots("panel-case-")}>
       <ListNavigation sections={journeySections}>
         <main id="main-content">
           <ListView />
