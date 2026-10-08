@@ -7,6 +7,10 @@ import { waypoints } from "../content/waypoints";
 async function expectAccessiblePanel(page: Page) {
   // The nonmodal panel leaves the mountain usable. Climb/List View tests audit
   // that background separately; these repeated scans target the reading surface.
+  const textColor = await page.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
+  // WebKit can update the panel background before its inherited text colors.
+  for (const text of await page.locator("#panel-title, .climb-panel .waypoint-story h3, .climb-panel .waypoint-summary, .climb-panel .waypoint-purpose, .climb-panel .waypoint-attribution dd").all())
+    await expect(text).toHaveCSS("color", textColor);
   const result = await new AxeBuilder({ page }).include("#waypoint-panel")
     .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(result.violations).toEqual([]);

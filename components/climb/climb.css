@@ -46,7 +46,11 @@
   color: var(--climb-text); flex-direction: column; height: 100svh; left: auto; margin: 0; max-height: none; max-width: 100%;
   overflow: hidden; padding: var(--home-header-height) 0 0; position: fixed; right: 0; top: 0; width: min(34rem, 100%); z-index: 50;
 }
-.climb-panel[open] { display: flex; }
+.climb-panel[open] { animation: climb-panel-enter 500ms cubic-bezier(.2,.7,.2,1); display: flex; }
+@keyframes climb-panel-enter {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
 .climb-panel::backdrop { background: transparent; }
 .climb-panel-head { align-items: center; border-bottom: 1px solid var(--climb-line); display: flex; flex: none; gap: 1rem; justify-content: space-between; padding: 0.85rem 1.5rem; }
 .climb-panel-head p { color: var(--climb-accent); font-size: 0.82rem; font-weight: 700; margin: 0; }
@@ -71,6 +75,7 @@
 }
 @media (max-width: 560px) { .climb-marker-label { max-width: 10rem; } }
 @media (prefers-reduced-motion: reduce) { .climb-scene, .climb-mountain .lm { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .climb-panel[open] { animation: none; } }
 .climb-stage { height: 100vh; height: 100svh; overflow: hidden; position: sticky; top: 0; }
 .climb-sky, .climb-haze, .climb-cards { inset: 0; position: absolute; }
 .climb-sky { background: linear-gradient(to bottom, var(--sky-top, #e7dcc0), var(--sky-bottom, #f6efdc)); }
