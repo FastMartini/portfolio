@@ -33,11 +33,11 @@
   left: calc(100% + 0.55rem); max-width: 15rem; opacity: 0; overflow: hidden; padding: 0.45rem 0.7rem; position: absolute; text-align: left; text-overflow: ellipsis; white-space: nowrap;
 }
 .climb-marker-label small { color: #8b4428; display: block; font-size: 0.72rem; }
-.climb-marker[data-current="true"] .climb-marker-pin { background: #173f35; color: #fffbed; }
-.climb-marker:is(:hover, :focus-visible, [data-hot="true"], [data-current="true"]) .climb-marker-label { opacity: 1; }
+.climb-marker:is(:hover, [data-hovered="true"], [aria-expanded="true"]) .climb-marker-pin { background: #173f35; color: #fffbed; }
+.climb-marker:is(:hover, :focus-visible, [data-hovered="true"], [aria-expanded="true"]) .climb-marker-label { opacity: 1; }
 .climb-marker:focus-visible .climb-marker-pin { outline: 3px solid #173f35; outline-offset: 3px; }
 .climb-mountain .lm { cursor: pointer; outline: none; transition: filter 200ms ease; }
-.climb-mountain .lm.is-hot { filter: drop-shadow(0 0 10px rgba(181,101,59,0.9)) brightness(1.06); }
+.climb-mountain .lm:is(:hover, [data-hovered="true"], [aria-expanded="true"]) { filter: drop-shadow(0 0 10px rgba(181,101,59,0.9)) brightness(1.06); }
 .climb-mountain .lm:focus-visible { filter: drop-shadow(0 0 3px #fffbed) drop-shadow(0 0 6px #173f35); }
 .climb-panel {
   --parchment: var(--climb-bg); --parchment-deep: var(--climb-surface); --ink: var(--climb-text);

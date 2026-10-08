@@ -332,6 +332,10 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     const stop = Number(target.dataset.marker ?? target.dataset.stop);
     const marker = stage.current.querySelector<HTMLButtonElement>(`[data-marker="${stop}"]`);
     const landmark = stage.current.querySelector(`.lm[data-stop="${stop}"]`);
+    if (event.type.startsWith("pointer")) {
+      if (marker) marker.dataset.hovered = String(hot);
+      landmark?.setAttribute("data-hovered", String(hot));
+    }
     // Pointer exit must not clear either control while it owns keyboard focus.
     setLandmarkHot(stage.current, stop, hot || marker === document.activeElement || landmark === document.activeElement);
   }
