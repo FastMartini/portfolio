@@ -12,6 +12,58 @@ async function expectAccessiblePanel(page: Page) {
   expect(result.violations).toEqual([]);
 }
 
+test("Waypoint circles stay green at the current stop and white elsewhere", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await openClimb(page);
+  for (const index of [2, 3, 4, 3, 2]) {
+    await stop(page, index);
+    const marker = page.locator(`[data-marker="${index}"]`);
+    await marker.hover();
+    await marker.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    for (const circle of await page.locator(".climb-marker").all()) {
+      const current = await circle.getAttribute("data-current") === "true";
+      await expect(circle.locator(".climb-marker-pin")).toHaveCSS("background-color", current ? "rgb(23, 63, 53)" : "rgb(255, 251, 237)");
+    }
+    await page.keyboard.press("Escape");
+    await expect(marker).toBeFocused();
+    const other = page.locator('.climb-marker:not([hidden]):not([data-current="true"])').first();
+    if (await other.count()) {
+      await other.hover();
+      await other.focus();
+      await expect(other.locator(".climb-marker-pin")).toHaveCSS("background-color", "rgb(255, 251, 237)");
+    }
+  }
+});
+
+test("Waypoint pointer clicks have no box outline and keyboard focus follows the circle", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await openClimb(page);
+  await stop(page, 3);
+  const marker = page.locator('[data-marker="3"]');
+  const landmark = page.locator('.lm[data-stop="3"]');
+  for (const target of [marker, landmark.locator('ellipse[fill="transparent"]')]) {
+    const hit = await target.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    });
+    await page.mouse.move(hit.x, hit.y);
+    await page.mouse.down();
+    await expect(marker).toHaveCSS("outline-style", "none");
+    await expect(landmark).toHaveCSS("outline-style", "none");
+    await page.mouse.up();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.getByRole("button", { name: "Close panel" }).click();
+    await expect(marker).toBeFocused();
+    await expect(marker).toHaveCSS("outline-style", "none");
+  }
+  await page.keyboard.press("Tab");
+  await marker.focus();
+  await expect(marker).toHaveCSS("outline-style", "none");
+  await expect(marker.locator(".climb-marker-pin")).toHaveCSS("outline-style", "solid");
+  await expect(marker.locator(".climb-marker-pin")).toHaveCSS("border-radius", "50%");
+});
+
 test("each marker and its Landmark open canonical Waypoint content and return focus", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);

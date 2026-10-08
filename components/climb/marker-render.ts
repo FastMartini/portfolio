@@ -1,6 +1,5 @@
 import { landmarkAnchors } from "./mountain/landmarks";
 import { mountainView } from "./mountain/geometry";
-import { journeyStops } from "../../content/journey";
 import type { ClimbFrame } from "./progress";
 import { sceneCleanup } from "./recovery";
 
@@ -103,7 +102,6 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
       const y = camera.y + anchor[1] * camera.scale - 50;
       marker.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
       marker.dataset.current = String(stop === nearest && Math.abs(u - nearest) < 0.3);
-      marker.dataset.visited = String(journeyStops[stop].trailPosition <= position + 0.005);
     });
     refreshVisibility();
   }, dispose: sceneCleanup(onFailure,
