@@ -84,9 +84,10 @@ test("Climb shows Diego to the right of Trailhead and fades the photo with its i
     window.scrollTo(0, 0.32 / 9 * (element.offsetHeight - innerHeight));
   });
   // Observe the same rendered fade on both reading surfaces, not a second timer.
-  await expect(page.locator('[data-card="0"]')).toHaveCSS("opacity", /0\.[4-8]\d*/);
+  await expect(page.locator('[data-card="0"]')).toHaveCSS("opacity", /^0\.3[0-5]\d*$/);
   const opacity = await page.locator('[data-card="0"]').evaluate((element) => getComputedStyle(element).opacity);
-  await expect(portrait.locator("xpath=ancestor::figure")).toHaveCSS("opacity", opacity);
+  // The portrait remains painted after becoming inert and leaving the accessibility tree.
+  await expect(page.locator(".climb-portrait")).toHaveCSS("opacity", opacity);
   await scrollToClimbStop(page, 1);
   await expect(page.getByRole("img", { name: "Diego Martinez" })).toHaveCount(0);
   await scrollToClimbStop(page, 0);

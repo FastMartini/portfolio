@@ -55,6 +55,33 @@ test("Waypoint circles highlight only on hover or while open", async ({ page }) 
   await expect(passed).toHaveCSS("background-color", "rgb(255, 251, 237)");
 });
 
+for (const target of ["marker", "Landmark"] as const) {
+  test(`keyboard focus on a ${target} highlights its paired marker and Landmark without filling the circle`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openClimb(page);
+    await stop(page, 3);
+    await page.mouse.move(5, 5);
+    const marker = page.locator('[data-marker="3"]');
+    const landmark = page.locator('.lm[data-stop="3"]');
+    const label = marker.locator(".climb-marker-label");
+    const pin = marker.locator(".climb-marker-pin");
+    await page.keyboard.press("Tab");
+    const control = target === "marker" ? marker : landmark;
+    await control.evaluate((element) => element.focus({ preventScroll: true }));
+    await expect(control).toBeFocused();
+    await expect(label).toHaveCSS("opacity", "1");
+    await expect(landmark).not.toHaveCSS("filter", "none");
+    await expect(pin).toHaveCSS("background-color", "rgb(255, 251, 237)");
+    await expect(marker).toHaveAttribute("aria-expanded", "false");
+
+    await page.getByRole("button", { name: "List view", exact: true }).focus();
+    await expect(label).toHaveCSS("opacity", "0");
+    await expect(landmark).toHaveCSS("filter", "none");
+    await expect(pin).toHaveCSS("background-color", "rgb(255, 251, 237)");
+  });
+}
+
 test("Waypoint pointer clicks have no box outline and keyboard focus follows the circle", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);
