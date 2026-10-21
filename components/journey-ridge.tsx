@@ -4,7 +4,7 @@ export function JourneyRidge({ summit = false }: { summit?: boolean }) {
       className={`journey-ridge${summit ? " journey-ridge--summit" : ""}`}
       aria-hidden="true"
       viewBox="0 0 1440 700"
-      preserveAspectRatio="xMidYMax slice"
+      preserveAspectRatio={summit ? "xMidYMax meet" : "xMidYMax slice"}
     >
       <path className="ridge-distance" d="M0 570 115 485 205 530 420 270 537 388 701 215 815 351 940 170 1035 305 1210 115 1440 425V700H0Z" />
       <path className="ridge-near" d="M0 662 186 528 274 585 513 402 641 525 848 312 964 411 1122 240 1231 361 1440 292V700H0Z" />

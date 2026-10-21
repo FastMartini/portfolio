@@ -40,9 +40,6 @@ export function PortfolioHeader({
       }`}
     >
       <Link className="wordmark" href={homeHref} aria-label={homeAriaLabel}>
-        <span className="wordmark-mark" aria-hidden="true">
-          DM
-        </span>
         <span>{homeLabel}</span>
       </Link>
       <nav aria-label={navLabel}>

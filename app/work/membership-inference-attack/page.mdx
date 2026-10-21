@@ -1,3 +1,4 @@
+import { PortfolioLink } from "../../../components/portfolio-link";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -33,9 +34,9 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
         <p className={styles.ownership}>{study.owned}</p>
         <p>As team lead, I coordinated the project and led the design and execution of testing procedures alongside Christian Cevallos, Lucas Ramos, and Justin Cardenas.</p>
         <div className={styles.heroActions}>
-          <a href={study.links[0].href}>View source repository</a>
-          <a href={study.links[1].href}>Read the research report</a>
-          <a href={study.links[2].href}>Watch public demo</a>
+          <PortfolioLink href={study.links[0].href}>View source repository</PortfolioLink>
+          <PortfolioLink href={study.links[1].href}>Read the research report</PortfolioLink>
+          <PortfolioLink href={study.links[2].href}>Watch public demo</PortfolioLink>
         </div>
       </div>
       <aside className={styles.fieldNotes} aria-label="Membership inference field notes">
@@ -92,7 +93,7 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
       </div>
       <div className={styles.reportEvidence}>
         <figure className={styles.reportFigure}>
-          <a href={study.media[0].sourceHref} aria-label="Open the original results in the research report">
+          <PortfolioLink href={study.media[0].sourceHref} aria-label="Open the original results in the research report">
             <Image
               src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${study.media[0].src}`}
               alt={study.media[0].alt}
@@ -100,13 +101,13 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
               height={study.media[0].height}
               sizes="(max-width: 900px) 90vw, 50vw"
             />
-          </a>
-          <figcaption>Original results excerpt from page 5 of the team’s report. <a href={study.media[0].sourceHref}>Read in context</a>.</figcaption>
+          </PortfolioLink>
+          <figcaption>Original results excerpt from page 5 of the team’s report. <PortfolioLink href={study.media[0].sourceHref}>Read in context</PortfolioLink>.</figcaption>
         </figure>
         <div className={styles.prose}>
           <h3>Follow the public materials</h3>
-          <p><a href={`${study.links[0].href}/blob/main/dataset.py`}>Dataset preparation</a> establishes which reviews the target sees. <a href={`${study.links[0].href}/blob/main/train.py`}>Target training</a> fits the text representation and sentiment classifier. <a href={`${study.links[0].href}/blob/main/attack.py`}>Attack implementation</a> defines the signals, threshold, learned model, and evaluation split.</p>
-          <p><a href={study.links[2].href}>Watch the recorded public demo</a> linked on the report’s cover, or <a href={`${study.links[0].href}/blob/main/README.md`}>follow the repository’s run instructions</a> to inspect the pipeline.</p>
+          <p><PortfolioLink href={`${study.links[0].href}/blob/main/dataset.py`}>Dataset preparation</PortfolioLink> establishes which reviews the target sees. <PortfolioLink href={`${study.links[0].href}/blob/main/train.py`}>Target training</PortfolioLink> fits the text representation and sentiment classifier. <PortfolioLink href={`${study.links[0].href}/blob/main/attack.py`}>Attack implementation</PortfolioLink> defines the signals, threshold, learned model, and evaluation split.</p>
+          <p><PortfolioLink href={study.links[2].href}>Watch the recorded public demo</PortfolioLink> linked on the report’s cover, or <PortfolioLink href={`${study.links[0].href}/blob/main/README.md`}>follow the repository’s run instructions</PortfolioLink> to inspect the pipeline.</p>
           <p>The measurements below reproduce the report’s recorded run. They are not a new experiment or a claim about every text classifier.</p>
         </div>
       </div>
@@ -158,7 +159,7 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
           <div><dt>Justin Cardenas</dt><dd>Research, theoretical foundation, and development of key components</dd></div>
           <div><dt>Lucas Ramos</dt><dd>Presentation organization and slide design, alongside development contributions</dd></div>
         </dl>
-        <div className={styles.sourceNote}>Attribution follows section 12, “Team Contributions,” on <a href={`${study.links[1].href}#page=8`}>page 8 of the report</a>.</div>
+        <div className={styles.sourceNote}>Attribution follows section 12, “Team Contributions,” on <PortfolioLink href={`${study.links[1].href}#page=8`}>page 8 of the report</PortfolioLink>.</div>
       </div>
     </section>
 
@@ -189,7 +190,7 @@ export function CaseStudyContent({ idPrefix = "", embedded = false }) {
         </table>
         <p>The baseline threshold was derived from and evaluated on all 1,000 reviews. The learned attack trained on 700 rows and was evaluated on the remaining 300. Because the evaluation sets and fitting procedures differ, 69.2% and 70.7% are not a like-for-like estimate of improvement.</p>
         <p>The groups are balanced, so random membership guessing has an expected accuracy of 50%. F1 balances precision and recall with member as the positive class. ROC-AUC measures ranking across thresholds; 0.765 is not 76.5% accuracy. The report provides one recorded run without confidence intervals or repeated-seed analysis.</p>
-        <p>Source: section 9, “Results and Evaluation,” on <a href={study.media[0].sourceHref}>page 5 of the report</a>, with evaluation procedures in <a href={`${study.links[0].href}/blob/main/attack.py`}>the attack code</a>.</p>
+        <p>Source: section 9, “Results and Evaluation,” on <PortfolioLink href={study.media[0].sourceHref}>page 5 of the report</PortfolioLink>, with evaluation procedures in <PortfolioLink href={`${study.links[0].href}/blob/main/attack.py`}>the attack code</PortfolioLink>.</p>
       </div>
     </section>
 

@@ -1,6 +1,5 @@
 import { landmarkAnchors } from "./mountain/landmarks";
 import { mountainView } from "./mountain/geometry";
-import { journeyStops } from "../../content/journey";
 import type { ClimbFrame } from "./progress";
 import { sceneCleanup } from "./recovery";
 
@@ -11,6 +10,7 @@ export function setLandmarkHot(stage: HTMLElement, stop: number, hot: boolean) {
 
 export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () => void, onFailure: () => void) {
   const scene = stage.querySelector<HTMLElement>(".climb-scene")!;
+  const header = stage.ownerDocument.querySelector<HTMLElement>(".site-header:not(.site-header--case-study)");
   const markers = Array.from(stage.querySelectorAll<HTMLButtonElement>("[data-marker]"));
   const landmarks = markers.map((marker) => stage.querySelector<SVGGElement>(`.lm[data-stop="${marker.dataset.marker}"]`));
   // List View deep links mount the Climb while hidden. Cache world bounds only
@@ -39,7 +39,7 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
         top: Math.min(...corners.map((point) => point.y)), bottom: Math.max(...corners.map((point) => point.y)) };
     });
     const left = Math.max(0, clip.left), right = Math.min(innerWidth, clip.right);
-    const top = Math.max(76, clip.top), bottom = Math.min(innerHeight, clip.bottom);
+    const top = Math.max((header?.getBoundingClientRect().bottom ?? 72) + 4, clip.top), bottom = Math.min(innerHeight, clip.bottom);
     const camera = view;
     markers.forEach((marker, index) => {
       const anchor = landmarkAnchors[index];
@@ -102,7 +102,6 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
       const y = camera.y + anchor[1] * camera.scale - 50;
       marker.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
       marker.dataset.current = String(stop === nearest && Math.abs(u - nearest) < 0.3);
-      marker.dataset.visited = String(journeyStops[stop].trailPosition <= position + 0.005);
     });
     refreshVisibility();
   }, dispose: sceneCleanup(onFailure,

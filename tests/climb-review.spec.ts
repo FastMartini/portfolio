@@ -64,9 +64,19 @@ for (const width of [390, 1440]) {
     await expect(page.locator("#list-view")).toBeFocused();
     await page.getByRole("button", { name: "Climb view", exact: true }).click();
     await expect(page.locator("#climb")).toHaveAttribute("data-stop", "3");
-    // Nonmodal panel must not trap keyboard visitors away from the toggle.
+    // Nonmodal reading must not trap keyboard visitors. The shared header is
+    // before the scene, so Tab wraps through it instead of a trailing toggle.
     await page.locator('[data-marker="3"]').click();
     await page.getByRole("dialog").locator("a[href], button").last().focus();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("dialog").locator("a[href], button").last()).not.toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: "Skip to full text", exact: true })).toBeFocused();
+    const header = page.getByRole("banner");
+    for (const name of ["Diego Martinez, home", "About", "Work", "Beyond Work", "Contact"]) {
+      await page.keyboard.press("Tab");
+      await expect(header.getByRole("link", { name, exact: true })).toBeFocused();
+    }
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "List view", exact: true })).toBeFocused();
     await page.keyboard.press("Enter");

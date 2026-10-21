@@ -20,6 +20,10 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       });
       if (index === 0 || index === 9) await expect(page.locator(`[data-card="${index}"]`)).toBeVisible();
       else await expect(page.locator(`[data-marker="${index}"]`)).toBeVisible();
+      if (index === 0) {
+        await expect.poll(() => page.getByRole("img", { name: "Diego Martinez" })
+          .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+      }
       await expect(page).toHaveScreenshot(`${name}-${viewport.width < 600 ? "mobile" : "desktop"}.png`, { animations: "disabled" });
     });
   }

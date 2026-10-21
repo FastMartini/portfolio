@@ -163,6 +163,42 @@ test("static SVG journey and its native links remain complete without JavaScript
   await context.close();
 });
 
+for (const width of [320, 390, 768, 1440, 1920, 3840]) {
+  for (const javaScriptEnabled of [true, false]) {
+    test(`Summit artwork fills the section with a complete sun at ${width}px ${javaScriptEnabled ? "with" : "without"} JavaScript`, async ({ browser, baseURL }) => {
+      const context = await browser.newContext({ baseURL, javaScriptEnabled, viewport: { width, height: 900 } });
+      const page = await context.newPage();
+      await page.goto("./#summit");
+      await page.evaluate(() => document.fonts.ready);
+      const sun = page.locator("#summit .ridge-sun");
+      await sun.scrollIntoViewIfNeeded();
+      const bounds = await sun.evaluate((element: SVGCircleElement) => {
+        const circle = element.getBoundingClientRect();
+        const illustration = element.ownerSVGElement!.getBoundingClientRect();
+        const landscape = element.ownerSVGElement!.querySelector(".ridge-distance")!.getBoundingClientRect();
+        const section = element.closest("section")!.getBoundingClientRect();
+        return {
+          circle: circle.toJSON(),
+          landscape: landscape.toJSON(),
+          section: section.toJSON(),
+          frames: [illustration.toJSON(), section.toJSON()],
+        };
+      });
+      expect(bounds.landscape.left).toBeLessThanOrEqual(bounds.section.left + 0.5);
+      expect(bounds.landscape.right).toBeGreaterThanOrEqual(bounds.section.right - 0.5);
+      expect(bounds.circle.width).toBeGreaterThan(0);
+      expect(bounds.circle.width).toBeCloseTo(bounds.circle.height, 1);
+      for (const frame of bounds.frames) {
+        expect(bounds.circle.left).toBeGreaterThanOrEqual(frame.left - 0.5);
+        expect(bounds.circle.top).toBeGreaterThanOrEqual(frame.top - 0.5);
+        expect(bounds.circle.right).toBeLessThanOrEqual(frame.right + 0.5);
+        expect(bounds.circle.bottom).toBeLessThanOrEqual(frame.bottom + 0.5);
+      }
+      await context.close();
+    });
+  }
+}
+
 for (const [width, id, name] of [
   [1440, "trailhead", "trailhead-desktop"],
   [390, "trailhead", "trailhead-mobile"],
@@ -180,6 +216,10 @@ for (const [width, id, name] of [
     await target.evaluate((element) => element.scrollIntoView());
     await expect(page.locator(".mountain-journey")).toHaveAttribute("data-enhanced", "true");
     await expect(page.getByRole("navigation", { name: "Primary navigation" }).getByRole("button", { name: "Climb view" })).toBeInViewport();
+    if (id === "trailhead") {
+      await expect.poll(() => page.getByRole("img", { name: "Diego Martinez" })
+        .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    }
     await expect(page).toHaveScreenshot(`${name}.png`, { animations: "disabled" });
   });
 }

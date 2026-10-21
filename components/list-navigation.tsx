@@ -20,6 +20,7 @@ export function ListNavigation({
   useEffect(() => {
     const element = root.current;
     if (!element || typeof requestAnimationFrame !== "function" || typeof cancelAnimationFrame !== "function") return;
+    const navigation = document.querySelectorAll<HTMLAnchorElement>(".site-header:not(.site-header--case-study) nav a");
 
     let positions: number[] = [];
     let scrollRange = 0;
@@ -36,6 +37,12 @@ export function ListNavigation({
       if (scrollRange > 0 && scrollPosition >= scrollRange - 2) {
         nextIndex = sections.length - 1;
       }
+      // Reclaim the shared header when returning from Climb, even if this
+      // reading position is the same as the last List View position.
+      navigation.forEach((link) => {
+        if (link.hash === `#${sections[nextIndex].navigation}`) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
       if (nextIndex === activeIndex.current) return;
 
       activeIndex.current = nextIndex;
@@ -86,14 +93,6 @@ export function ListNavigation({
     markers?.forEach((marker) => {
       if (marker.hash === `#${current.id}`) marker.setAttribute("aria-current", "location");
       else marker.removeAttribute("aria-current");
-    });
-
-    const navigation = document.querySelectorAll<HTMLAnchorElement>(
-      ".site-header:not(.site-header--case-study) nav a",
-    );
-    navigation.forEach((link) => {
-      if (link.hash === `#${current.navigation}`) link.setAttribute("aria-current", "location");
-      else link.removeAttribute("aria-current");
     });
   }, [current]);
 
