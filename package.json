@@ -7,6 +7,7 @@
     "build": "next build",
     "build:test": "next build",
     "lint": "eslint .",
+    "social:generate": "node scripts/generate-social-images.mjs",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "test:e2e": "playwright test"

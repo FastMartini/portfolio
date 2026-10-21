@@ -62,7 +62,7 @@ test("Veritas states its purpose, ownership, team, and product boundary", async 
     "Justin Cardenas",
     "Jhonny Felix",
   ]) {
-    await expect(page.getByText(collaborator, { exact: true })).toBeVisible();
+    await expect(page.getByRole("main").getByText(collaborator, { exact: true })).toBeVisible();
   }
 
   await expect(page.getByRole("link", { name: "View source repository" })).toHaveAttribute(
