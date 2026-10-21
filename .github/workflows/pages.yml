@@ -44,6 +44,14 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
         run: npm test
 
+      - name: Verify custom-domain metadata and routing without a project base path
+        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        run: npm test -- tests/discoverability.spec.ts
+        env:
+          TEST_SITE_BASE_PATH: ""
+          TEST_PUBLIC_SITE_URL: "https://portfolio.example"
+          TEST_SITE_PORT: "4180"
+
       - name: Refresh Linux visual baselines on a manually selected branch
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
         run: npm test -- --update-snapshots

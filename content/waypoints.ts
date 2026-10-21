@@ -1,3 +1,5 @@
+import { pageMetadata } from "./site";
+
 type WaypointTier = "case-study" | "compact";
 
 type WaypointLink = {
@@ -86,11 +88,14 @@ export const momentumXWaypoint = {
     },
   ],
   media: [],
-  metadata: {
+  metadata: pageMetadata({
     title: "MomentumX — Tokenized U.S. Equity Trading Demo",
     description:
       "A ShellHacks 2026 team project pairing a momentum scanner and React interface with Solana devnet trading.",
-  },
+    path: "/work/momentumx/",
+    image: "momentumx",
+    imageAlt: "MomentumX — tokenized U.S. equity trading demonstration on Solana devnet. Diego Martinez, Case Study.",
+  }),
 } as const satisfies Waypoint;
 
 export const veritasWaypoint = {
@@ -133,11 +138,14 @@ export const veritasWaypoint = {
     },
   ],
   media: [],
-  metadata: {
+  metadata: pageMetadata({
     title: "Veritas — Political-Leaning Analysis Extension",
     description:
       "A capstone Chrome extension for examining source, language, and framing signals in political news.",
-  },
+    path: "/work/veritas/",
+    image: "veritas",
+    imageAlt: "Veritas — political-leaning analysis extension. Diego Martinez, Case Study.",
+  }),
 } as const satisfies Waypoint;
 
 export const membershipInferenceWaypoint = {
@@ -189,11 +197,14 @@ export const membershipInferenceWaypoint = {
       sourceHref: "https://github.com/FastMartini/llm-data-leakage-study/blob/main/Group%231_Membership_Inference_Attack_Report.pdf#page=5",
     },
   ],
-  metadata: {
+  metadata: pageMetadata({
     title: "Membership Inference Attack Study — Classical ML Privacy Research",
     description:
       "A controlled membership-inference experiment using TF-IDF and logistic regression on IMDB reviews.",
-  },
+    path: "/work/membership-inference-attack/",
+    image: "membership-inference-attack",
+    imageAlt: "Membership Inference Attack Study — classical machine-learning privacy research. Diego Martinez, Case Study.",
+  }),
 } as const satisfies Waypoint;
 
 export const waypoints = [

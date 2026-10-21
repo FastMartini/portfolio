@@ -7,7 +7,7 @@ const port = Number.parseInt(process.env.TEST_SITE_PORT ?? "", 10);
 const basePath = process.env.TEST_SITE_BASE_PATH;
 const exportRoot = resolve("out");
 
-if (!host || !Number.isInteger(port) || !basePath?.startsWith("/")) {
+if (!host || !Number.isInteger(port) || basePath === undefined || (basePath !== "" && !basePath.startsWith("/"))) {
   throw new Error(
     "Static export server requires TEST_SITE_HOST, TEST_SITE_PORT, and TEST_SITE_BASE_PATH.",
   );
@@ -20,6 +20,9 @@ const contentTypes = {
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".jpg": "image/jpeg",
   ".woff2": "font/woff2",
 };
 
@@ -61,7 +64,9 @@ createServer(async (request, response) => {
     });
     response.end(content);
   } catch {
-    response.writeHead(404).end("Not found");
+    // Pages serves the exported 404 document for unmatched URLs, preserving 404.
+    const notFound = await readFile(resolve(exportRoot, "404.html"));
+    response.writeHead(404, { "Content-Type": contentTypes[".html"] }).end(notFound);
   }
 }).listen(port, host, () => {
   console.log(`Serving static export at http://${host}:${port}${basePath}/`);

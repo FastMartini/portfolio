@@ -9,8 +9,11 @@ import { StopCards } from "../components/climb/StopCards";
 import { WaypointContent } from "../components/waypoint-content";
 import { caseStudySlots } from "../components/climb/CaseStudies";
 import { waypoints } from "../content/waypoints";
+import { homeMetadata } from "../content/site";
 
 import "./ascent.css";
+
+export const metadata = homeMetadata;
 
 const homeNavigation = [
   { href: "#about", label: "About" },

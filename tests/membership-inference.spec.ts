@@ -66,7 +66,7 @@ test("study explains classical ML, attack signals, ownership, and collaborators"
     "Justin Cardenas",
     "Lucas Ramos",
   ]) {
-    await expect(page.getByText(collaborator, { exact: true })).toBeVisible();
+    await expect(page.getByRole("main").getByText(collaborator, { exact: true })).toBeVisible();
   }
   await expect(page.getByRole("heading", { name: "Limitations" })).toBeVisible();
   await expect(main).toContainText("No mitigation evaluation.");

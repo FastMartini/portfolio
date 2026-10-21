@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 const testSite = {
   host: "127.0.0.1",
   port: Number.parseInt(process.env.TEST_SITE_PORT ?? "4173", 10),
-  basePath: "/portfolio",
+  basePath: process.env.TEST_SITE_BASE_PATH ?? "/portfolio",
 } as const;
 
 const testOrigin = `http://${testSite.host}:${testSite.port}`;
@@ -31,12 +31,12 @@ export default defineConfig({
     },
     {
       name: "firefox-adaptive",
-      testMatch: ["climb-adaptive.spec.ts", "splash.spec.ts"],
+      testMatch: ["climb-adaptive.spec.ts", "splash.spec.ts", "discoverability.spec.ts"],
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit-adaptive",
-      testMatch: ["climb-adaptive.spec.ts", "splash.spec.ts"],
+      testMatch: ["climb-adaptive.spec.ts", "splash.spec.ts", "discoverability.spec.ts"],
       use: { ...devices["Desktop Safari"] },
     },
   ],
@@ -45,7 +45,7 @@ export default defineConfig({
     url: testBaseUrl,
     env: {
       NEXT_PUBLIC_BASE_PATH: testSite.basePath,
-      NEXT_PUBLIC_SITE_URL: `${testOrigin}${testSite.basePath}`,
+      NEXT_PUBLIC_SITE_URL: process.env.TEST_PUBLIC_SITE_URL ?? `${testOrigin}${testSite.basePath}`,
       TEST_SITE_BASE_PATH: testSite.basePath,
       TEST_SITE_HOST: testSite.host,
       TEST_SITE_PORT: String(testSite.port),

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope, Newsreader } from "next/font/google";
 import { Splash } from "../components/splash/Splash";
 import { SPLASH_GATE_SCRIPT } from "../components/splash/gate";
+import { professionalDescription, siteUrl } from "../content/site";
 
 import "./globals.css";
 import "../components/splash/splash.css";
@@ -19,9 +20,10 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
+  metadataBase: siteUrl,
   title: "Diego Martinez — Software Engineer",
-  description:
-    "Software engineer building intelligent, data-driven products—from research and systems to polished user experiences.",
+  description: professionalDescription,
+  authors: [{ name: "Diego Martinez" }],
 };
 
 export default function RootLayout({
