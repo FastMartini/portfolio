@@ -49,7 +49,8 @@ html[data-splash="active"] .splash { display: grid; }
   right: 0;
   top: 100%;
 }
-.splash.splash--skipped { animation: none; opacity: 0; visibility: hidden; }
+/* Explicit input dismisses immediately, even if the paint clock is stalled. */
+.splash.splash--skipped { animation: none; opacity: 0; transition: none; visibility: hidden; }
 @keyframes splash-exit {
   to { transform: translateY(-100%); visibility: hidden; }
 }

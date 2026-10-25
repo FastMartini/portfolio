@@ -39,6 +39,7 @@ test("reduced-motion keyboard input stops the intro without trapping focus", asy
   await page.goto("./");
   const splash = page.locator(".splash");
   await expect(splash).toBeVisible();
+  await seekIntro(page, 1200);
   await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeVisible();
   await tabToLink(page, browserName);
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
@@ -70,6 +71,8 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       await page.goto("./");
       const splash = page.locator(".splash");
       await expect(splash).toBeVisible();
+      // Input must interrupt an active intro, even if navigation setup is slow.
+      await seekIntro(page, 1200);
       await expect(page.locator(".climb-view-toggle")).toBeVisible();
       if (input === "pointer") {
         await page.getByRole("navigation", { name: "Primary navigation" })
@@ -104,6 +107,31 @@ test("reduced motion uses a still card and an opacity-only exit", async ({ page 
   await expect(splash).toHaveCSS("transform", "none");
 });
 
+test("input dismisses the intro even when paint-driven transitions cannot advance", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("./");
+  const splash = page.locator(".splash");
+  await expect(splash).toBeVisible();
+  await seekIntro(page, 1200);
+  await expect(page.locator(".climb-view-toggle")).toBeVisible();
+  await page.evaluate(() => {
+    window.addEventListener("keydown", () => {
+      const element = document.querySelector<HTMLElement>(".splash")!;
+      // Model WebKit delivering input while its paint/transition clock stalls.
+      void getComputedStyle(element).visibility;
+      element.getAnimations().forEach((animation) => {
+        if (animation instanceof CSSTransition) {
+          animation.pause();
+          animation.currentTime = 0;
+        }
+      });
+    }, { once: true });
+  });
+  await page.keyboard.press("Escape");
+  await expect(splash).toHaveClass(/splash--skipped/);
+  await expect(splash).toBeHidden({ timeout: 750 });
+});
+
 test("the failsafe dismisses the intro if its CSS animation cannot complete", async ({ page }) => {
   await page.goto("./");
   await page.addStyleTag({ content: ".splash { animation: none !important; }" });
@@ -123,6 +151,7 @@ test("blocked session storage cannot break the intro, skipping or deep links", a
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
   await expect(page.locator(".splash")).toBeVisible();
+  await seekIntro(page, 1200);
   await expect(page.locator(".climb-view-toggle")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator(".splash")).toBeHidden({ timeout: 750 });
