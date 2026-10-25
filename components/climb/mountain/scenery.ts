@@ -2,6 +2,7 @@ import { campSite, landmarkSites, leftX, rightX, polygon, silhouette, shade, WOR
 import type { Point } from "./geometry";
 
 export type DepthItem = { groundY: number; markup: string };
+type TreeKind = "forest" | "edge" | "hill";
 
 export function seededRandom(seed: number) {
   let state = seed;
@@ -39,12 +40,90 @@ function far(base: number, amplitude: number, seed: number, fill: string) {
   return `<svg class="far" aria-hidden="true" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice"><polygon points="${polygon(points)}" fill="${fill}" opacity="0.55"/></svg>`;
 }
 
-function inClearing(x: number, y: number) {
+// `pad` widens the clearing by the tree's crown half-width, so crowns (not just trunks) stay clear.
+function inClearing(x: number, y: number, pad = 0) {
   return [...landmarkSites, campSite].some((site) =>
-    Math.abs(x - site.x) < site.width * 1.05 + 14 &&
+    Math.abs(x - site.x) < site.width * 1.05 + 14 + pad &&
     y > site.y + site.top * 1.05 * 0.8 && y < site.y + 18,
   );
 }
+
+/* ---------- Trees ----------
+   Spruce shapes are drawn once into <defs> at a reference size (TS = 20, base at 0,0) and placed with
+   <use>; each instance carries only position, scale and fill. The lit (left) half is a fixed translucent
+   overlay inside the shape, so no currentColor or CSS variables are needed. */
+const TS = 20;
+const TRUNK = "#3a3027";
+const LIT = 'fill="#e3ecd6" fill-opacity="0.15"';
+const SPRUCE_VARIANTS = 12, SNOW_VARIANTS = 6;
+const HAZE = 0.22, GLADE = -0.8, GLADE_P = 0.65;
+
+const hexRgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+function mixHex(a: string, b: string, t: number) {
+  const A = hexRgb(a), B = hexRgb(b);
+  return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join("");
+}
+const pt = (x: number, y: number) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+const ln = (p: Point) => ` L${pt(p[0], p[1])}`;
+
+// Local generator hashed from a tree's own position: shape, scale and thinning never touch the shared sequence.
+function treeRandom(x: number, y: number) {
+  const hash = (Math.imul(Math.round(x * 8), 73856093) ^ Math.imul(Math.round(y * 8), 19349663)) >>> 0;
+  const random = seededRandom(hash % 2147483646 + 1);
+  random();
+  return random;
+}
+// Low-frequency field that opens deterministic glades in the stand.
+const glade = (x: number, y: number) =>
+  Math.sin(x * 0.0105 + 1.3) * Math.sin(y * 0.019 + 0.7) + 0.45 * Math.sin(x * 0.029 - y * 0.021 + 2.1);
+
+function treeTrunk(s: number, top: number) {
+  return `<ellipse cx="${(s * 0.12).toFixed(1)}" cy="0" rx="${(s * 0.55).toFixed(1)}" ry="${(s * 0.09).toFixed(1)}" fill="#13221a" fill-opacity="0.28"/>` +
+    `<path d="M${pt(-s * 0.07, 0)}${ln([-s * 0.05, top])}${ln([s * 0.05, top])}${ln([s * 0.07, 0])}Z" fill="${TRUNK}"/>`;
+}
+
+// Spruce: drooping scalloped boughs, split lit/shaded like the mountain; snowy variants cap the upper boughs.
+function spruceShape(random: () => number, snowy: boolean) {
+  const s = TS, h = s * 2.25 * (0.94 + random() * 0.14), w = s * 0.7, n = 4 + Math.floor(random() * 3);
+  const bb = -s * 0.2, top = -h, th = (bb - top) / n, droop = s * 0.07, lean = (random() - 0.5) * s * 0.12;
+  const tiers = Array.from({ length: n }, (_, k) => {
+    const t = (k + 1) / n, base = w * (0.2 + 0.8 * t);
+    return { y: top + (bb - top) * t, cx: lean * (1 - t), wr: base * (1 + (random() - 0.5) * 0.24), wl: base * (1 + (random() - 0.5) * 0.24) };
+  });
+  const wd = (k: number, sg: number) => (sg > 0 ? tiers[k].wr : tiers[k].wl);
+  const start = (k: number, sg: number): Point => k > 0 ? [tiers[k].cx + sg * wd(k - 1, sg) * 0.52, tiers[k - 1].y - th * 0.1] : [lean, top];
+  const ctrl = (k: number, sg: number): Point => [tiers[k].cx + sg * wd(k, sg) * 0.6, tiers[k].y - th * 0.4];
+  const tip = (k: number, sg: number): Point => [tiers[k].cx + sg * wd(k, sg), tiers[k].y + droop];
+  const down = (sg: number) => tiers.map((_, k) => {
+    const a = ctrl(k, sg), b = tip(k, sg);
+    return ` Q${pt(a[0], a[1])} ${pt(b[0], b[1])}` + (k < n - 1 ? ln(start(k + 1, sg)) : "");
+  }).join("");
+  const up = (sg: number) => tiers.map((_, i) => {
+    const k = n - 1 - i, a = ctrl(k, sg), b = start(k, sg);
+    return ln(tip(k, sg)) + ` Q${pt(a[0], a[1])} ${pt(b[0], b[1])}`;
+  }).join("");
+  const apex = `M${pt(lean, top)}`;
+  let out = treeTrunk(s, bb - 1) +
+    `<path d="${apex}${down(1)}${ln([s * 0.06, bb])}${ln([-s * 0.06, bb])}${up(-1)}Z"/>` +
+    `<path d="${apex}${down(-1)}${ln([0, bb])}Z" ${LIT}/>`;
+  if (snowy) {
+    let lit = "", shaded = "";
+    for (let j = 0; j < 2; j++) {
+      for (const sg of j ? [-1] : [-1, 1]) {
+        const a = start(j, sg), b = ctrl(j, sg), e = tip(j, sg);
+        const cap = `M${pt(a[0], a[1])} Q${pt(b[0], b[1])} ${pt(e[0], e[1])} Q${pt(b[0] - sg * s * 0.05, b[1] + s * 0.19)} ${pt(a[0] - sg * s * 0.03, a[1] + s * 0.13)}Z`;
+        if (sg < 0) lit += cap; else shaded += cap;
+      }
+    }
+    out += `<path d="${lit}" fill="#ebece4"/><path d="${shaded}" fill="#c9d0cd"/>`;
+  }
+  return out;
+}
+
+// Insert into the scenery <svg>'s <defs>. Fixed seeds: identical on server and client.
+export const treeDefs =
+  Array.from({ length: SPRUCE_VARIANTS }, (_, v) => `<g id="tv-spruce${v}">${spruceShape(treeRandom(13 + 3 * 977, v * 131 + 7), false)}</g>`).join("") +
+  Array.from({ length: SNOW_VARIANTS }, (_, v) => `<g id="tv-snow${v}">${spruceShape(treeRandom(13 + 4 * 977, v * 131 + 7), true)}</g>`).join("");
 
 // Everything is generated from fixed numbers, not fetched or user-provided SVG.
 // Keep random calls in reference order; even rejected trees affect later clouds.
@@ -57,8 +136,22 @@ export function buildScenery() {
     }
     return points;
   }
-  function pine(x: number, y: number, size: number) {
-    return `<path aria-hidden="true" d="M${x.toFixed(0)} ${(y - size * 2.1).toFixed(0)}l${(-size * 0.65).toFixed(1)} ${(size * 2.1).toFixed(1)}h${(size * 1.3).toFixed(1)}Z" fill="${random() > 0.5 ? "#203a2e" : "#2c4b39"}"/>`;
+  // One shared draw per accepted tree (its tone), exactly where the reference pine() drew its colour.
+  // Every other decision, including the new glade and crown-clearance rejections, uses treeRandom.
+  function pine(x: number, y: number, size: number, kind: TreeKind) {
+    const tone = random();
+    const local = treeRandom(x, y), base = tone > 0.5 ? "#203a2e" : "#2c4b39";
+    const depth = kind === "hill" ? Math.min(1, Math.max(0, (y - 2520) / 670)) : Math.min(1, Math.max(0, (y - 2160) / 1010));
+    const s = size * (0.88 + 0.2 * depth);
+    let sx = s * (0.9 + local() * 0.2), sy = s * (0.9 + local() * 0.24);
+    if (kind !== "edge" && glade(x, y) < GLADE && local() < GLADE_P) return "";
+    if (kind === "forest" && inClearing(x, y, s * 0.65)) return "";
+    let body = mixHex(mixHex(base, "#6c8673", (1 - depth) * HAZE), "#14251c", depth * 0.2);
+    if (kind === "hill") body = mixHex(body, "#5a7257", 0.3 * (1 - depth));
+    if (kind !== "hill" && depth < 0.14) { sx *= 1.1; sy *= 0.8; } // krummholz at the treeline
+    const snowy = kind !== "hill" && depth < 0.24 && local() < 0.7 * (1 - depth / 0.24);
+    const variant = Math.floor(local() * (snowy ? SNOW_VARIANTS : SPRUCE_VARIANTS));
+    return `<use aria-hidden="true" href="#tv-${snowy ? "snow" : "spruce"}${variant}" transform="translate(${x.toFixed(0)} ${y.toFixed(0)}) scale(${(sx / TS).toFixed(3)} ${(sy / TS).toFixed(3)})" fill="${mixHex(body, "#13221a", 0.22)}"/>`;
   }
   const snowEdge = jag(1320, 150, 38);
   const snow = [...snowEdge, [WORLD_WIDTH + 1210, -10], [-1010, -10]] as Point[];
@@ -74,7 +167,7 @@ export function buildScenery() {
       const px = x + (random() - 0.5) * 22, py = y + (random() - 0.5) * 8;
       if (px > leftX(py) - 20 && px < rightX(py) + 20 && py < 3100) continue;
       if (py < topAt(hillsBack, px) + 16) continue;
-      hillTrees += pine(px, py, 12 + random() * 11);
+      hillTrees += pine(px, py, 12 + random() * 11, "hill");
     }
   }
 
@@ -86,7 +179,8 @@ export function buildScenery() {
       if (py < topAt(forestEdge, px) + 14) continue;
       if (px < leftX(py) + size * 0.7 + 4 || px > rightX(py) - size * 0.7 - 4) continue;
       if (inClearing(px, py)) continue;
-      trees.push({ groundY: py, markup: pine(px, py, size) });
+      const markup = pine(px, py, size, "forest");
+      if (markup) trees.push({ groundY: py, markup });
     }
   }
 
@@ -127,7 +221,8 @@ export function buildScenery() {
       const direction = side ? 1 : -1, size = 13 + random() * 11;
       const px = x - direction * (size * 0.55 + random() * 8), py = y + (random() - 0.5) * 6;
       if (py < topAt(forestEdge, px) + 14) return;
-      edgeTrees.push({ groundY: py, markup: pine(px, py, size) });
+      const markup = pine(px, py, size, "edge");
+      if (markup) edgeTrees.push({ groundY: py, markup });
     });
   }
 
@@ -141,6 +236,7 @@ export function buildScenery() {
     shade: `<polygon points="${shade}" fill="#1f2621" opacity="0.16" pointer-events="none"/>`,
     edgeTrees: paintDepth(edgeTrees),
     hillTrees,
+    treeDefs,
     cloudsFront: `<g filter="url(#soft)" opacity="0.92">${cloudsFront}</g>`,
   };
 }

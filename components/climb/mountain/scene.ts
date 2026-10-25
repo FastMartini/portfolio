@@ -16,7 +16,7 @@ export function buildMountainMarkup() {
     '<filter id="softer" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="14"/></filter>' +
     '<filter id="lm-blur" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="4"/></filter>' +
     '<filter id="lm-smoke" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2.2"/></filter>' +
-    '<filter id="lm-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.5"/></filter></defs>' +
+    '<filter id="lm-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.5"/></filter>' + scenery.treeDefs + '</defs>' +
     `<g aria-hidden="true">${scenery.backdrop}</g>` +
     `<g clip-path="url(#mtn-clip)"><g aria-hidden="true">${scenery.bands}</g>${paintDepth(scenery.trees, landmarks.depth)}<g aria-hidden="true">${landmarks.lift}${scenery.shade}</g></g>` +
     scenery.edgeTrees +

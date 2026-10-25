@@ -72,11 +72,11 @@ On macOS 27, Firefox can fail before loading the site with `Could not find profi
 
 Visual baselines are platform-specific (`darwin` locally, `linux` in Ubuntu 24.04 CI), with a 1% difference allowance. The Climb snapshots cover Trailhead, Waypoint 03, Waypoint 06, and Summit at 1440px and 390px; the durable List View keeps its own snapshots.
 
-To intentionally refresh local baselines, run `npm test -- --update-snapshots` and inspect PNGs in `tests/*-snapshots/`. To regenerate Linux baselines, manually run the existing verification workflow on a non-main branch: `gh workflow run pages.yml --ref <branch>`. That manual branch run updates snapshots and uploads a `visual-baselines-linux` artifact; inspect and commit the Linux PNGs, then require a normal PR verification run without snapshot updates. Manual branch runs never deploy Pages. Failed runs upload screenshots and traces as `playwright-evidence`.
+To intentionally refresh local baselines, run `npm test -- --update-snapshots=all` and inspect PNGs in `tests/*-snapshots/`. Explicit `all` refreshes even artwork changes that fall within the comparison tolerance. To regenerate Linux baselines, manually run the existing verification workflow on a non-main branch: `gh workflow run pages.yml --ref <branch>`. That manual branch run updates snapshots and uploads a `visual-baselines-linux` artifact; inspect and commit the Linux PNGs, then require a normal PR verification run without snapshot updates. Manual branch runs never deploy Pages. Failed runs upload screenshots and traces as `playwright-evidence`.
 
 ## Design and architecture
 
-The approved prototype is `docs/handoff/reference/climb-reference.html`; implementation guidance is `docs/handoff/CODEX_HANDOFF.md`. [ADR 0004](docs/adr/0004-illustrated-climb-replaces-threejs.md) records the illustrated Climb's replacement of the earlier Three.js Atmospheric Layer.
+The original approved prototype is `docs/handoff/reference/climb-reference.html`; implementation guidance is `docs/handoff/CODEX_HANDOFF.md`. The trees follow the later [Alpine spruce handoff](docs/handoff/alpine-spruce.md), with its own approved visual reference. [ADR 0004](docs/adr/0004-illustrated-climb-replaces-threejs.md) records the illustrated Climb's replacement of the earlier Three.js Atmospheric Layer.
 
 ## Deployment
 

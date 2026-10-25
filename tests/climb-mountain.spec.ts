@@ -34,7 +34,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 
     const reference = await browser.newPage({ viewport, reducedMotion: "reduce" });
     await reference.route("https://fonts.googleapis.com/**", (route) => route.abort());
-    await reference.goto(pathToFileURL(resolve("docs/handoff/reference/climb-reference.html")).href);
+    await reference.goto(pathToFileURL(resolve("docs/handoff/reference/alpine-spruce-reference.html")).href);
     await expect(reference.locator("svg.mtn")).toBeAttached();
     await reference.evaluate(() => {
       // Phase 2 comparison excludes only artwork/UI scheduled for phases 3–5.
@@ -42,6 +42,10 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       document.querySelectorAll('svg.mtn > g[transform]:not(#a-climber), svg.mtn > g[clip-path="url(#mtn-clip)"] > g[transform]')
         .forEach((element) => element.remove());
       document.querySelectorAll(".climb-header, .cards, .markers, .rail, .trail-sign, .panel, .haze, .sun")
+        .forEach((element) => element.remove());
+      // The design exploration also contains unused fir and mixed-stand shapes.
+      // Compare only the approved Alpine spruce and snowy spruce shipped here.
+      document.querySelectorAll('defs > g[id^="tv-"]:not([id^="tv-spruce"]):not([id^="tv-snow"])')
         .forEach((element) => element.remove());
     });
     const native = await reference.locator("#a-trail").evaluate((element) => {
@@ -65,7 +69,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     // Compare vector data exactly as well as pixels: small rasterization
     // differences must not conceal changes to seeded trees, bands, or clouds.
     const shapes = (svg: SVGSVGElement) => Array.from(
-      svg.querySelectorAll("polygon, path:not(#a-walked), circle, ellipse"),
+      svg.querySelectorAll("polygon, path:not(#a-walked), circle, ellipse, use"),
       (element) => ({
         tag: element.tagName,
         // Accessibility metadata can differ; every vector/paint attribute

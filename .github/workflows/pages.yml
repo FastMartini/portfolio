@@ -54,7 +54,7 @@ jobs:
 
       - name: Refresh Linux visual baselines on a manually selected branch
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
-        run: npm test -- --update-snapshots
+        run: npm test -- --update-snapshots=all
 
       - name: Upload refreshed Linux visual baselines
         if: success() && github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
