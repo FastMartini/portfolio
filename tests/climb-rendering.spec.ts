@@ -62,11 +62,13 @@ for (const samplingDelay of [0, 900]) {
   });
 }
 
-test("climber and hit targets stay aligned through travel and mobile resizing", async ({ page }) => {
-  await openClimb(page);
-  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 700 }]) {
-    await page.setViewportSize(viewport);
-    for (const stop of [0, 3, 9]) {
+// Give each resize/travel case its own test budget. Combining six stops and
+// panel interactions can exhaust the test timeout on WebKit's software painter.
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 700 }]) {
+  for (const stop of [0, 3, 9]) {
+    test(`climber and hit targets align at stop ${stop} after resizing to ${viewport.width}px`, async ({ page }) => {
+      await openClimb(page);
+      await page.setViewportSize(viewport);
       await scrollToClimbStop(page, stop);
       // Stop 0 can already be settled before ResizeObserver renders the new
       // camera. Poll the actual geometry, retaining the one-pixel tolerance.
@@ -83,13 +85,15 @@ test("climber and hit targets stay aligned through travel and mobile resizing", 
         return Math.max(Math.abs(state.x - (view.x + view.point[0] * view.scale)),
           Math.abs(state.y - (view.y + view.point[1] * view.scale)));
       }, { message: "climber aligns with the camera for the current viewport", timeout: 15000 }).toBeLessThan(1);
-    }
-    await scrollToClimbStop(page, 3);
-    await page.locator('.lm[data-stop="3"]').click();
-    await expect(page.getByRole("dialog").locator("#panel-title")).toHaveText("Veritas");
-    await page.getByRole("button", { name: "Close panel", exact: true }).click();
+      if (stop === 3) {
+        await page.locator('.lm[data-stop="3"]').click();
+        await expect(page.getByRole("dialog").locator("#panel-title")).toHaveText("Veritas");
+        await page.getByRole("button", { name: "Close panel", exact: true }).click();
+        await expect(page.getByRole("dialog")).toBeHidden();
+      }
+    });
   }
-});
+}
 
 test("weather changes do not inherit through the detailed vectors", async ({ page }) => {
   await openClimb(page);
