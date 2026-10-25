@@ -252,9 +252,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     lastRenderedStop.current = frame.nearest;
     try {
       const snowAmount = renderers.current?.weather(frame.position) ?? 0;
-      renderers.current?.mountain.render(frame.position, {
-        moving: root.current?.dataset.settled === "false", reducedMotion: frame.reducedMotion,
-      });
+      renderers.current?.mountain.render(frame.position);
       renderers.current?.hud(frame);
       renderers.current?.markers.render(frame);
       snow.current?.setWeather(snowAmount, frame.reducedMotion);

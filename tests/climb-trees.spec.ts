@@ -22,12 +22,12 @@ test("Alpine spruce generation is deterministic and every tree references a defi
   expect([...new Set(references)].filter((reference) => !ids.includes(reference))).toEqual([]);
 });
 
-test("the mountain renders every tree from reusable definitions in its own SVG", async ({ page }) => {
+test("mountain paint layers render every tree from shared vector definitions", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./climb-preview/");
   await expect(page.locator(".climb-mountain")).toHaveAttribute("data-ready", "true");
-  const rendered = await page.locator("svg.mtn").evaluate((svg) => {
+  const rendered = await page.locator(".climb-vector-camera").evaluate((svg) => {
     const ids = [...svg.querySelectorAll('defs > g[id^="tv-"]')].map((shape) => shape.id);
     const trees = [...svg.querySelectorAll<SVGUseElement>('use[href^="#tv-"]')];
     return {
@@ -36,7 +36,7 @@ test("the mountain renders every tree from reusable definitions in its own SVG",
       unresolved: trees.filter((tree) => {
         const shape = svg.querySelector(tree.getAttribute("href")!);
         const bounds = tree.getBBox();
-        return !shape || shape.closest("svg") !== svg || bounds.width <= 0 || bounds.height <= 0;
+        return !shape || !svg.contains(shape) || bounds.width <= 0 || bounds.height <= 0;
       }).map((tree) => tree.outerHTML),
     };
   });

@@ -28,7 +28,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.locator(".climb-preview-caption").evaluate((element) => element.remove());
     await page.evaluate(() => {
       document.querySelectorAll(".lm, .lift").forEach((element) => element.remove());
-      document.querySelectorAll('svg.mtn > g[transform]:not(#a-climber), svg.mtn > g[clip-path="url(#mtn-clip)"] > g[transform]')
+      document.querySelectorAll('svg.climb-layer-svg > g[transform]:not(#a-climber), svg.climb-layer-svg > g[clip-path="url(#mtn-clip)"] > g[transform]')
         .forEach((element) => element.remove());
     });
 
@@ -68,7 +68,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 
     // Compare vector data exactly as well as pixels: small rasterization
     // differences must not conceal changes to seeded trees, bands, or clouds.
-    const shapes = (svg: SVGSVGElement) => Array.from(
+    const shapes = (svg: Element) => Array.from(
       svg.querySelectorAll("polygon, path:not(#a-walked), circle, ellipse, use"),
       (element) => ({
         tag: element.tagName,
@@ -79,7 +79,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
           .sort((a, b) => a[0].localeCompare(b[0])),
       }),
     );
-    expect(await page.locator("svg.mtn").evaluate(shapes)).toEqual(
+    expect(await page.locator(".climb-vector-camera").evaluate(shapes)).toEqual(
       await reference.locator("svg.mtn").evaluate(shapes),
     );
 

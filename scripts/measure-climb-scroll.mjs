@@ -13,14 +13,21 @@ try {
   await page.locator(".splash").waitFor({ state: "hidden" });
   const result = await page.evaluate(() => new Promise((resolve) => {
     const root = document.querySelector("#climb");
+    const timelines = Array.from(document.querySelectorAll(".climb-mountain svg"))
+      .filter((svg) => svg.querySelector("animate, animateMotion, animateTransform"));
     const range = root.offsetHeight - innerHeight;
     let start, previous;
+    let animationsRunning = timelines.length > 0, liveVectors = true;
     const gaps = [];
     function frame(now) {
       start ??= now;
       if (previous !== undefined) gaps.push(now - previous);
       previous = now;
       const elapsed = now - start;
+      if (root.dataset.settled === "false") {
+        animationsRunning &&= timelines.every((svg) => !svg.animationsPaused());
+        liveVectors &&= timelines.every((svg) => svg.isConnected && svg.style.opacity !== "0");
+      }
       window.scrollTo(0, range * (0.08 + 0.33 * (0.5 - 0.5 * Math.cos(elapsed / 4000 * Math.PI * 2))));
       if (elapsed < 4000) requestAnimationFrame(frame);
       else {
@@ -29,14 +36,15 @@ try {
           meanMs: Math.round(gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length),
           p95Ms: Math.round(gaps[Math.floor(gaps.length * 0.95)]),
           over50ms: gaps.filter((gap) => gap > 50).length,
-          climbVisible: !root.hidden });
+          climbVisible: !root.hidden, animationsRunning, liveVectors });
       }
     }
     requestAnimationFrame(frame);
   }));
   console.log(JSON.stringify(result));
   const budget = Number(process.env.SCROLL_MEAN_BUDGET_MS);
-  if (!result.climbVisible || (budget > 0 && result.meanMs > budget)) process.exitCode = 1;
+  if (!result.climbVisible || !result.animationsRunning || !result.liveVectors
+    || (budget > 0 && result.meanMs > budget)) process.exitCode = 1;
 } finally {
   await browser.close();
 }

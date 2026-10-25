@@ -15,8 +15,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true");
       // Freeze SVG SMIL at a named frame; CSS animation disabling doesn't seek
       // SVG timelines, and pausing at hydration time alone is nondeterministic.
-      await page.locator("svg.mtn").evaluate((node) => {
-        const svg = node as SVGSVGElement; svg.pauseAnimations(); svg.setCurrentTime(0);
+      await page.locator("svg.climb-layer-svg").evaluateAll((nodes) => {
+        nodes.forEach((node) => { const svg = node as SVGSVGElement; svg.pauseAnimations(); svg.setCurrentTime(0); });
       });
       if (index === 0 || index === 9) await expect(page.locator(`[data-card="${index}"]`)).toBeVisible();
       else await expect(page.locator(`[data-marker="${index}"]`)).toBeVisible();
