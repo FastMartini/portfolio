@@ -62,7 +62,7 @@ test("MomentumX tells a truthful, attributed product story", async ({ page }) =>
     "Matthew",
     "Justin Cardenas",
   ]) {
-    await expect(page.getByText(collaborator, { exact: true })).toBeVisible();
+    await expect(page.getByRole("main").getByText(collaborator, { exact: true })).toBeVisible();
   }
 
   await expect(page.getByRole("link", { name: "View source repository" })).toHaveAttribute(

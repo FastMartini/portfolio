@@ -1,0 +1,11 @@
+.page {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100svh;
+  padding: 8rem var(--page-padding) 4rem;
+}
+
+.page h1 { font-size: clamp(3.5rem, 8vw, 7rem); max-width: 12ch; }
+.page > p:not(:first-child) { line-height: 1.8; margin: 2rem 0; max-width: 35rem; }

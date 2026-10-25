@@ -31,6 +31,32 @@ Tests always start their own production-export server, never reuse another workt
 
 ## Verification
 
+Search and sharing metadata use `content/site.ts` and the typed Waypoint registry.
+The homepage and each full Case Study have a canonical URL, Open Graph fields,
+and a large-image Twitter card. Four checked-in 1200×630 PNG title cards live in
+`public/social/`; they contain editorial artwork and truthful copy, not simulated
+project screenshots. The SVG favicon combines a ridge line with a DM monogram.
+Unpublished routes use the exported branded `404.html` with a 404 status and
+`noindex`, including direct visits and refreshes on Pages.
+
+`NEXT_PUBLIC_BASE_PATH` controls routing and local assets; `NEXT_PUBLIC_SITE_URL`
+is the complete public site URL, including the project path when present. The
+Pages workflow already derives both from `configure-pages`. For a future custom
+domain, build with an empty base path and that domain's root URL. No content or
+route changes are needed. CI also tests this configuration with a separate
+production export:
+
+```bash
+TEST_SITE_BASE_PATH='' TEST_PUBLIC_SITE_URL=https://portfolio.example TEST_SITE_PORT=4180 npm test -- tests/discoverability.spec.ts
+```
+
+To intentionally regenerate the share cards, first build and serve the export,
+then run `SOCIAL_PREVIEW_URL=http://127.0.0.1:4173/portfolio/ npm run social:generate`.
+The generator uses Playwright and the built site's self-hosted Newsreader and
+Manrope fonts. Inspect all four PNGs, commit them, and rebuild the export to pick
+up the new files. Runtime image generation and server-side optimization are not
+required.
+
 ```bash
 npm run typecheck
 npm run lint
