@@ -70,16 +70,22 @@ for (const route of routes) {
         expect(Number(await image.getAttribute("width"))).toBeGreaterThan(0);
         expect(Number(await image.getAttribute("height"))).toBeGreaterThan(0);
       }
-      await page.evaluate(() => document.fonts.ready);
+      // Firefox can leave document.fonts.ready pending with JavaScript disabled.
+      // Observe font requests with a bounded wait, then verify the files below.
+      await expect.poll(() => [...assets].some((url) => url.endsWith(".woff2")), { timeout: 5_000 }).toBe(true);
       expect(failures).toEqual([]);
-      expect([...assets].some((url) => url.endsWith(".woff2"))).toBe(true);
       for (const asset of assets) {
         expect(new URL(asset).origin).toBe(new URL(baseURL!).origin);
         expect(new URL(asset).pathname.startsWith(new URL(baseURL!).pathname)).toBe(true);
         expect(asset).not.toContain("/_next/image?");
         // Browsers can cancel preloads on refresh or with JavaScript disabled.
         // Fetch each referenced asset explicitly so a missing file still fails.
-        expect((await context.request.get(asset)).status(), asset).toBe(200);
+        const response = await context.request.get(asset, { timeout: 5_000 });
+        expect(response.status(), asset).toBe(200);
+        if (asset.endsWith(".woff2")) {
+          expect(response.headers()["content-type"], asset).toContain("font/woff2");
+          expect((await response.body()).subarray(0, 4).toString(), asset).toBe("wOF2");
+        }
       }
       await context.close();
     });
