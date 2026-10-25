@@ -120,9 +120,9 @@ test("resizing the preview reuses the SVG and remains accessible on mobile", asy
   const host = page.locator(".climb-mountain");
   await expect(host).toHaveAttribute("data-ready", "true");
   const svg = await page.locator("svg.mtn").elementHandle();
-  const initial = await page.locator("svg.mtn").getAttribute("style");
+  const initial = await page.locator(".climb-vector-camera").getAttribute("style");
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator("svg.mtn")).not.toHaveAttribute("style", initial!);
+  await expect(page.locator(".climb-vector-camera")).not.toHaveAttribute("style", initial!);
   expect(await svg!.evaluate((element) => element === document.querySelector("svg.mtn"))).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
   await expect(page.locator("svg.mtn")).toHaveCSS("max-width", "none");

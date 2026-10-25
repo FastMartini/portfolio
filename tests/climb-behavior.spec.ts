@@ -66,8 +66,8 @@ test("all ten stops show their card or Trail Sign and update the bottom-to-top T
     }
   }
   expect(await svg!.evaluate((element) => element === document.querySelector("svg.mtn"))).toBe(true);
-  await expect(page.locator(".climb-stage")).toHaveCSS("--sky-top", "rgb(43,120,204)");
-  await expect(page.locator(".climb-stage")).toHaveCSS("--sun", "1.000");
+  await expect(page.locator(".climb-sky")).toHaveCSS("--sky-top", "rgb(43,120,204)");
+  await expect(page.locator(".climb-sun")).toHaveCSS("opacity", "1");
   await expect(page.getByRole("link", { name: "Email Diego" })).toHaveAttribute("href", "mailto:diegommart2004@gmail.com");
   await rail.getByRole("button", { name: "Go to Trailhead", exact: true }).click();
   await expect(root).toHaveAttribute("data-stop", "0");
@@ -161,10 +161,10 @@ for (const width of [390, 1440]) {
       const card = page.locator(`[data-card="${index}"]`);
       await expect(card).toBeInViewport();
       expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
-      const sky = await page.locator(".climb-stage").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"));
+      const sky = await page.locator(".climb-sky").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"));
       await page.emulateMedia({ colorScheme: "dark" });
       await expect(card).toHaveCSS("background-color", "rgb(37, 47, 41)");
-      expect(await page.locator(".climb-stage").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"))).toBe(sky);
+      expect(await page.locator(".climb-sky").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"))).toBe(sky);
       expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
     });

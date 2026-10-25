@@ -15,11 +15,11 @@ export function MountainViewport({ children, trailPosition }: { children: ReactN
     // The large SVG is server-built once. Resizing only changes view attributes.
     const draw = createMountainRenderer(host);
     const stopMotion = observeMountainMotion(host);
-    const render = () => draw(trailPosition);
+    const render = () => draw.render(trailPosition);
     render();
     const observer = new ResizeObserver(render);
     observer.observe(host);
-    return () => { observer.disconnect(); stopMotion(); };
+    return () => { observer.disconnect(); stopMotion(); draw.dispose(); };
   }, [trailPosition]);
 
   return <div className="climb-mountain" ref={root} aria-hidden="true">{children}</div>;

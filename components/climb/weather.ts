@@ -25,3 +25,22 @@ export function weather(position: number) {
     sun: smooth(0.9, 0.98, t),
   };
 }
+
+// Scope changing weather styles to their painted layers. Putting inheritable
+// custom properties on the stage restyles every detailed SVG instance.
+export function createWeatherRenderer(stage: HTMLElement) {
+  const sky = stage.querySelector<HTMLElement>(".climb-sky")!;
+  const haze = stage.querySelector<HTMLElement>(".climb-haze")!;
+  const sun = stage.querySelector<HTMLElement>(".climb-sun")!;
+  let top = "", bottom = "", mist = "", sunlight = "";
+  return (position: number) => {
+    const next = weather(position);
+    const nextTop = colorCss(next.top), nextBottom = colorCss(next.bottom);
+    const nextMist = next.haze.toFixed(3), nextSun = next.sun.toFixed(3);
+    if (top !== nextTop) { top = nextTop; sky.style.setProperty("--sky-top", top); }
+    if (bottom !== nextBottom) { bottom = nextBottom; sky.style.setProperty("--sky-bottom", bottom); }
+    if (mist !== nextMist) { mist = nextMist; haze.style.opacity = mist; }
+    if (sunlight !== nextSun) { sunlight = nextSun; sun.style.opacity = sunlight; }
+    return next.snow;
+  };
+}

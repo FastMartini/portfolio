@@ -12,7 +12,7 @@ import { TrailRail } from "./TrailRail";
 import { TrailSign } from "./TrailSign";
 import type { ClimbFrame } from "./progress";
 import { useClimbProgress } from "./useClimbProgress";
-import { colorCss, weather } from "./weather";
+import { createWeatherRenderer } from "./weather";
 import { Markers } from "./Markers";
 import { createMarkerRenderer, setLandmarkHot } from "./marker-render";
 import { WaypointPanel } from "./WaypointPanel";
@@ -49,7 +49,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   const stage = useRef<HTMLDivElement>(null);
   const navigation = useRef<HTMLDivElement>(null);
   const snow = useRef<SnowController>(null);
-  const renderers = useRef<{ mountain: (position: number) => void; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
+  const renderers = useRef<{ mountain: ReturnType<typeof createMountainRenderer>; weather: ReturnType<typeof createWeatherRenderer>; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
   const focusList = useRef<boolean | string>(false);
   const reading = useRef<PanelSelection | null>(null);
   // Recovery outlives the enhancement subtree: its DOM refs can already be
@@ -203,8 +203,9 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     if (!element || !art) return;
     try {
       const markers = createMarkerRenderer(element, restorePendingFocus, failScene);
-      renderers.current = { mountain: createMountainRenderer(art), hud: createHudRenderer(element, navigation.current), markers };
-      return () => { markers.dispose(); renderers.current = null; };
+      const mountain = createMountainRenderer(art);
+      renderers.current = { mountain, weather: createWeatherRenderer(element), hud: createHudRenderer(element, navigation.current), markers };
+      return () => { markers.dispose(); mountain.dispose(); renderers.current = null; };
     } catch (error) {
       traceStartup("renderers failed", error);
       const raf = requestAnimationFrame(failScene);
@@ -250,15 +251,13 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     if (!element) return;
     lastRenderedStop.current = frame.nearest;
     try {
-      const sky = weather(frame.position);
-      element.style.setProperty("--sky-top", colorCss(sky.top));
-      element.style.setProperty("--sky-bottom", colorCss(sky.bottom));
-      element.style.setProperty("--haze", sky.haze.toFixed(3));
-      element.style.setProperty("--sun", sky.sun.toFixed(3));
-      renderers.current?.mountain(frame.position);
+      const snowAmount = renderers.current?.weather(frame.position) ?? 0;
+      renderers.current?.mountain.render(frame.position, {
+        moving: root.current?.dataset.settled === "false", reducedMotion: frame.reducedMotion,
+      });
       renderers.current?.hud(frame);
       renderers.current?.markers.render(frame);
-      snow.current?.setWeather(sky.snow, frame.reducedMotion);
+      snow.current?.setWeather(snowAmount, frame.reducedMotion);
     } catch (error) { traceStartup("scene frame failed", error); failScene(); }
   }, [failScene]);
   useClimbProgress(root, enhanced && !listMode, render, failScene);
