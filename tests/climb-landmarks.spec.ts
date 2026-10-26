@@ -51,8 +51,11 @@ test("chairs follow one closed loop and the scene pauses on live reduced-motion 
   }, paths[0]);
   expect(gap).toBeLessThan(0.02);
   await expect.poll(() => svg.evaluate((node) => (node as SVGSVGElement).animationsPaused())).toBe(false);
+  const timelines = page.locator("svg.climb-layer-svg");
+  expect(await timelines.evaluateAll((nodes) => nodes.every((node) => !(node as SVGSVGElement).animationsPaused()))).toBe(true);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect.poll(() => svg.evaluate((node) => (node as SVGSVGElement).animationsPaused())).toBe(true);
+  expect(await timelines.evaluateAll((nodes) => nodes.every((node) => (node as SVGSVGElement).animationsPaused()))).toBe(true);
   const time = await svg.evaluate((node) => (node as SVGSVGElement).getCurrentTime());
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   expect(await svg.evaluate((node) => (node as SVGSVGElement).getCurrentTime())).toBe(time);

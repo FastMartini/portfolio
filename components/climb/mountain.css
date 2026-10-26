@@ -3,6 +3,10 @@
 .climb-mountain svg { left: 0; overflow: visible; position: absolute; top: 0; transform-origin: 0 0; }
 .climb-mountain svg.mtn { height: auto; max-width: none; }
 .climb-mountain svg.far { bottom: 0; height: 60%; right: 0; width: 100%; }
+.climb-vector-camera { height: 3200px; left: 0; position: absolute; top: 0; transform-origin: 0 0; width: 2000px; will-change: transform; }
+.climb-paint-layer { height: 3200px; left: 0; pointer-events: none; position: absolute; top: 0; width: 2000px; will-change: transform; }
+.climb-mountain svg.climb-layer-svg { height: auto; max-width: none; }
+.climb-paint-layer .lm { pointer-events: visiblePainted; }
 
 /* Static preview is a phase checkpoint, not the homepage's new Climb yet. */
 .climb-preview { background: linear-gradient(to bottom, #e7dcc0, #f6efdc); height: 100svh; overflow: hidden; position: relative; }
