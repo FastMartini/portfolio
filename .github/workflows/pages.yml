@@ -1,128 +1,17 @@
-name: Verify and deploy portfolio
-
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
-  workflow_dispatch:
-
+name: Diagnose Firefox audio
+on: workflow_dispatch
 permissions:
   contents: read
-
-concurrency:
-  group: "pages-${{ github.ref }}"
-  cancel-in-progress: true
-
 jobs:
-  verify:
+  diagnose:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 10
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Test the production static export
-        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
-        run: npm test
-
-      - name: Verify custom-domain metadata and routing without a project base path
-        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
-        run: npm test -- tests/discoverability.spec.ts
-        env:
-          TEST_SITE_BASE_PATH: ""
-          TEST_PUBLIC_SITE_URL: "https://portfolio.example"
-          TEST_SITE_PORT: "4180"
-
-      - name: Refresh Linux visual baselines on a manually selected branch
-        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
-        run: npm test -- --update-snapshots=all
-
-      - name: Upload refreshed Linux visual baselines
-        if: success() && github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: visual-baselines-linux
-          path: tests/*-snapshots/*-linux.png
-          retention-days: 7
-
-      - name: Upload visual test evidence
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-evidence
-          path: |
-            test-results/
-            tests/*-snapshots/
-          retention-days: 7
-
-  build-pages:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Configure GitHub Pages
-        id: pages
-        uses: actions/configure-pages@v5
-
-      - name: Build static export
-        run: npm run build
-        env:
-          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
-          NEXT_PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: out
-
-  deploy-pages:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: build-pages
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - run: npm ci
+      - run: npx playwright install --with-deps firefox
+      - run: node scripts/probe-native-audio.mjs
