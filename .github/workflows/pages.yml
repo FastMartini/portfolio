@@ -34,6 +34,14 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
+      - name: Start a virtual audio output for native playback tests
+        run: |
+          sudo apt-get install -y --no-install-recommends pulseaudio pulseaudio-utils
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=portfolio_ci
+          pactl set-default-sink portfolio_ci
+          pactl list short sinks
+
       - name: Typecheck
         run: npm run typecheck
 
