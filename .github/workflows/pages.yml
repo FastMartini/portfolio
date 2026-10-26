@@ -26,3 +26,5 @@ jobs:
           pactl list short sinks
       - name: Repeat the identical native probe
         run: node scripts/probe-native-audio.mjs
+      - name: Check the original Firefox audio acceptance suite
+        run: npm test -- tests/climb-audio.spec.ts --project=firefox-adaptive --workers=2 --reporter=line
