@@ -14,4 +14,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps firefox
-      - run: node scripts/probe-native-audio.mjs
+      - name: Probe without an audio server
+        continue-on-error: true
+        run: node scripts/probe-native-audio.mjs
+      - name: Provide an audio output
+        run: |
+          sudo apt-get install -y pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio
+          pactl set-default-sink ci_audio
+          pactl list short sinks
+      - name: Repeat the identical native probe
+        run: node scripts/probe-native-audio.mjs
