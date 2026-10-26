@@ -13,7 +13,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps firefox
+      - run: npx playwright install firefox
       - name: Probe without an audio server
         continue-on-error: true
         run: node scripts/probe-native-audio.mjs
