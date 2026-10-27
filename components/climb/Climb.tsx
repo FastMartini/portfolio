@@ -356,7 +356,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
         </a>
         {header}
       </div>
-      <AmbientSound ref={ambience} active={enhanced && !listMode && selection === null} />
+      <AmbientSound ref={ambience} active={enhanced && !listMode} />
       <div className="climb-list" hidden={!listMode}>{children}</div>
       {enhanced && <SceneRecovery onFailure={failScene}><div className="climb-enhancement" hidden={listMode} data-quality={quality}>
         <main className="climb" id="climb" ref={root}

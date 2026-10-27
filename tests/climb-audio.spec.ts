@@ -43,6 +43,9 @@ async function outputLevel(page: Page) {
 test("fire proximity and upper-mountain storm intensity follow the journey and end in silence", () => {
   expect(ambientMix(0.07).fire).toBeGreaterThan(ambientMix(0).fire);
   expect(ambientMix(0.07).fire).toBeGreaterThan(ambientMix(0.17).fire);
+  for (const position of [0.17, 0.28, 0.39]) {
+    expect(ambientMix(position)).toMatchObject({ fire: 0, snow: 0 });
+  }
   expect(ambientMix(0.5).fire).toBe(0);
   expect(ambientMix(0.39).snow).toBe(0);
   expect(ambientMix(0.61).snow).toBeLessThan(ambientMix(0.71).snow);
@@ -138,13 +141,15 @@ test("the campfire is audible nearby, silent in the distance, and returns on des
   await scrollToClimbStop(page, 1);
   await page.getByRole("button", { name: "Ambient sound", exact: true }).click();
   await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
+  await scrollToClimbStop(page, 3);
+  await expect.poll(() => outputLevel(page)).toBe(0);
   await scrollToClimbStop(page, 4);
   await expect.poll(() => outputLevel(page)).toBe(0);
   await scrollToClimbStop(page, 1);
   await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
 });
 
-test("an open Waypoint Panel and a hidden tab suspend audio and restore the opted-in sound", async ({ page }) => {
+test("a hidden tab suspends audio and restores the opted-in sound", async ({ page }) => {
   await probeAudio(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);
@@ -159,13 +164,58 @@ test("an open Waypoint Panel and a hidden tab suspend audio and restore the opte
     document.dispatchEvent(new Event("visibilitychange"));
   });
   await expect.poll(() => page.evaluate(() => Reflect.get(window, "ambientContexts")[0].state)).toBe("running");
-  await scrollToClimbStop(page, 3);
-  await page.locator('[data-marker="3"]').click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Reflect.get(window, "ambientContexts")[0].state)).toBe("suspended");
-  await page.getByRole("button", { name: "Close panel", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => Reflect.get(window, "ambientContexts")[0].state)).toBe("running");
 });
+
+for (const viewport of [{ width: 390, height: 600 }, { width: 390, height: 900 }, { width: 1440, height: 900 }]) {
+  test(`sound continues and stays controllable with a Waypoint Panel open at ${viewport.width}x${viewport.height}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await probeAudio(page);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openClimb(page);
+    await scrollToClimbStop(page, 7);
+    const toggle = page.getByRole("button", { name: "Ambient sound", exact: true });
+    await toggle.click();
+    await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
+    await page.evaluate(() => {
+      Reflect.set(window, "ambientStates", []);
+      const context: AudioContext = Reflect.get(window, "ambientContexts")[0];
+      context.addEventListener("statechange", () => Reflect.get(window, "ambientStates").push(context.state));
+    });
+
+    await page.locator('[data-marker="7"]').click();
+    const panel = page.getByRole("dialog");
+    await expect(panel).toBeVisible();
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => page.evaluate(() => Reflect.get(window, "ambientContexts")[0].state)).toBe("running");
+    await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
+    expect(await page.evaluate(() => Reflect.get(window, "ambientStates"))).not.toContain("suspended");
+    const box = (await toggle.boundingBox())!;
+    expect(box.x + box.width).toBeLessThan(viewport.width / 2);
+    const heading = (await panel.locator(".climb-panel-head").boundingBox())!;
+    expect(box.x < heading.x + heading.width && box.x + box.width > heading.x &&
+      box.y < heading.y + heading.height && box.y + box.height > heading.y).toBe(false);
+
+    // A real pointer click checks that the panel cannot cover the control.
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect.poll(() => page.evaluate(() => Reflect.get(window, "ambientContexts")[0].state)).toBe("suspended");
+    await expect(panel).toBeVisible();
+    await toggle.focus();
+    await expect(toggle).toBeFocused();
+    await page.keyboard.press("Space");
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => page.evaluate(() => Reflect.get(window, "ambientContexts")[0].state)).toBe("running");
+    await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
+    await page.keyboard.press("Enter");
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await page.getByRole("button", { name: "Close panel", exact: true }).click();
+    await expect(panel).toBeHidden();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect.poll(() => page.evaluate(() => Reflect.get(window, "ambientContexts")[0].state)).toBe("suspended");
+    expect(await page.evaluate(() => Reflect.get(window, "ambientContexts").length)).toBe(1);
+  });
+}
 
 test("muting while audio is resuming cannot restart the sound later", async ({ page }) => {
   await probeAudio(page);

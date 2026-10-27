@@ -44,7 +44,7 @@ function crackles(context: BaseAudioContext) {
   return buffer;
 }
 
-// Four fixed, looping voices run on the audio rendering thread. No sound files,
+// Three fixed, looping voices run on the audio rendering thread. No sound files,
 // worklets, per-scroll buffer/node allocations, or JS timers are needed.
 export function createAmbientGraph(context: BaseAudioContext) {
   const nodes: AudioNode[] = [], sources: AudioBufferSourceNode[] = [];
@@ -73,11 +73,9 @@ export function createAmbientGraph(context: BaseAudioContext) {
   voice(noise(context, 1, 12407, true), fireWarmth);
   voice(crackles(context), firePops);
 
-  const wind = gain(), snowGrains = gain();
-  const windFilter = filter("bandpass", 150, 0.45), grainFilter = filter("bandpass", 1400, 0.6);
-  windFilter.connect(wind); wind.connect(bus); grainFilter.connect(snowGrains); snowGrains.connect(bus);
-  voice(noise(context, 2, 51817, true), windFilter);
-  voice(noise(context, 2, 73127, true), grainFilter);
+  const snowWind = gain(), snowFilter = filter("lowpass", 350);
+  snowFilter.connect(snowWind); snowWind.connect(bus);
+  voice(noise(context, 1, 12407, true), snowFilter);
 
   const targets = new Map<AudioParam, number>();
   function ramp(parameter: AudioParam, target: number, immediate = false) {
@@ -90,14 +88,11 @@ export function createAmbientGraph(context: BaseAudioContext) {
   }
   return {
     setMix(mix: AmbientMix) {
-      ramp(fireBody.gain, mix.fire * 0.35);
+      ramp(fireBody.gain, mix.fire * 0.09);
       ramp(firePops.gain, mix.fire ** 2 * 0.22);
       ramp(fireDistance.frequency, 450 + mix.fire ** 1.5 * 3500);
       ramp(firePan.pan, mix.firePan);
-      ramp(wind.gain, mix.snow * 0.55);
-      ramp(snowGrains.gain, mix.snow ** 1.7 * 0.13);
-      ramp(windFilter.frequency, 120 + mix.snow * 120);
-      ramp(grainFilter.frequency, 1000 + mix.snow * 1600);
+      ramp(snowWind.gain, mix.snow * 0.35);
       // Exact zero, including compressor/filter tails, at the clear summit.
       // Place silence after the compressor rather than merely fading sources.
       ramp(master.gain, mix.fire || mix.snow ? 0.7 : 0, !mix.fire && !mix.snow);
