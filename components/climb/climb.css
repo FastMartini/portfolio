@@ -28,6 +28,10 @@
 @media (prefers-color-scheme: dark) {
   .climb-sound-toggle, .climb-sound-status { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
 }
+@media (min-width: 901px) {
+  /* Leave the Trail Rail's 44px targets and a gap beside the sound control. */
+  .climb-sound-toggle, .climb-sound-status { left: calc(44px + 1.75rem); }
+}
 @media (max-width: 600px) {
   .climb-sound-toggle { justify-content: center; padding: 0.65rem; }
   .climb-sound-toggle span { display: none; }

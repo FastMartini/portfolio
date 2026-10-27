@@ -40,6 +40,35 @@ async function outputLevel(page: Page) {
   });
 }
 
+for (const viewport of [{ width: 1280, height: 600 }, { width: 1280, height: 640 }, { width: 901, height: 640 }]) {
+  test(`Trail Rail pointer navigation stays clear of sound controls at ${viewport.width}x${viewport.height}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openClimb(page);
+    const climb = page.locator("#climb");
+    await expect(climb).toHaveAttribute("data-settled", "true");
+    const sound = page.getByRole("button", { name: "Ambient sound", exact: true });
+    const buttons = page.getByRole("navigation", { name: "Trail stops" }).getByRole("button");
+    await expect(buttons).toHaveCount(10);
+
+    for (let index = 0; index < 10; index++) {
+      const button = buttons.nth(index), stop = (await button.getAttribute("data-rail"))!;
+      const box = (await button.boundingBox())!;
+      // Raw pointer input reproduces overlays intercepting the actual target.
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await expect(climb).toHaveAttribute("data-stop", stop);
+      await expect(climb).toHaveAttribute("data-settled", "true");
+      await expect(sound).toHaveAttribute("aria-pressed", "false");
+    }
+
+    await sound.click();
+    await expect(sound).toHaveAttribute("aria-pressed", "true");
+    await expect(climb).toHaveAttribute("data-stop", "0");
+    await sound.click();
+    await expect(sound).toHaveAttribute("aria-pressed", "false");
+  });
+}
+
 test("fire proximity and upper-mountain storm intensity follow the journey and end in silence", () => {
   expect(ambientMix(0.07).fire).toBeGreaterThan(ambientMix(0).fire);
   expect(ambientMix(0.07).fire).toBeGreaterThan(ambientMix(0.17).fire);
