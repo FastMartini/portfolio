@@ -7,6 +7,8 @@ import { createHudRenderer } from "./hud";
 import { createMountainRenderer } from "./mountain/render";
 import { observeMountainMotion } from "./mountain/motion";
 import { Snow } from "./Snow";
+import { AmbientSound } from "./AmbientSound";
+import type { AmbientSoundController } from "./AmbientSound";
 import type { SnowController } from "./Snow";
 import { TrailRail } from "./TrailRail";
 import { TrailSign } from "./TrailSign";
@@ -49,6 +51,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   const stage = useRef<HTMLDivElement>(null);
   const navigation = useRef<HTMLDivElement>(null);
   const snow = useRef<SnowController>(null);
+  const ambience = useRef<AmbientSoundController>(null);
   const renderers = useRef<{ mountain: ReturnType<typeof createMountainRenderer>; weather: ReturnType<typeof createWeatherRenderer>; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
   const focusList = useRef<boolean | string>(false);
   const reading = useRef<PanelSelection | null>(null);
@@ -250,6 +253,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     const element = stage.current;
     if (!element) return;
     lastRenderedStop.current = frame.nearest;
+    ambience.current?.setPosition(frame.position);
     try {
       const snowAmount = renderers.current?.weather(frame.position) ?? 0;
       renderers.current?.mountain.render(frame.position);
@@ -352,6 +356,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
         </a>
         {header}
       </div>
+      <AmbientSound ref={ambience} active={enhanced && !listMode} />
       <div className="climb-list" hidden={!listMode}>{children}</div>
       {enhanced && <SceneRecovery onFailure={failScene}><div className="climb-enhancement" hidden={listMode} data-quality={quality}>
         <main className="climb" id="climb" ref={root}

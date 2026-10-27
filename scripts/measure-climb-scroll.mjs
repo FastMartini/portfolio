@@ -11,6 +11,9 @@ try {
   await page.goto(process.env.SCROLL_URL ?? "http://127.0.0.1:4173/portfolio/");
   await page.locator('#climb[data-settled="true"]').waitFor();
   await page.locator(".splash").waitFor({ state: "hidden" });
+  if (process.env.SCROLL_SOUND === "1") {
+    await page.getByRole("button", { name: "Ambient sound", exact: true }).click();
+  }
   const result = await page.evaluate(() => new Promise((resolve) => {
     const root = document.querySelector("#climb");
     const timelines = Array.from(document.querySelectorAll(".climb-mountain svg"))
@@ -36,7 +39,8 @@ try {
           meanMs: Math.round(gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length),
           p95Ms: Math.round(gaps[Math.floor(gaps.length * 0.95)]),
           over50ms: gaps.filter((gap) => gap > 50).length,
-          climbVisible: !root.hidden, animationsRunning, liveVectors });
+          climbVisible: !root.hidden, animationsRunning, liveVectors,
+          audioEnabled: document.querySelector(".climb-sound-toggle")?.getAttribute("aria-pressed") === "true" });
       }
     }
     requestAnimationFrame(frame);
@@ -44,6 +48,7 @@ try {
   console.log(JSON.stringify(result));
   const budget = Number(process.env.SCROLL_MEAN_BUDGET_MS);
   if (!result.climbVisible || !result.animationsRunning || !result.liveVectors
+    || (process.env.SCROLL_SOUND === "1" && !result.audioEnabled)
     || (budget > 0 && result.meanMs > budget)) process.exitCode = 1;
 } finally {
   await browser.close();

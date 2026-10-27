@@ -78,6 +78,8 @@ To intentionally refresh local baselines, run `npm test -- --update-snapshots=al
 
 The original approved prototype is `docs/handoff/reference/climb-reference.html`; implementation guidance is `docs/handoff/CODEX_HANDOFF.md`. The trees follow the later [Alpine spruce handoff](docs/handoff/alpine-spruce.md), with its own approved visual reference. [ADR 0004](docs/adr/0004-illustrated-climb-replaces-threejs.md) records the illustrated Climb's replacement of the earlier Three.js Atmospheric Layer.
 
+The Climb's [optional fire and snowstorm ambience](docs/handoff/ambient-audio.md) keeps the original synthesized crackles and a quieter warm fire bed at camp, with soft rushing wind in the snowy section and silence at the ski lodge and summit. Visitors enable it with the sound button on the left, which remains usable while a Waypoint Panel is open. Audio continues through panel reading; List View and hidden tabs suspend playback. Three procedural Web Audio voices run on the native audio thread with no audio downloads or server dependency.
+
 ## Deployment
 
 Pull requests run type checking, linting, and production-export Playwright tests. A verified push to `main` builds with GitHub's reported Pages base path and deploys through GitHub Actions.

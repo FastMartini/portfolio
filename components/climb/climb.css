@@ -11,6 +11,31 @@
 }
 .climb-enhancement button:not(.climb-marker):focus-visible, .climb-view-toggle:focus-visible { outline: 3px solid var(--copper); outline-offset: 4px; }
 .climb-skip { z-index: 62; }
+.climb-sound-toggle {
+  align-items: center; background: var(--cream); border: 1px solid var(--line); border-radius: 999px;
+  color: var(--ink); cursor: pointer; display: flex; font: inherit; font-size: 0.78rem; font-weight: 700;
+  gap: 0.45rem; min-height: 44px; min-width: 44px; padding: 0.65rem 0.85rem; position: fixed;
+  left: 1rem; top: calc(var(--home-header-height) + 0.75rem); z-index: 51;
+}
+.climb-sound-toggle[hidden] { display: none; }
+.climb-sound-toggle[aria-pressed="true"] { background: var(--pine); border-color: var(--pine); color: var(--cream); }
+.climb-sound-toggle:focus-visible { outline: 3px solid var(--copper); outline-offset: 4px; }
+.climb-sound-status {
+  background: var(--cream); border: 1px solid var(--line); border-radius: 0.5rem; color: var(--ink);
+  font-size: 0.8rem; max-width: 15rem; padding: 0.7rem; position: fixed; left: 1rem;
+  top: calc(var(--home-header-height) + 4rem); z-index: 51;
+}
+@media (prefers-color-scheme: dark) {
+  .climb-sound-toggle, .climb-sound-status { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
+}
+@media (min-width: 901px) {
+  /* Leave the Trail Rail's 44px targets and a gap beside the sound control. */
+  .climb-sound-toggle, .climb-sound-status { left: calc(44px + 1.75rem); }
+}
+@media (max-width: 600px) {
+  .climb-sound-toggle { justify-content: center; padding: 0.65rem; }
+  .climb-sound-toggle span { display: none; }
+}
 .climb { height: 1000vh; position: relative; }
 .climb-scene { inset: 0; position: absolute; transition: transform 500ms cubic-bezier(.2,.7,.2,1); }
 .climb-navigation { inset: 0; pointer-events: none; position: absolute; }
@@ -71,7 +96,7 @@
 .inline-cases { min-width: 0; }
 @media (min-width: 901px) { .climb-stage[data-panel-open="true"] .climb-scene { transform: translateX(-17rem); } }
 @media (max-width: 900px) {
-  .climb-panel { border-left: 0; border-top: 1px solid var(--climb-line); border-radius: 1rem 1rem 0 0; height: 82svh; padding: 0 0 env(safe-area-inset-bottom, 0px); top: auto; }
+  .climb-panel { border-left: 0; border-top: 1px solid var(--climb-line); border-radius: 1rem 1rem 0 0; height: 82svh; max-height: calc(100svh - var(--home-header-height) - 4.25rem); padding: 0 0 env(safe-area-inset-bottom, 0px); top: auto; }
 }
 @media (max-width: 560px) { .climb-marker-label { max-width: 10rem; } }
 @media (prefers-reduced-motion: reduce) { .climb-scene, .climb-mountain .lm { transition: none; } }
