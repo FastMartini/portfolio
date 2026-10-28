@@ -17,7 +17,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -62,7 +62,8 @@ jobs:
 
       - name: Refresh Linux visual baselines on a manually selected branch
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
-        run: npm test -- --update-snapshots=all
+        # Full browser verification runs on PRs; this job only regenerates PNGs.
+        run: npm test -- --project=chromium --grep snapshot --update-snapshots=all
 
       - name: Upload refreshed Linux visual baselines
         if: success() && github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
