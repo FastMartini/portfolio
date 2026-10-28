@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "./theme-toggle";
 
 type ShellLink = {
   href: string;
@@ -48,7 +49,10 @@ export function PortfolioHeader({
             {link.label}
           </a>
         ))}
-        {action}
+        <div className="header-actions">
+          {action}
+          <ThemeToggle />
+        </div>
       </nav>
     </header>
   );

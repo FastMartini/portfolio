@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import styles from "./not-found.module.css";
+import { ThemeToggle } from "../components/theme-toggle";
 
 export const metadata: Metadata = {
   title: "Page not found — Diego Martinez",
@@ -11,6 +12,7 @@ export default function NotFound() {
   return <>
     <header className="site-header">
       <Link className="wordmark" href="/">Diego Martinez</Link>
+      <ThemeToggle />
     </header>
     <main className={styles.page}>
       <p className="eyebrow">404 · Off the trail</p>

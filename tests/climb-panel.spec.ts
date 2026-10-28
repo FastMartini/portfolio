@@ -1,3 +1,4 @@
+import { setTheme } from "./helpers/theme";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
@@ -7,7 +8,7 @@ import { waypoints } from "../content/waypoints";
 async function expectAccessiblePanel(page: Page) {
   // The nonmodal panel leaves the mountain usable. Climb/List View tests audit
   // that background separately; these repeated scans target the reading surface.
-  const textColor = await page.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
+  const textColor = await page.evaluate(() => document.documentElement.dataset.theme !== "light" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
   // WebKit can update the panel background before its inherited text colors.
   for (const text of await page.locator("#panel-title, .climb-panel .waypoint-story h3, .climb-panel .waypoint-summary, .climb-panel .waypoint-purpose, .climb-panel .waypoint-attribution dd").all())
     await expect(text).toHaveCSS("color", textColor);
@@ -173,6 +174,7 @@ for (const width of [390, 1440]) {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await openClimb(page);
       await expect(page.locator("#climb")).toBeVisible();
+      await setTheme(page, "light");
       await stop(page, waypoint.order + 1);
       await page.locator(`[data-marker="${waypoint.order + 1}"]`).click();
       const panel = page.getByRole("dialog");
@@ -185,11 +187,11 @@ for (const width of [390, 1440]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
       await panel.getByRole("button", { name: "Summary" }).click();
       await expect(panel.locator("#panel-title")).toHaveText(waypoint.name);
-      await page.emulateMedia({ colorScheme: "dark" });
+      await setTheme(page, "dark");
       await expectAccessiblePanel(page);
       await panel.getByRole("link", { name: "Read case study" }).click();
       await expectAccessiblePanel(page);
-      await page.emulateMedia({ colorScheme: "light" });
+      await setTheme(page, "light");
       await panel.getByRole("button", { name: "Close panel" }).click();
     });
   }

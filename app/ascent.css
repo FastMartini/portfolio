@@ -75,7 +75,8 @@
   .site-header:not(.site-header--case-study) nav a:not(:last-child) { display: inline; }
   .site-header:not(.site-header--case-study) { align-items: flex-start; flex-direction: column; gap: 1rem; padding-bottom: 1rem; }
   .site-header:not(.site-header--case-study) nav { font-size: 0.62rem; gap: clamp(1rem, 4vw, 2rem); }
-  .site-header .climb-view-toggle { position: absolute; right: var(--page-padding); top: 1rem; }
+  .site-header:not(.site-header--case-study) nav { margin-left: 0; }
+  .site-header:not(.site-header--case-study) .header-actions { position: absolute; right: var(--page-padding); top: 1rem; }
   .mountain-journey :is(section, .waypoint) { scroll-margin-top: 7rem; }
   .mountain-journey .trailhead { padding-top: 8rem; }
   .mountain-journey .waypoint { grid-template-columns: var(--trail-width) minmax(0, 1fr); }

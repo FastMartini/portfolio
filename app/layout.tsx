@@ -3,6 +3,7 @@ import { Manrope, Newsreader } from "next/font/google";
 import { Splash } from "../components/splash/Splash";
 import { SPLASH_GATE_SCRIPT } from "../components/splash/gate";
 import { professionalDescription, siteUrl } from "../content/site";
+import { THEME_INIT_SCRIPT } from "../components/theme-preference";
 
 import "./globals.css";
 import "../components/splash/splash.css";
@@ -32,8 +33,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${manrope.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" className={`${newsreader.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
+        <script id="theme-preference" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <script id="splash-gate" dangerouslySetInnerHTML={{ __html: SPLASH_GATE_SCRIPT }} />
       </head>
       <body>
