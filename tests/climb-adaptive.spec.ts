@@ -1,3 +1,4 @@
+import { setTheme } from "./helpers/theme";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { waypoints } from "../content/waypoints";
@@ -575,7 +576,7 @@ test("reduced-motion List View keeps canonical content and accessible reading su
     await expect(page.locator(`#${waypoint.slug}`).getByRole("link", { name: "Read case study" })).toHaveAttribute("href", `#case-${waypoint.slug}`);
   }
   for (const colorScheme of ["light", "dark"] as const) {
-    await page.emulateMedia({ colorScheme });
+    await setTheme(page, colorScheme);
     await expect(page.locator(".climb-list")).toHaveCSS("color", colorScheme === "dark" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
     await expect(page.locator(".site-header")).toHaveCSS("color", colorScheme === "dark" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
     // Linux WebKit can update the parent's color before inherited text styles.

@@ -1,3 +1,4 @@
+import { setTheme } from "./helpers/theme";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { openClimb } from "./helpers/climb";
@@ -157,12 +158,13 @@ for (const width of [390, 1440]) {
       await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
       await openClimb(page);
       await expect(page.locator("#climb")).toBeVisible();
+      await setTheme(page, "light");
       await scrollToStop(page, index);
       const card = page.locator(`[data-card="${index}"]`);
       await expect(card).toBeInViewport();
       expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
       const sky = await page.locator(".climb-sky").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"));
-      await page.emulateMedia({ colorScheme: "dark" });
+      await setTheme(page, "dark");
       await expect(card).toHaveCSS("background-color", "rgb(37, 47, 41)");
       expect(await page.locator(".climb-sky").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"))).toBe(sky);
       expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);

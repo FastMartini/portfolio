@@ -1,3 +1,4 @@
+import { setTheme } from "./helpers/theme";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
@@ -283,7 +284,7 @@ for (const width of [390, 1440]) {
     expect(box.x).toBeGreaterThanOrEqual(0);
     expect(box.x + box.width).toBeLessThanOrEqual(width);
     for (const colorScheme of ["light", "dark"] as const) {
-      await page.emulateMedia({ colorScheme });
+      await setTheme(page, colorScheme);
       expect((await new AxeBuilder({ page }).include(".climb-sound-toggle")
         .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
     }

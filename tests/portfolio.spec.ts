@@ -1,3 +1,4 @@
+import { setTheme } from "./helpers/theme";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -100,6 +101,7 @@ test("Editorial Alpine foundation uses the approved visual tokens", async ({ pag
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./#list-view");
 
+  await setTheme(page, "light");
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(243, 238, 221)");
   await expect(page.locator("#about")).toHaveCSS("background-color", "rgb(23, 63, 53)");
   await expect(page.locator("#summit")).toHaveCSS("background-color", "rgb(31, 38, 33)");

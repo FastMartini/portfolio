@@ -25,9 +25,8 @@
   font-size: 0.8rem; max-width: 15rem; padding: 0.7rem; position: fixed; left: 1rem;
   top: calc(var(--home-header-height) + 4rem); z-index: 51;
 }
-@media (prefers-color-scheme: dark) {
-  .climb-sound-toggle, .climb-sound-status { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
-}
+html:not([data-theme="light"]) .climb-sound-toggle, html:not([data-theme="light"]) .climb-sound-status { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
+
 @media (min-width: 901px) {
   /* Leave the Trail Rail's 44px targets and a gap beside the sound control. */
   .climb-sound-toggle, .climb-sound-status { left: calc(44px + 1.75rem); }
@@ -156,29 +155,27 @@
 .climb-rail button[data-waypoint] span { border-radius: 1px; transform: rotate(45deg); }
 .climb-rail button[aria-current="step"] span { background: #b5653b; border-color: #b5653b; height: 0.75rem; width: 0.75rem; }
 .climb-rail button:hover span { background: #173f35; }
-@media (prefers-color-scheme: dark) {
-  .climb-enhancement { --climb-bg: #1a211d; --climb-surface: #252f29; --climb-text: #ece6d2; --climb-muted: rgba(236,230,210,0.74); --climb-accent: #e3a983; --climb-line: rgba(236,230,210,0.15); }
-  .climb-view-toggle[data-list-mode="false"] { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
-  .climb-enhancement .button-primary { background: #e9e1cc; color: #173f35; }
-  .climb-enhancement .button-primary:hover { background: #fffbed; }
-  /* Theme the durable List View without changing its light-mode layout or
-     the fixed pine/ink bands. Case Study routes retain their own styles. */
-  .portfolio-navigation { --parchment: #1a211d; --ink: #ece6d2; --line: rgba(236,230,210,0.15); color: var(--ink); }
-  .climb-list { --parchment: #1a211d; --parchment-deep: #1e2621; --ink: #ece6d2; --copper-text: #e3a983; --line: rgba(236,230,210,0.15); background: var(--parchment); color: var(--ink); }
-  .climb-list .work { background-image: linear-gradient(to bottom, #1e2621, #212a25); }
-  .climb-list .personal-interlude { background-image: linear-gradient(to bottom, #212a25, #1a211d); }
-  .climb-list .summit, .climb-list footer { background-color: #121714; }
-  .climb-list .about { background-color: #123129; }
-  .climb-list :is(.eyebrow, .section-kicker-dark, .waypoint-meta, .technology-list li, .interlude-stamp) { color: #a9c7b5; }
-  .climb-list .technology-list li { border-color: rgba(236,230,210,0.3); }
-  .climb-list .waypoint-marker { color: #173f35; }
-  .climb-list .waypoint-marker:is(:hover, :focus-visible, [aria-current="location"]) { color: #fffbed; }
-  .climb-list .button-secondary { border-color: #a9c7b5; color: #a9c7b5; }
-  .climb-list .button-secondary:hover { color: #fffbed; }
-  .climb-list .resume-note { color: rgba(236,230,210,0.74); }
-  .climb-list :is(.string, .fret) { background: rgba(169,199,181,0.38); }
-  .climb-view-toggle[data-list-mode="true"] { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
-}
+html:not([data-theme="light"]) .climb-enhancement { --climb-bg: #1a211d; --climb-surface: #252f29; --climb-text: #ece6d2; --climb-muted: rgba(236,230,210,0.74); --climb-accent: #e3a983; --climb-line: rgba(236,230,210,0.15); }
+html:not([data-theme="light"]) .climb-view-toggle[data-list-mode="false"] { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
+html:not([data-theme="light"]) .climb-enhancement .button-primary { background: #e9e1cc; color: #173f35; }
+html:not([data-theme="light"]) .climb-enhancement .button-primary:hover { background: #fffbed; }
+/* Theme the durable List View and preserve the fixed pine/ink bands. */
+html:not([data-theme="light"]) .portfolio-navigation { --parchment: #1a211d; --ink: #ece6d2; --line: rgba(236,230,210,0.15); color: var(--ink); }
+html:not([data-theme="light"]) .climb-list { --parchment: #1a211d; --parchment-deep: #1e2621; --ink: #ece6d2; --copper-text: #e3a983; --line: rgba(236,230,210,0.15); background: var(--parchment); color: var(--ink); }
+html:not([data-theme="light"]) .climb-list .work { background-image: linear-gradient(to bottom, #1e2621, #212a25); }
+html:not([data-theme="light"]) .climb-list .personal-interlude { background-image: linear-gradient(to bottom, #212a25, #1a211d); }
+html:not([data-theme="light"]) .climb-list .summit, html:not([data-theme="light"]) .climb-list footer { background-color: #121714; }
+html:not([data-theme="light"]) .climb-list .about { background-color: #123129; }
+html:not([data-theme="light"]) .climb-list :is(.eyebrow, .section-kicker-dark, .waypoint-meta, .technology-list li, .interlude-stamp) { color: #a9c7b5; }
+html:not([data-theme="light"]) .climb-list .technology-list li { border-color: rgba(236,230,210,0.3); }
+html:not([data-theme="light"]) .climb-list .waypoint-marker { color: #173f35; }
+html:not([data-theme="light"]) .climb-list .waypoint-marker:is(:hover, :focus-visible, [aria-current="location"]) { color: #fffbed; }
+html:not([data-theme="light"]) .climb-list .button-secondary { border-color: #a9c7b5; color: #a9c7b5; }
+html:not([data-theme="light"]) .climb-list .button-secondary:hover { color: #fffbed; }
+html:not([data-theme="light"]) .climb-list .resume-note { color: rgba(236,230,210,0.74); }
+html:not([data-theme="light"]) .climb-list :is(.string, .fret) { background: rgba(169,199,181,0.38); }
+html:not([data-theme="light"]) .climb-view-toggle[data-list-mode="true"] { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
+
 @media (max-width: 900px) {
   .climb-rail { display: none; }
   .climb-card { bottom: 1rem; left: 1rem; max-height: 52svh; right: 1rem; top: auto; transform: none; width: auto; }

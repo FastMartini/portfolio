@@ -31,12 +31,12 @@ export default defineConfig({
     },
     {
       name: "firefox-adaptive",
-      testMatch: ["climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "discoverability.spec.ts"],
+      testMatch: ["climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "discoverability.spec.ts", "theme.spec.ts"],
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit-adaptive",
-      testMatch: ["climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "discoverability.spec.ts"],
+      testMatch: ["climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "discoverability.spec.ts", "theme.spec.ts"],
       use: { ...devices["Desktop Safari"] },
     },
   ],

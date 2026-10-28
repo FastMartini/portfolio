@@ -1,3 +1,4 @@
+import { setTheme } from "./helpers/theme";
 import { expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 
@@ -23,6 +24,7 @@ for (const width of [320, 390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ reducedMotion: "reduce", colorScheme });
       await openClimb(page);
+      await setTheme(page, colorScheme);
       await scrollToClimbStop(page, 0);
       const header = page.getByRole("banner");
       const navigation = page.getByRole("navigation", { name: "Primary navigation" });

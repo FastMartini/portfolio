@@ -15,12 +15,6 @@
 :global(.climb-panel) :is(.systemFlow, .surfaceGrid, .reportEvidence) { margin-top: 2rem; }
 :global(.climb-case-content) .evidenceSection { background: #1f2621; color: #fffbed; }
 :global(.climb-case-content) .surfaceGrid article { background: #fffbed; color: #1f2621; }
-@media (prefers-color-scheme: dark) {
-  :global(.climb-case-content) :is(.techList li, .resultsTable caption, .award) { color: #a9c7b5; }
-  :global(.climb-case-content) .techList li { border-color: rgba(236,230,210,0.3); }
-  :global(.climb-case-content) .outcomeSection { background: #252f29; }
-  :global(.climb-case-content) .surfaceGrid article > p { color: #8b4428; }
-}
 .caseStudy h1, .caseStudy h2, .caseStudy h3 { font-family: var(--font-newsreader), serif; font-weight: 450; letter-spacing: -0.045em; }
 .caseStudy h2 { font-size: clamp(2.8rem, 6vw, 6rem); line-height: 0.95; margin: 0; }
 .caseStudy h3 { font-size: 1.45rem; line-height: 1.2; margin: 0; }
@@ -122,6 +116,17 @@
 .caseFooter p { font-family: var(--font-newsreader), serif; font-size: clamp(1.5rem, 3vw, 2.5rem); margin: 0; }
 .caseFooter p span { color: var(--copper-text-dark); display: block; font-family: var(--font-manrope), sans-serif; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em; margin-bottom: 0.8rem; text-transform: uppercase; }
 .caseFooter > a { font-size: 0.75rem; font-weight: 800; }
+:global(html:not([data-theme="light"])) .caseStudy {
+  --parchment: #1a211d; --parchment-deep: #1e2621; --ink: #ece6d2;
+  --copper-text: #e3a983; --line: rgba(236,230,210,0.15);
+  color: var(--ink);
+}
+:global(html:not([data-theme="light"])) .caseStudy :is(.introGrid, .teamSection) { background: #123129; }
+:global(html:not([data-theme="light"])) .caseStudy :is(.evidenceSection, .caseFooter) { background: #121714; }
+:global(html:not([data-theme="light"])) .caseStudy :is(.surfaceGrid article, .outcomeSection) { background: #252f29; color: #ece6d2; }
+:global(html:not([data-theme="light"])) .caseStudy :is(.techList li, .resultsTable caption, .award) { color: #a9c7b5; }
+:global(html:not([data-theme="light"])) .caseStudy .techList li { border-color: rgba(236,230,210,0.3); }
+:global(html:not([data-theme="light"])) .caseStudy .surfaceGrid article > p { color: #e3a983; }
 @media (max-width: 900px) {
   .hero, .introGrid, .splitSection, .decisionSection, .technologySection, .teamSection, .outcomeSection, .limitationsSection, .evidenceHeading { grid-template-columns: 1fr; }
   .hero { min-height: auto; }
