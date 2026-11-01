@@ -58,7 +58,8 @@ test("the full intro exits naturally without console or hydration errors", async
   await expect(splash.locator(".splash-name-line")).toHaveText(["Diego", "Martinez"]);
   await expect(splash.locator(".splash-role")).toHaveText("Software engineer");
   await expect(splash.locator(".wordmark-mark")).toHaveCount(0);
-  await expect(splash).toBeHidden({ timeout: 5000 });
+  // Allow the five-second fallback to run after hydration on a busy renderer.
+  await expect(splash).toBeHidden({ timeout: 6000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(errors).toEqual([]);
 });
