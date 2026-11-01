@@ -4,6 +4,53 @@ import { journeyStops } from "../content/journey";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 import { settledScrollY } from "./helpers/native-scroll";
 
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  test(`Waypoint Panel content accepts pointer input at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openClimb(page);
+    await scrollToClimbStop(page, 3);
+    await page.locator('[data-marker="3"]').click();
+    const panel = page.getByRole("dialog");
+    const link = panel.getByRole("link", { name: "Read case study" });
+    await expect(link).toBeInViewport();
+    expect(await link.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+    })).toBe(true);
+    await link.click();
+    await expect(panel.locator("#panel-title")).toHaveText("Veritas · Case Study");
+    await expect(panel.getByRole("heading", { name: "The problem", exact: true })).toBeVisible();
+    await panel.getByRole("button", { name: "← Summary" }).click();
+    await expect(panel.locator("#panel-title")).toHaveText("Veritas");
+  });
+}
+
+for (const height of [568, 680, 681, 700, 844]) {
+  test(`the sound control leaves Summit clickable at 390×${height}`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openClimb(page);
+    const summit = page.locator('[data-rail="9"]');
+    const sound = page.locator(".climb-sound-toggle");
+    await expect(summit).toBeInViewport();
+    const railBox = (await summit.boundingBox())!;
+    const soundBox = (await sound.boundingBox())!;
+    expect(railBox.x + railBox.width <= soundBox.x || soundBox.x + soundBox.width <= railBox.x
+      || railBox.y + railBox.height <= soundBox.y || soundBox.y + soundBox.height <= railBox.y,
+    "Summit and sound touch targets must not overlap").toBe(true);
+    await scrollToClimbStop(page, 3);
+    await page.locator('[data-marker="3"]').click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await summit.click();
+    await expect(page.locator("#climb")).toHaveAttribute("data-stop", "9");
+    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(page.locator('[data-card="9"]')).toBeVisible();
+    await sound.click();
+    await expect(sound).toHaveAttribute("aria-pressed", "true");
+  });
+}
+
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
   for (const reducedMotion of ["reduce", "no-preference"] as const) {
     test(`Trail Rail switches open panels at ${viewport.width}px with ${reducedMotion} motion`, async ({ page }) => {
@@ -56,6 +103,10 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await expect(panel).toBeHidden();
       await next.click();
       await expect(panel).toBeHidden();
+      // Native smooth scrolling can still move the projected marker after a
+      // rail click. Let it settle before targeting that marker with the pointer.
+      await settledScrollY(page);
+      await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true");
       await page.locator('[data-marker="4"]').click();
       await expect(panel).toBeVisible();
       await rail.locator('[data-rail="9"]').click();

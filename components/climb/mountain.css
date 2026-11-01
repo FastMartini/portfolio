@@ -1,5 +1,7 @@
 .climb-mountain, .climb-mountain-art { inset: 0; position: absolute; }
-.climb-mountain { overflow: hidden; }
+/* Contain only the artwork: WebKit must paint and hit-test the fixed reading
+   panel independently of this viewport. */
+.climb-mountain { contain: paint; overflow: hidden; }
 .climb-mountain svg { left: 0; overflow: visible; position: absolute; top: 0; transform-origin: 0 0; }
 .climb-mountain svg.mtn { height: auto; max-width: none; }
 .climb-mountain svg.far { bottom: 0; height: 60%; right: 0; width: 100%; }
