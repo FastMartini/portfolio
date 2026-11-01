@@ -11,7 +11,6 @@ import { AmbientSound } from "./AmbientSound";
 import type { AmbientSoundController } from "./AmbientSound";
 import type { SnowController } from "./Snow";
 import { TrailRail } from "./TrailRail";
-import { TrailSign } from "./TrailSign";
 import type { ClimbFrame } from "./progress";
 import { useClimbProgress } from "./useClimbProgress";
 import { createWeatherRenderer } from "./weather";
@@ -62,6 +61,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   const activeClimb = useRef(false);
   const returnMarker = useRef<HTMLButtonElement | null>(null);
   const pendingFocus = useRef<HTMLButtonElement | null>(null);
+  const keyboardInteraction = useRef(true);
 
   const revealList = useCallback(() => {
     if (!activeClimb.current) return;
@@ -86,6 +86,40 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     setListMode(true);
     setEnhanced(false);
   }, [revealList]);
+
+  useEffect(() => {
+    let pointerX: number | undefined, pointerY: number | undefined;
+    const pointer = sceneTask(failScene, (event: globalThis.PointerEvent) => {
+      // Layout changes can emit stationary pointer events in WebKit. They
+      // should not turn keyboard navigation into pointer interaction.
+      const moved = event.clientX !== pointerX || event.clientY !== pointerY;
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      if (event.type === "pointermove" && !moved) return;
+      if (!keyboardInteraction.current) return;
+      keyboardInteraction.current = false;
+      const element = stage.current;
+      element?.querySelectorAll<HTMLButtonElement>("[data-marker]").forEach((marker) => {
+        const stop = Number(marker.dataset.marker);
+        const landmark = element.querySelector(`.lm[data-stop="${stop}"]`);
+        setLandmarkHot(element, stop, marker.dataset.hovered === "true" || landmark?.getAttribute("data-hovered") === "true");
+      });
+    });
+    const keyboard = sceneTask(failScene, () => {
+      keyboardInteraction.current = true;
+      const control = document.activeElement?.closest<HTMLElement>("[data-marker], .lm[data-stop]");
+      if (control && stage.current?.contains(control))
+        setLandmarkHot(stage.current, Number(control.dataset.marker ?? control.dataset.stop), true);
+    });
+    window.addEventListener("pointerdown", pointer, true);
+    window.addEventListener("pointermove", pointer, true);
+    window.addEventListener("keydown", keyboard, true);
+    return () => {
+      window.removeEventListener("pointerdown", pointer, true);
+      window.removeEventListener("pointermove", pointer, true);
+      window.removeEventListener("keydown", keyboard, true);
+    };
+  }, [failScene]);
 
   const lighten = useCallback(() => {
     currentQuality.current = "light";
@@ -294,22 +328,36 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   }
 
   function navigate(event: MouseEvent<HTMLElement>) {
-    const target = (event.target as Element).closest<HTMLElement>("[data-marker], .lm[data-stop], [data-open-stop]");
+    const target = (event.target as Element).closest<HTMLElement>("[data-marker], .lm[data-stop]");
     if (target && stage.current) {
-      const stop = Number(target.dataset.marker ?? target.dataset.stop ?? target.dataset.openStop);
+      const stop = Number(target.dataset.marker ?? target.dataset.stop);
       openWaypoint(stop);
       return;
     }
     const button = (event.target as Element).closest<HTMLButtonElement>("button[data-goto]");
     if (!button || !root.current) return;
-    goToStop(Number(button.dataset.goto));
+    const stop = Number(button.dataset.goto);
+    if (button.hasAttribute("data-rail")) {
+      button.focus({ preventScroll: true });
+      // An explicit sidebar click can switch an existing reading panel.
+      if (reading.current) {
+        if (stop >= 2 && stop <= 7) {
+          returnMarker.current = button;
+          reading.current = { stop, caseStudy: false, focus: false };
+          setSelection(reading.current);
+        } else setSelection(null);
+      }
+    }
+    goToStop(stop);
   }
 
   function goToStop(index: number) {
     if (!root.current) return;
+    pendingFocus.current = null;
     const top = root.current.getBoundingClientRect().top + window.scrollY;
     const range = root.current.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: top + index / (journeyStops.length - 1) * range, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+    const destination = top + index / (journeyStops.length - 1) * range;
+    window.scrollTo({ top: destination, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }
 
   function navigateHeader(event: MouseEvent<HTMLDivElement>) {
@@ -337,8 +385,12 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       if (marker) marker.dataset.hovered = String(hot);
       landmark?.setAttribute("data-hovered", String(hot));
     }
-    // Pointer exit must not clear either control while it owns keyboard focus.
-    setLandmarkHot(stage.current, stop, hot || marker === document.activeElement || landmark === document.activeElement);
+    // Returning focus after a pointer dismissal must not simulate a hover.
+    // Only visible keyboard focus keeps the paired controls highlighted.
+    const focused = keyboardInteraction.current && [marker, landmark].some((element) => element === document.activeElement
+      && !(event.type === "blur" && element === target));
+    const hovered = marker?.dataset.hovered === "true" || landmark?.getAttribute("data-hovered") === "true";
+    setLandmarkHot(stage.current, stop, hovered || focused);
   }
 
   function closePanel() {
@@ -375,12 +427,12 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
             {quality === "full" && <Snow ref={snow} />}
             <Markers openStop={selection?.stop ?? null} />
             </div>
-            <div className="climb-navigation" inert={selection !== null}>{cards}<TrailSign /><TrailRail /></div>
+            <div className="climb-navigation"><div inert={selection !== null} hidden={selection !== null}>{cards}</div><TrailRail /></div>
             <WaypointPanel selection={selection} summaries={summaries} cases={cases} onClose={closePanel}
               onDismissed={finishDismissal}
               onCase={(caseStudy) => {
                 if (!reading.current) return;
-                reading.current = { ...reading.current, caseStudy };
+                reading.current = { ...reading.current, caseStudy, focus: true };
                 setSelection(reading.current);
               }} />
           </div>

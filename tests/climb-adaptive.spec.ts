@@ -428,7 +428,8 @@ test("a runtime SVG failure preserves the open Case Study and focus", async ({ p
   await expect(page.locator(".climb-panel-body")).toBeFocused();
   await page.evaluate(() => {
     document.getElementById("a-climber")!.setAttribute = () => { throw new Error("Simulated SVG rendering failure"); };
-    window.dispatchEvent(new Event("resize"));
+    // Move the camera so this exercises a fresh SVG paint.
+    window.scrollBy(0, innerHeight * 0.45);
   });
   await expect(page).toHaveURL(/#case-veritas$/);
   await expect(page.locator("#case-veritas")).toBeFocused();

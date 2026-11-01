@@ -56,7 +56,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }
     const introBounds = await page.locator('[data-card="0"]').boundingBox();
     expect(photoBounds!.y).toBeGreaterThanOrEqual(72);
     expect(photoBounds!.y + photoBounds!.height).toBeLessThanOrEqual(introBounds!.y);
-    await expect(page.getByRole("button", { name: "Start the climb →" })).toBeVisible();
+    await expect(page.locator('[data-card="0"]').getByRole("link", { name: "Résumé (PDF)" })).toBeVisible();
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await page.goto("./#trailhead");
     const listPortrait = page.getByRole("img", { name: "Diego Martinez" });

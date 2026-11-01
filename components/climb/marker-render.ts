@@ -12,6 +12,7 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
   const scene = stage.querySelector<HTMLElement>(".climb-scene")!;
   const header = stage.ownerDocument.querySelector<HTMLElement>(".site-header:not(.site-header--case-study)");
   const markers = Array.from(stage.querySelectorAll<HTMLButtonElement>("[data-marker]"));
+  const markerTransforms: string[] = [];
   const landmarks = markers.map((marker) => stage.querySelector<SVGGElement>(`.lm[data-stop="${marker.dataset.marker}"]`));
   // List View deep links mount the Climb while hidden. Cache world bounds only
   // once measurable; Chromium's SVG client rectangles can go stale after camera
@@ -46,9 +47,10 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
       const x = origin.left + camera.x + anchor[0] * camera.scale - 22;
       const y = origin.top + camera.y + anchor[1] * camera.scale - 50;
       const visible = x >= left && x + 44 <= right && y >= top && y + 44 <= bottom;
-      marker.hidden = !visible;
-      marker.tabIndex = visible ? 0 : -1;
-      marker.dataset.hidden = String(!visible);
+      if (marker.hidden !== !visible) marker.hidden = !visible;
+      const tabIndex = visible ? 0 : -1;
+      if (marker.tabIndex !== tabIndex) marker.tabIndex = tabIndex;
+      if (marker.dataset.hidden !== String(!visible)) marker.dataset.hidden = String(!visible);
       // Retain the shared full-target visibility contract, and also reject
       // Landmarks whose rendered bounds fall outside the clipping rectangle.
       const landmark = landmarks[index], box = landmarkBounds[index];
@@ -57,8 +59,9 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
           && origin.left + camera.x + box.left * camera.scale < right
           && origin.top + camera.y + box.bottom * camera.scale > top
           && origin.top + camera.y + box.top * camera.scale < bottom);
-        landmark.tabIndex = landmarkVisible ? 0 : -1;
-        landmark.setAttribute("aria-hidden", String(!landmarkVisible));
+        const tabIndex = landmarkVisible ? 0 : -1;
+        if (landmark.tabIndex !== tabIndex) landmark.tabIndex = tabIndex;
+        if (landmark.getAttribute("aria-hidden") !== String(!landmarkVisible)) landmark.setAttribute("aria-hidden", String(!landmarkVisible));
       }
     });
     onVisibilityChange();
@@ -100,8 +103,10 @@ export function createMarkerRenderer(stage: HTMLElement, onVisibilityChange: () 
       const anchor = landmarkAnchors[index], stop = index + 2;
       const x = camera.x + anchor[0] * camera.scale - 22;
       const y = camera.y + anchor[1] * camera.scale - 50;
-      marker.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
-      marker.dataset.current = String(stop === nearest && Math.abs(u - nearest) < 0.3);
+      const transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+      if (markerTransforms[index] !== transform) { marker.style.transform = transform; markerTransforms[index] = transform; }
+      const current = String(stop === nearest && Math.abs(u - nearest) < 0.3);
+      if (marker.dataset.current !== current) marker.dataset.current = current;
     });
     refreshVisibility();
   }, dispose: sceneCleanup(onFailure,

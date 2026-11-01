@@ -91,6 +91,13 @@ test("Waypoint pointer clicks have no box outline and keyboard focus follows the
   const landmark = page.locator('.lm[data-stop="3"]');
   for (const target of [marker, landmark.locator('ellipse[fill="transparent"]')]) {
     const hit = await target.evaluate((element) => {
+      if (element instanceof SVGGraphicsElement) {
+        // SVG client rectangles can retain the previous camera after a filter
+        // changes. Project its local center using the live screen transform.
+        const box = element.getBBox();
+        const center = new DOMPoint(box.x + box.width / 2, box.y + box.height / 2).matrixTransform(element.getScreenCTM()!);
+        return { x: center.x, y: center.y };
+      }
       const box = element.getBoundingClientRect();
       return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
     });
@@ -111,6 +118,29 @@ test("Waypoint pointer clicks have no box outline and keyboard focus follows the
   await expect(marker.locator(".climb-marker-pin")).toHaveCSS("border-radius", "50%");
 });
 
+for (const dismissal of ["pointer", "Escape"] as const) {
+  test(`${dismissal} dismissal lets pointer movement clear the Waypoint highlight`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openClimb(page);
+    await stop(page, 2);
+    const marker = page.locator('[data-marker="2"]');
+    await marker.click();
+    if (dismissal === "Escape") await page.keyboard.press("Escape");
+    else await page.getByRole("button", { name: "Close panel" }).click();
+    await expect(marker).toBeFocused();
+    await page.mouse.move(1200, 130);
+    await expect(marker.locator(".climb-marker-label")).toHaveCSS("opacity", "0");
+    await expect(page.locator('.lm[data-stop="2"]')).not.toHaveClass(/is-hot/);
+
+    // Keyboard visitors still get the paired highlight when focus is visible.
+    await page.keyboard.press("Tab");
+    await marker.focus();
+    await expect(marker.locator(".climb-marker-label")).toHaveCSS("opacity", "1");
+    await expect(page.locator('.lm[data-stop="2"]')).toHaveClass(/is-hot/);
+  });
+}
+
 test("each marker and its Landmark open canonical Waypoint content and return focus", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);
@@ -121,6 +151,7 @@ test("each marker and its Landmark open canonical Waypoint content and return fo
     await stop(page, index);
     const marker = page.getByRole("button", { name: `Open Waypoint ${String(waypoint.order).padStart(2, "0")}: ${waypoint.name}`, exact: true });
     await expect(marker).toBeVisible();
+    await page.keyboard.press("Tab");
     await marker.focus();
     await expect(page.locator(`.lm[data-stop="${index}"]`)).toHaveClass(/is-hot/);
     await page.keyboard.press("Enter");

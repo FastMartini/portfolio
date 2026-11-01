@@ -42,7 +42,7 @@ test("altitude weather preserves morning, snowfall, white-out, and clear summit 
   expect(colorCss(weather(1).top)).toBe("rgb(43,120,204)");
 });
 
-test("all ten stops show their card or Trail Sign and update the bottom-to-top Trail Rail", async ({ page }) => {
+test("all ten stops show their card or markers and update the bottom-to-top Trail Rail", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);
   const root = page.locator("#climb");
@@ -62,8 +62,8 @@ test("all ten stops show their card or Trail Sign and update the bottom-to-top T
       await expect(page.locator(".climb-trail-sign")).toBeHidden();
     } else {
       await expect(page.locator('.climb-card[data-active="true"]')).toHaveCount(0);
-      await expect(page.locator(".climb-sign-name")).toHaveText(journeyStops[index].label);
-      await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toHaveAttribute("data-open-stop", String(index));
+      await expect(page.locator(`[data-marker="${index}"]`)).toBeVisible();
+      await expect(page.getByRole("dialog")).toBeHidden();
     }
   }
   expect(await svg!.evaluate((element) => element === document.querySelector("svg.mtn"))).toBe(true);
@@ -171,15 +171,15 @@ for (const width of [390, 1440]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
     });
   }
-  test(`every Waypoint Trail Sign and action fit at ${width}px`, async ({ page }) => {
+  test(`every Waypoint marker and Trail Rail fit at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await openClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     for (let index = 2; index <= 7; index++) {
       await scrollToStop(page, index);
-      await expect(page.locator(".climb-sign-name")).toHaveText(journeyStops[index].label);
-      await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toBeInViewport();
+      await expect(page.locator(`[data-marker="${index}"]`)).toBeInViewport();
+      await expect(page.locator(`[data-rail="${index}"]`)).toBeInViewport();
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
   });

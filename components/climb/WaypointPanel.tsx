@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { waypoints } from "../../content/waypoints";
 import { journeyStops } from "../../content/journey";
 
-export type PanelSelection = { stop: number; caseStudy: boolean };
+export type PanelSelection = { stop: number; caseStudy: boolean; focus?: boolean };
 
 export function WaypointPanel({ selection, summaries, cases, onClose, onCase, onDismissed }: {
   selection: PanelSelection | null; summaries: Record<string, ReactNode>; cases: Record<string, ReactNode>;
@@ -17,10 +17,20 @@ export function WaypointPanel({ selection, summaries, cases, onClose, onCase, on
   useEffect(() => {
     const element = dialog.current;
     if (!element) return;
-    if (open && !element.open) element.show();
+    if (open && !element.open) {
+      const active = document.activeElement;
+      element.show();
+      // Switching panels from the sidebar keeps keyboard navigation there.
+      if (selection?.focus === false && active instanceof HTMLElement) {
+        const tabIndex = active.getAttribute("tabindex");
+        if (active === document.body) active.tabIndex = -1;
+        active.focus({ preventScroll: true });
+        if (active === document.body && tabIndex === null) active.removeAttribute("tabindex");
+      }
+    }
     if (!open && element.open) element.close();
     if (!open) onDismissed();
-  }, [open, onDismissed]);
+  }, [open, selection?.focus, onDismissed]);
   useEffect(() => {
     if (!open) return;
     // Nonmodal reading keeps the header and mountain operable. Escape must
@@ -34,7 +44,10 @@ export function WaypointPanel({ selection, summaries, cases, onClose, onCase, on
   useEffect(() => {
     if (!selection) return;
     const element = body.current;
-    if (element) { element.scrollTop = 0; element.focus({ preventScroll: true }); }
+    if (element) {
+      element.scrollTop = 0;
+      if (selection.focus !== false) element.focus({ preventScroll: true });
+    }
   }, [selection]);
   const waypoint = waypoints.find((item) => item.slug === journeyStops[selection?.stop ?? 2].id) ?? waypoints[0];
   return <dialog className="climb-panel" id="waypoint-panel" ref={dialog} aria-labelledby="panel-title"

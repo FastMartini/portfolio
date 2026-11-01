@@ -1,6 +1,74 @@
-import { expect, test } from "@playwright/test";
+import { chromium, expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 import { mountainView } from "../components/climb/mountain/geometry";
+
+test("a stationary camera does not invalidate the mountain on scroll events", async ({ page }) => {
+  await openClimb(page);
+  await scrollToClimbStop(page, 3);
+  const changes = await page.evaluate(async () => {
+    let changes = 0;
+    const observer = new MutationObserver((records) => { changes += records.length; });
+    for (const selector of [".climb-vector-camera", "#a-walked", "#a-climber"])
+      observer.observe(document.querySelector(selector)!, { attributes: true });
+    for (let i = 0; i < 5; i++) {
+      window.dispatchEvent(new Event("scroll"));
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    }
+    observer.disconnect();
+    return changes;
+  });
+  expect(changes).toBe(0);
+});
+
+test("native scrolling keeps the sky painted with a constrained GPU cache", async ({ browserName, baseURL }) => {
+  test.skip(browserName !== "chromium", "GPU cache controls are Chromium-specific");
+  const browser = await chromium.launch({
+    channel: process.env.SCROLL_BROWSER_CHANNEL || undefined,
+    args: ["--force-gpu-mem-available-mb=128"],
+  });
+  try {
+    const page = await browser.newPage({ baseURL, viewport: { width: 1512, height: 850 }, deviceScaleFactor: 2, colorScheme: "dark" });
+    await openClimb(page);
+    await page.locator(".splash").waitFor({ state: "hidden" });
+    await scrollToClimbStop(page, 4);
+    const session = await page.context().newCDPSession(page);
+    const frames: string[] = [];
+    session.on("Page.screencastFrame", (event) => {
+      frames.push(event.data);
+      void session.send("Page.screencastFrameAck", { sessionId: event.sessionId }).catch(() => {});
+    });
+    await session.send("Page.startScreencast", { format: "jpeg", quality: 60, maxWidth: 500, maxHeight: 400, everyNthFrame: 1 });
+    await page.mouse.move(1250, 700);
+    for (const direction of [-1, 1]) {
+      for (let i = 0; i < 10; i++) {
+        await page.mouse.wheel(0, direction * 140);
+        await page.waitForTimeout(35);
+      }
+    }
+    await session.send("Page.stopScreencast");
+    await expect(page.locator("#climb")).toBeVisible();
+    expect(frames.length).toBeGreaterThan(5);
+    // Inspect the captured pixels, rather than DOM visibility: the lost GPU
+    // tiles in the recording still had visible elements and valid geometry.
+    const missing = await page.evaluate(async (frames) => {
+      const canvas = new OffscreenCanvas(8, 8);
+      const context = canvas.getContext("2d", { willReadFrequently: true })!;
+      let missing = 0;
+      for (const frame of frames) {
+        const image = new Image();
+        image.src = `data:image/jpeg;base64,${frame}`;
+        await image.decode();
+        context.drawImage(image, 30, 75, 8, 8, 0, 0, 8, 8);
+        const pixels = context.getImageData(0, 0, 8, 8).data;
+        let brightness = 0;
+        for (let i = 0; i < pixels.length; i += 4) brightness += pixels[i] + pixels[i + 1] + pixels[i + 2];
+        if (brightness / (64 * 3) < 60) missing++;
+      }
+      return missing;
+    }, frames);
+    expect(missing, "the sky must not expose the dark page backing during scrolling").toBe(0);
+  } finally { await browser.close(); }
+});
 
 for (const samplingDelay of [0, 900]) {
   test(`scrolling keeps sharp artwork and running animations with ${samplingDelay ? "sparse" : "native"} frame samples`, async ({ page }) => {
