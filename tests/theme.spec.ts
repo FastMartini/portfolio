@@ -51,6 +51,35 @@ test("unavailable storage leaves the toggle usable for the current visit", async
   await expect(page.getByRole("banner")).toHaveCSS("color", "rgb(236, 230, 210)");
 });
 
+for (const storage of ["blocked", "read-only"] as const) {
+  test(`the current theme survives Case Study navigation with ${storage} storage`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addInitScript((storage) => {
+      localStorage.setItem("portfolio-theme", "dark");
+      if (storage === "blocked") {
+        Storage.prototype.getItem = () => { throw new Error("Storage blocked"); };
+      }
+      Storage.prototype.setItem = () => { throw new Error("Storage cannot save"); };
+    }, storage);
+    await page.goto("./work/veritas/");
+    await setTheme(page, "light");
+    await page.evaluate(() => Object.defineProperty(window, "__themeVisit", { value: true }));
+    await page.getByRole("link", { name: "Return to the Veritas Waypoint" }).click();
+    await expect(page).toHaveURL(/\/#veritas$/);
+    expect(await page.evaluate(() => Object.hasOwn(window, "__themeVisit"))).toBe(true);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(page.getByRole("button", { name: "Dark mode", exact: true })).toHaveAttribute("aria-pressed", "false");
+    await page.goBack();
+    await expect(page).toHaveURL(/\/work\/veritas\/$/);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await page.evaluate(() => Object.hasOwn(window, "__themeVisit"))).toBe(true);
+    await setTheme(page, "dark");
+    await page.goForward();
+    await expect(page).toHaveURL(/\/#veritas$/);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  });
+}
+
 test("invalid saved values fall back to dark", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("portfolio-theme", "invalid"));
   await page.goto("./#list-view");
@@ -70,7 +99,7 @@ test("the selected theme stays synchronized between open tabs", async ({ page, c
 });
 
 for (const width of [320, 390, 1440]) {
-  test(`theme controls fit the shared header and preserve the journey at ${width}px`, async ({ page }, testInfo) => {
+  test(`theme controls fit the shared header at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("./#list-view");
@@ -91,6 +120,13 @@ for (const width of [320, 390, 1440]) {
       expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
       if (width !== 320) await page.screenshot({ path: testInfo.outputPath(`list-${theme}-${width}.png`) });
     }
+  });
+
+  test(`theme changes preserve the journey and open Waypoint Panel at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("./#list-view");
+    await setTheme(page, "light");
     await page.getByRole("button", { name: "Climb view", exact: true }).click();
     await scrollToClimbStop(page, 3);
     await page.locator('[data-marker="3"]').click();

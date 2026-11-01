@@ -33,8 +33,10 @@ export function ThemeToggle() {
     () => document.documentElement.dataset.theme === "light" ? "light" : "dark",
     () => "dark");
 
-  // React's development remount can reset attributes applied by the head script.
+  // Restore the head script's preference after hydration once per document.
+  // Later mounts must keep the current choice even when storage cannot save it.
   useLayoutEffect(() => {
+    if (document.documentElement.dataset.themeReady !== undefined) return;
     applyTheme(savedTheme());
     document.documentElement.dataset.themeReady = "";
   }, []);
