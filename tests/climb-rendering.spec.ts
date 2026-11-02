@@ -1,6 +1,72 @@
-import { expect, test } from "@playwright/test";
+import { chromium, expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 import { mountainView } from "../components/climb/mountain/geometry";
+
+test("native scroll reversals keep the scene painted with a constrained GPU cache", async ({ browserName, baseURL }) => {
+  test.skip(browserName !== "chromium", "GPU cache controls and screencasting require Chromium");
+  test.setTimeout(45_000);
+  const browser = await chromium.launch({
+    channel: process.env.SCROLL_BROWSER_CHANNEL || undefined,
+    args: ["--force-gpu-mem-available-mb=128"],
+  });
+  try {
+    const page = await browser.newPage({ baseURL, viewport: { width: 1512, height: 850 }, deviceScaleFactor: 2 });
+    await openClimb(page);
+    await page.locator(".splash").waitFor({ state: "hidden" });
+    // This color exists only behind the opaque scene. It catches missing paint
+    // independently of the site's theme, unlike checking for a dark background.
+    const backing = [253, 3, 217];
+    await page.addStyleTag({ content: `html, body { background: rgb(${backing.join(",")}) !important; }` });
+    await scrollToClimbStop(page, 3);
+    const session = await page.context().newCDPSession(page);
+    const frames: string[] = [];
+    session.on("Page.screencastFrame", (event) => {
+      frames.push(event.data);
+      void session.send("Page.screencastFrameAck", { sessionId: event.sessionId }).catch(() => {});
+    });
+    await session.send("Page.startScreencast", { format: "jpeg", quality: 85, maxWidth: 1000, maxHeight: 650, everyNthFrame: 1 });
+    await page.mouse.move(1250, 700);
+    for (let cycle = 0; cycle < 4; cycle++) {
+      for (const direction of [1, -1]) {
+        for (let i = 0; i < 16; i++) {
+          await page.mouse.wheel(0, direction * 180);
+          await page.waitForTimeout(25);
+        }
+      }
+    }
+    await session.send("Page.stopScreencast");
+    expect(frames.length).toBeGreaterThan(50);
+    // DOM visibility and settled screenshots cannot detect transient lost tiles.
+    const missing = await page.evaluate(async ({ frames, backing }) => {
+      const canvas = new OffscreenCanvas(1, 1);
+      const context = canvas.getContext("2d", { willReadFrequently: true })!;
+      const [red, green, blue] = backing;
+      let missing = 0;
+      for (const frame of frames) {
+        const image = new Image();
+        image.src = `data:image/jpeg;base64,${frame}`;
+        await image.decode();
+        canvas.width = image.width; canvas.height = image.height;
+        context.drawImage(image, 0, 0);
+        const pixels = context.getImageData(0, 0, image.width, image.height).data;
+        let blank = false;
+        for (let y = 80; y < image.height - 32 && !blank; y += 32) {
+          for (let x = 0; x < image.width - 32 && !blank; x += 32) {
+            let exposed = 0;
+            for (let dy = 0; dy < 32; dy++) for (let dx = 0; dx < 32; dx++) {
+              const p = ((y + dy) * image.width + x + dx) * 4;
+              if (Math.abs(pixels[p] - red) < 8 && Math.abs(pixels[p + 1] - green) < 8 && Math.abs(pixels[p + 2] - blue) < 8) exposed++;
+            }
+            blank = exposed > 980;
+          }
+        }
+        if (blank) missing++;
+      }
+      return missing;
+    }, { frames, backing });
+    expect(missing, "no captured frame should expose the page backing through the scene").toBe(0);
+  } finally { await browser.close(); }
+});
 
 for (const samplingDelay of [0, 900]) {
   test(`scrolling keeps sharp artwork and running animations with ${samplingDelay ? "sparse" : "native"} frame samples`, async ({ page }) => {
