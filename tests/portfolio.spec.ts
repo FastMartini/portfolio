@@ -74,9 +74,15 @@ test("portfolio remains complete without client-side JavaScript", async ({
   await expect(page.getByRole("heading", { name: "Beyond the build." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Let's build what comes next." })).toBeVisible();
 
-  const resumeStatus = page.getByText("Résumé — coming soon", { exact: true });
-  await expect(resumeStatus).toBeVisible();
-  await expect(page.getByRole("link", { name: /résumé/i })).toHaveCount(0);
+  const resume = page.getByRole("link", { name: "View résumé (PDF, opens in a new tab)" });
+  await expect(resume).toBeVisible();
+  await expect(resume).toHaveAttribute("href", /\/resume\/Martinez_Diego_2026\.pdf$/);
+  await expect(resume).toHaveAttribute("target", "_blank");
+  await expect(resume).toHaveAttribute("rel", "noopener noreferrer");
+  const resumeResponse = await page.request.get(await resume.getAttribute("href") ?? "");
+  expect(resumeResponse.status()).toBe(200);
+  expect(resumeResponse.headers()["content-type"]).toBe("application/pdf");
+  expect((await resumeResponse.body()).subarray(0, 5).toString()).toBe("%PDF-");
   await expect(page.getByRole("button", { name: /résumé/i })).toHaveCount(0);
   await expect(page.locator("form, audio")).toHaveCount(0);
 
