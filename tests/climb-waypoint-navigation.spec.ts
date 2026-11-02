@@ -54,6 +54,9 @@ for (const height of [568, 680, 681, 700, 844]) {
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
   for (const reducedMotion of ["reduce", "no-preference"] as const) {
     test(`Trail Rail switches open panels at ${viewport.width}px with ${reducedMotion} motion`, async ({ page }) => {
+      // Multiple smooth journeys, an accessibility audit, and closing/reopening
+      // need a combined budget on WebKit's software painter in CI.
+      test.setTimeout(60_000);
       await page.setViewportSize(viewport);
       await page.emulateMedia({ reducedMotion });
       await openClimb(page);
@@ -118,20 +121,33 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   }
 }
 
-test("native wheel scrolling stays free and never opens a panel", async ({ page }) => {
+test("native wheel scrolling stays free and never opens a panel", async ({ page, context }) => {
+  const movements = [[800, 2], [800, 3], [-800, 2]] as const;
+  // Browser wheel physics need not map an input delta to the same pixel count.
+  // Compare with this browser's native scrolling on an equally tall empty page.
+  const reference = await context.newPage();
+  const expected: number[] = [];
+  try {
+    await reference.setViewportSize({ width: 1440, height: 900 });
+    await reference.setContent('<!doctype html><style>body{margin:0}main{height:1000vh}</style><main></main>');
+    await reference.evaluate(() => scrollTo(0, 900));
+    await reference.mouse.move(700, 650);
+    for (const [delta] of movements) {
+      await reference.mouse.wheel(0, delta);
+      expected.push(await settledScrollY(reference));
+    }
+  } finally { await reference.close(); }
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await openClimb(page);
   const url = page.url();
   await scrollToClimbStop(page, 1);
   await page.mouse.move(700, 650);
-  let expectedY = 900;
-  for (const [delta, stop] of [[800, 2], [800, 3], [-800, 2]] as const) {
+  for (const [index, [delta, stop]] of movements.entries()) {
     await page.mouse.wheel(0, delta);
     await expect(page.locator("#climb")).toHaveAttribute("data-stop", String(stop));
     const y = await settledScrollY(page);
-    expectedY += delta;
-    expect(y).toBeCloseTo(expectedY, 0);
+    expect(y).toBeCloseTo(expected[index], 0);
     await expect(page.getByRole("dialog")).toBeHidden();
   }
   expect(page.url()).toBe(url);
