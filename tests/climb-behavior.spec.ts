@@ -41,7 +41,7 @@ test("altitude weather preserves morning, snowfall, white-out, and clear summit 
   expect(colorCss(weather(1).top)).toBe("rgb(43,120,204)");
 });
 
-test("all ten stops show their card or Trail Sign and update the bottom-to-top Trail Rail", async ({ page }) => {
+test("all ten stops show their card or Waypoint marker and update the bottom-to-top Trail Rail without corner boxes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);
   const root = page.locator("#climb");
@@ -53,16 +53,16 @@ test("all ten stops show their card or Trail Sign and update the bottom-to-top T
   const svg = await page.locator("svg.mtn").elementHandle();
   for (let index = 0; index < 10; index++) {
     await scrollToStop(page, index);
+    await expect(page.locator(".climb-trail-sign")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toHaveCount(0);
     await expect(rail.locator('[aria-current="step"]')).toHaveAttribute("data-rail", String(index));
     expect(Number(await root.getAttribute("data-position"))).toBeCloseTo(journeyStops[index].trailPosition, 4);
     if ([0, 1, 8, 9].includes(index)) {
       await expect(page.locator(`[data-card="${index}"]`)).toBeVisible();
       await expect(page.locator('.climb-card[data-active="true"]')).toHaveCount(1);
-      await expect(page.locator(".climb-trail-sign")).toBeHidden();
     } else {
       await expect(page.locator('.climb-card[data-active="true"]')).toHaveCount(0);
-      await expect(page.locator(".climb-sign-name")).toHaveText(journeyStops[index].label);
-      await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toHaveAttribute("data-open-stop", String(index));
+      await expect(page.locator(`[data-marker="${index}"]`)).toBeInViewport();
     }
   }
   expect(await svg!.evaluate((element) => element === document.querySelector("svg.mtn"))).toBe(true);
@@ -169,15 +169,20 @@ for (const width of [390, 1440]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
     });
   }
-  test(`every Waypoint Trail Sign and action fit at ${width}px`, async ({ page }) => {
+  test(`every Waypoint opens from its marker without a corner box at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await openClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     for (let index = 2; index <= 7; index++) {
       await scrollToStop(page, index);
-      await expect(page.locator(".climb-sign-name")).toHaveText(journeyStops[index].label);
-      await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toBeInViewport();
+      await expect(page.locator(".climb-trail-sign")).toHaveCount(0);
+      const marker = page.locator(`[data-marker="${index}"]`);
+      await expect(marker).toBeInViewport();
+      await marker.click();
+      await expect(page.locator("#waypoint-panel")).toBeVisible();
+      await page.getByRole("button", { name: "Close panel" }).click();
+      await expect(page.locator("#waypoint-panel")).toBeHidden();
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
   });

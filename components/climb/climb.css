@@ -3,7 +3,7 @@
   --climb-muted: rgba(31,38,33,0.74); --climb-accent: #8b4428; --climb-line: rgba(31,38,33,0.18);
   color: var(--climb-text);
 }
-.climb-list[hidden], .climb-enhancement[hidden], .climb-view-toggle[hidden], .climb-sign-open[hidden] { display: none !important; }
+.climb-list[hidden], .climb-enhancement[hidden], .climb-view-toggle[hidden] { display: none !important; }
 .climb-view-toggle {
   background: var(--cream); border: 1px solid var(--line); border-radius: 999px; color: var(--ink);
   cursor: pointer; font: inherit; font-size: 0.82rem; font-weight: 700; min-height: 44px;
@@ -39,7 +39,7 @@
 .climb { height: 1000vh; position: relative; }
 .climb-scene { inset: 0; position: absolute; transition: transform 500ms cubic-bezier(.2,.7,.2,1); }
 .climb-navigation { inset: 0; pointer-events: none; position: absolute; }
-.climb-navigation :is(.climb-trail-sign, .climb-rail) { pointer-events: auto; }
+.climb-navigation .climb-rail { pointer-events: auto; }
 .climb-navigation[inert] { visibility: hidden; }
 .climb-markers { inset: 0; pointer-events: none; position: absolute; }
 .climb-marker {
@@ -138,15 +138,6 @@
 .climb-card-contact a { border-bottom: 1px solid var(--climb-line); display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; justify-content: space-between; padding: 0.8rem 0; text-decoration: none; }
 .climb-card-contact span { font-family: var(--font-newsreader), serif; font-size: 1.3rem; }
 .climb-card-contact small { color: var(--climb-muted); font-size: 0.85rem; }
-.climb-trail-sign {
-  background: var(--climb-surface); border: 1px solid var(--climb-line); bottom: 1.5rem; left: clamp(4.5rem, 6vw, 6rem);
-  max-width: 22rem; padding: 0.9rem 1.1rem; position: absolute;
-}
-.climb-trail-sign[data-hidden="true"] { visibility: hidden; pointer-events: none; }
-.climb-trail-sign p { margin: 0; }
-.climb-sign-place { color: var(--climb-accent); font-size: 0.8rem; font-weight: 700; }
-.climb-sign-name { font-family: var(--font-newsreader), serif; font-size: 1.25rem; line-height: 1.25; margin-top: 0.15rem !important; }
-.climb-trail-sign .button { margin-top: 0.75rem; }
 .climb-rail { left: 0.75rem; position: absolute; top: 50%; transform: translateY(-50%); }
 .climb-rail ol { display: grid; list-style: none; margin: 0; padding: 0; }
 .climb-rail li { position: relative; }
@@ -183,9 +174,6 @@
   .climb-rail { display: none; }
   .climb-card { bottom: 1rem; left: 1rem; max-height: 52svh; right: 1rem; top: auto; transform: none; width: auto; }
   .climb-portrait { left: 50%; right: auto; top: calc(var(--home-header-height) + 0.75rem); transform: translateX(-50%); width: min(12rem, calc(33svh - 6rem)); }
-  .climb-trail-sign { align-items: center; bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; left: 1rem; max-width: none; right: 1rem; }
-  .climb-trail-sign > div { flex: 1; }
-  .climb-trail-sign .button { margin-top: 0; }
 }
 @media (max-width: 560px) {
   .climb-view-toggle { right: 1rem; }
