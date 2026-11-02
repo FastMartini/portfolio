@@ -18,6 +18,24 @@ Sustained slow rendering first removes decoration, then falls back to List View:
 
 ## Development
 
+Active files are organized by responsibility:
+
+```text
+app/          Routes, layouts, Case Study MDX, and shared styles
+components/   Portfolio UI, illustrated Climb, and splash
+content/      Waypoints, journey stops, contact links, and metadata
+public/       Served assets: responsive portraits, resume, social cards, evidence
+tests/        Acceptance tests, helpers, fixtures, and visual baselines
+scripts/      Export server, social image generation, and scroll measurement
+docs/         Architecture decisions, agent conventions, and active design references
+deprecated/   Archived duplicates and original assets; see deprecated/README.md
+```
+
+The original portrait and duplicate handoff packages live in
+[`deprecated/`](deprecated/README.md). Files needed by runtime code, tests, or
+development tools remain in their active directories. Local recovery bundles,
+duplicate editor files, and archived generated output stay untracked there.
+
 Use Node.js 22 or newer.
 
 ```bash
