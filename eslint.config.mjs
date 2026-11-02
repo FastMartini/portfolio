@@ -6,5 +6,5 @@ export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
   // The handoff's browser prototype is design evidence, not application code.
-  globalIgnores([".next/**", "out/**", "playwright-report/**", "test-results/**", "docs/handoff/**"]),
+  globalIgnores([".next/**", "out/**", "playwright-report/**", "test-results/**", "docs/handoff/**", "deprecated/**"]),
 ]);

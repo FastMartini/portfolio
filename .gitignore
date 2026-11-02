@@ -12,3 +12,7 @@
 # local files
 .DS_Store
 *.tsbuildinfo
+
+# Archived local backups and generated output
+/deprecated/local/
+/deprecated/generated/
