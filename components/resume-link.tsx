@@ -9,7 +9,7 @@ export function ResumeLink({ className = "button button-primary" }: { className?
       rel="noopener noreferrer"
       aria-label="View résumé (PDF, opens in a new tab)"
     >
-      Résumé (PDF) <span aria-hidden="true">↗</span>
+      Resume <span aria-hidden="true">↗</span>
     </a>
   );
 }
