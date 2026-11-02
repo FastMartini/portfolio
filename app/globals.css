@@ -83,6 +83,7 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
   fill: none; height: 1.15rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; width: 1.15rem;
 }
 .button-primary { background: var(--pine); color: var(--cream); transition: background 180ms ease, transform 180ms ease; }
+.button.resume-link { justify-content: center; padding-inline: 1.4rem; text-align: center; }
 .button-primary:hover { background: var(--pine-light); transform: translateY(-2px); }
 .button-secondary { border: 1px solid var(--pine); color: var(--pine); transition: background 180ms ease, color 180ms ease, transform 180ms ease; }
 .button-secondary:hover { background: var(--pine); color: var(--cream); transform: translateY(-2px); }

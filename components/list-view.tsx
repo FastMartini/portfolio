@@ -6,6 +6,7 @@ import { waypoints } from "../content/waypoints";
 import { TrailheadPhoto } from "./trailhead-photo";
 import { contactLinks } from "../content/contact";
 import { PortfolioLink } from "./portfolio-link";
+import { ResumeLink } from "./resume-link";
 
 function ArrowIcon() {
   return (
@@ -64,7 +65,7 @@ export function ListView() {
             <a className="button button-secondary" href="#summit">
               Contact me
             </a>
-            <span className="resume-note">Résumé — coming soon</span>
+            <ResumeLink className="resume-note" />
           </div>
         </div>
 

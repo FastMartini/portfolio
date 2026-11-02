@@ -1,6 +1,7 @@
 import { TrailheadPhoto } from "../trailhead-photo";
 import { contactLinks } from "../../content/contact";
 import { PortfolioLink } from "../portfolio-link";
+import { ResumeLink } from "../resume-link";
 
 export function StopCards() {
   return (
@@ -11,10 +12,9 @@ export function StopCards() {
         <p>From research and systems to polished user experiences, I follow ideas all the way from first question to thoughtful product.</p>
         <p className="climb-card-hint">Scroll to start climbing. Each Waypoint on the trail is a project you can open.</p>
         <div className="climb-card-actions">
-          <button className="button button-primary" type="button" data-goto="2">Start the climb →</button>
+          <ResumeLink />
           <button className="button button-secondary" type="button" data-goto="9">Contact me</button>
         </div>
-        <span className="resume-note">Résumé — coming soon</span>
       </article>
       <figure className="climb-portrait" data-photo-stop="0" inert aria-hidden="true">
         <TrailheadPhoto climb />

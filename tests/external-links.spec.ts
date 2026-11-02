@@ -19,16 +19,16 @@ test("external links preserve the portfolio in its tab without JavaScript", asyn
 });
 
 for (const destination of ["./#list-view", "./work/momentumx/", "./work/veritas/", "./work/membership-inference-attack/"]) {
-  test(`public source and profile links open safely in new tabs: ${destination}`, async ({ page }) => {
+  test(`public source, profile, and PDF links open safely in new tabs: ${destination}`, async ({ page }) => {
     await page.goto(destination);
-    const links = await page.locator('a[href^="https://"], a[href^="http://"]').evaluateAll((links) =>
+    const links = await page.locator('a[href^="https://"], a[href^="http://"], a[href$=".pdf"]').evaluateAll((links) =>
       links.map((link) => ({ href: link.getAttribute("href"), target: link.getAttribute("target"), rel: link.getAttribute("rel") })));
     expect(links.length).toBeGreaterThan(0);
     for (const link of links) {
       expect(link.target, link.href ?? "external link").toBe("_blank");
       expect(link.rel?.split(/\s+/)).toEqual(expect.arrayContaining(["noopener", "noreferrer"]));
     }
-    const internal = await page.locator('a[href^="#"], a[href^="/portfolio/"], a[href^="mailto:"]').evaluateAll((links) => links.map((link) => link.getAttribute("target")));
+    const internal = await page.locator('a[href^="#"], a[href^="/portfolio/"]:not([href$=".pdf"]), a[href^="mailto:"]').evaluateAll((links) => links.map((link) => link.getAttribute("target")));
     expect(internal.length).toBeGreaterThan(0);
     expect(internal).not.toContain("_blank");
   });
