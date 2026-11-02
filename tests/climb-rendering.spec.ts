@@ -20,8 +20,9 @@ test("a stationary camera does not invalidate the mountain on scroll events", as
   expect(changes).toBe(0);
 });
 
-test("native scrolling keeps the sky painted with a constrained GPU cache", async ({ browserName, baseURL }) => {
+test("repeated native scrolling keeps every scene tile painted with a constrained GPU cache", async ({ browserName, baseURL }) => {
   test.skip(browserName !== "chromium", "GPU cache controls are Chromium-specific");
+  test.setTimeout(45_000);
   const browser = await chromium.launch({
     channel: process.env.SCROLL_BROWSER_CHANNEL || undefined,
     args: ["--force-gpu-mem-available-mb=128"],
@@ -30,43 +31,57 @@ test("native scrolling keeps the sky painted with a constrained GPU cache", asyn
     const page = await browser.newPage({ baseURL, viewport: { width: 1512, height: 850 }, deviceScaleFactor: 2, colorScheme: "dark" });
     await openClimb(page);
     await page.locator(".splash").waitFor({ state: "hidden" });
-    await scrollToClimbStop(page, 4);
+    await scrollToClimbStop(page, 3);
     const session = await page.context().newCDPSession(page);
     const frames: string[] = [];
     session.on("Page.screencastFrame", (event) => {
       frames.push(event.data);
       void session.send("Page.screencastFrameAck", { sessionId: event.sessionId }).catch(() => {});
     });
-    await session.send("Page.startScreencast", { format: "jpeg", quality: 60, maxWidth: 500, maxHeight: 400, everyNthFrame: 1 });
+    await session.send("Page.startScreencast", { format: "jpeg", quality: 85, maxWidth: 1000, maxHeight: 650, everyNthFrame: 1 });
     await page.mouse.move(1250, 700);
-    for (const direction of [-1, 1]) {
-      for (let i = 0; i < 10; i++) {
-        await page.mouse.wheel(0, direction * 140);
-        await page.waitForTimeout(35);
+    for (let cycle = 0; cycle < 4; cycle++) {
+      for (const direction of [1, -1]) {
+        for (let i = 0; i < 16; i++) {
+          await page.mouse.wheel(0, direction * 180);
+          await page.waitForTimeout(25);
+        }
       }
     }
     await session.send("Page.stopScreencast");
     await expect(page.locator("#climb")).toBeVisible();
-    expect(frames.length).toBeGreaterThan(5);
+    expect(frames.length).toBeGreaterThan(50);
     // Inspect the captured pixels, rather than DOM visibility: the lost GPU
     // tiles in the recording still had visible elements and valid geometry.
     const missing = await page.evaluate(async (frames) => {
-      const canvas = new OffscreenCanvas(8, 8);
+      const canvas = new OffscreenCanvas(1, 1);
       const context = canvas.getContext("2d", { willReadFrequently: true })!;
       let missing = 0;
       for (const frame of frames) {
         const image = new Image();
         image.src = `data:image/jpeg;base64,${frame}`;
         await image.decode();
-        context.drawImage(image, 30, 75, 8, 8, 0, 0, 8, 8);
-        const pixels = context.getImageData(0, 0, 8, 8).data;
-        let brightness = 0;
-        for (let i = 0; i < pixels.length; i += 4) brightness += pixels[i] + pixels[i + 1] + pixels[i + 2];
-        if (brightness / (64 * 3) < 60) missing++;
+        canvas.width = image.width; canvas.height = image.height;
+        context.drawImage(image, 0, 0);
+        const pixels = context.getImageData(0, 0, image.width, image.height).data;
+        let blank = false;
+        // Check the whole illustrated viewport, below the header/sound control.
+        // The opaque sky should always cover the dark page backing (#1a211d).
+        for (let y = 80; y < image.height - 32 && !blank; y += 32) {
+          for (let x = 0; x < image.width - 32 && !blank; x += 32) {
+            let backing = 0;
+            for (let dy = 0; dy < 32; dy++) for (let dx = 0; dx < 32; dx++) {
+              const p = ((y + dy) * image.width + x + dx) * 4;
+              if (Math.abs(pixels[p] - 26) < 6 && Math.abs(pixels[p + 1] - 33) < 6 && Math.abs(pixels[p + 2] - 29) < 6) backing++;
+            }
+            blank = backing > 980;
+          }
+        }
+        if (blank) missing++;
       }
       return missing;
     }, frames);
-    expect(missing, "the sky must not expose the dark page backing during scrolling").toBe(0);
+    expect(missing, "no part of the scene should expose blank page tiles during repeated scrolling").toBe(0);
   } finally { await browser.close(); }
 });
 
