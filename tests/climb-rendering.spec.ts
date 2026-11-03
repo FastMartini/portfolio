@@ -2,22 +2,34 @@ import { chromium, expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 import { mountainView } from "../components/climb/mountain/geometry";
 
-test("native scroll reversals keep the scene painted with a constrained GPU cache", async ({ browserName, baseURL }) => {
+test("native scrolling across the whole route keeps the scene painted with a constrained GPU cache", async ({ browserName, baseURL }) => {
   test.skip(browserName !== "chromium", "GPU cache controls and screencasting require Chromium");
   test.setTimeout(45_000);
+  const headed = process.env.SCROLL_BROWSER_HEADED === "1";
   const browser = await chromium.launch({
+    headless: !headed,
     channel: process.env.SCROLL_BROWSER_CHANNEL || undefined,
     args: ["--force-gpu-mem-available-mb=128"],
   });
   try {
-    const page = await browser.newPage({ baseURL, viewport: { width: 1512, height: 850 }, deviceScaleFactor: 2 });
+    // Visible-window checks use the physical content area; an emulated viewport
+    // larger than the window would include pixels Chrome is not displaying.
+    const page = await browser.newPage(headed
+      ? { baseURL, viewport: null, deviceScaleFactor: undefined }
+      : { baseURL, viewport: { width: 1512, height: 850 }, deviceScaleFactor: 2 });
     await openClimb(page);
     await page.locator(".splash").waitFor({ state: "hidden" });
     // This color exists only behind the opaque scene. It catches missing paint
     // independently of the site's theme, unlike checking for a dark background.
     const backing = [253, 3, 217];
     await page.addStyleTag({ content: `html, body { background: rgb(${backing.join(",")}) !important; }` });
-    await scrollToClimbStop(page, 3);
+    await page.locator("#climb").evaluate(() => window.scrollTo(0, 100));
+    await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
+    // One complete forward/backward pass reproduces the upper-route failure,
+    // while leaving enough time for pixel analysis on the Linux software GPU.
+    const travel = await page.locator("#climb").evaluate((root: HTMLElement) => root.offsetHeight - innerHeight - 200);
+    const steps = Math.ceil(travel / 500);
+    await page.waitForTimeout(1500);
     const session = await page.context().newCDPSession(page);
     const frames: string[] = [];
     session.on("Page.screencastFrame", (event) => {
@@ -25,13 +37,12 @@ test("native scroll reversals keep the scene painted with a constrained GPU cach
       void session.send("Page.screencastFrameAck", { sessionId: event.sessionId }).catch(() => {});
     });
     await session.send("Page.startScreencast", { format: "jpeg", quality: 85, maxWidth: 1000, maxHeight: 650, everyNthFrame: 1 });
-    await page.mouse.move(1250, 700);
-    for (let cycle = 0; cycle < 4; cycle++) {
-      for (const direction of [1, -1]) {
-        for (let i = 0; i < 16; i++) {
-          await page.mouse.wheel(0, direction * 180);
-          await page.waitForTimeout(25);
-        }
+    const pointer = await page.evaluate(() => ({ x: innerWidth * 0.75, y: innerHeight * 0.75 }));
+    await page.mouse.move(pointer.x, pointer.y);
+    for (const direction of [1, -1]) {
+      for (let i = 0; i < steps; i++) {
+        await page.mouse.wheel(0, direction * travel / steps);
+        await page.waitForTimeout(25);
       }
     }
     await session.send("Page.stopScreencast");
