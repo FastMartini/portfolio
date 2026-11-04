@@ -2,9 +2,9 @@ import { chromium, expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 import { mountainView } from "../components/climb/mountain/geometry";
 
-test("native scrolling across the whole route keeps the scene painted with a constrained GPU cache", async ({ browserName, baseURL }) => {
+test("native scrolling across the whole route keeps the scene painted with a constrained GPU cache", async ({ browserName, baseURL }, testInfo) => {
   test.skip(browserName !== "chromium", "GPU cache controls and screencasting require Chromium");
-  test.setTimeout(45_000);
+  test.setTimeout(90_000);
   const headed = process.env.SCROLL_BROWSER_HEADED === "1";
   const browser = await chromium.launch({
     headless: !headed,
@@ -37,6 +37,17 @@ test("native scrolling across the whole route keeps the scene painted with a con
       void session.send("Page.screencastFrameAck", { sessionId: event.sessionId }).catch(() => {});
     });
     await session.send("Page.startScreencast", { format: "jpeg", quality: 85, maxWidth: 1000, maxHeight: 650, everyNthFrame: 1 });
+    const root = page.locator("#climb");
+    const endpoints: { position: string; settled: string }[] = [];
+    async function captureEndpoint(position: string) {
+      await expect(root).toHaveAttribute("data-position", position, { timeout: 15000 });
+      await expect(root).toHaveAttribute("data-settled", "true", { timeout: 15000 });
+      endpoints.push(await root.evaluate((element) => ({ position: element.dataset.position!, settled: element.dataset.settled! })));
+      // An idle compositor need not deliver another screencast event. Capture
+      // the settled endpoint explicitly while the screencast is still active.
+      frames.push((await session.send("Page.captureScreenshot", { format: "jpeg", quality: 85 })).data);
+    }
+    await captureEndpoint("0.0000");
     const pointer = await page.evaluate(() => ({ x: innerWidth * 0.75, y: innerHeight * 0.75 }));
     await page.mouse.move(pointer.x, pointer.y);
     for (const direction of [1, -1]) {
@@ -44,8 +55,14 @@ test("native scrolling across the whole route keeps the scene painted with a con
         await page.mouse.wheel(0, direction * travel / steps);
         await page.waitForTimeout(25);
       }
+      await captureEndpoint(direction === 1 ? "1.0000" : "0.0000");
     }
     await session.send("Page.stopScreencast");
+    expect(endpoints).toEqual([
+      { position: "0.0000", settled: "true" },
+      { position: "1.0000", settled: "true" },
+      { position: "0.0000", settled: "true" },
+    ]);
     expect(frames.length).toBeGreaterThan(50);
     // DOM visibility and settled screenshots cannot detect transient lost tiles.
     const missing = await page.evaluate(async ({ frames, backing }) => {
@@ -75,6 +92,9 @@ test("native scrolling across the whole route keeps the scene painted with a con
       }
       return missing;
     }, { frames, backing });
+    await testInfo.attach("rendered-route-coverage.json", {
+      body: JSON.stringify({ endpoints, frames: frames.length, missing }), contentType: "application/json",
+    });
     expect(missing, "no captured frame should expose the page backing through the scene").toBe(0);
   } finally { await browser.close(); }
 });

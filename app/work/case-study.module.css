@@ -15,12 +15,10 @@
 :global(.climb-panel) :is(.systemFlow, .surfaceGrid, .reportEvidence) { margin-top: 2rem; }
 :global(.climb-case-content) .evidenceSection { background: #1f2621; color: #fffbed; }
 :global(.climb-case-content) .surfaceGrid article { background: #fffbed; color: #1f2621; }
-@media (prefers-color-scheme: dark) {
-  :global(.climb-case-content) :is(.techList li, .resultsTable caption, .award) { color: #a9c7b5; }
-  :global(.climb-case-content) .techList li { border-color: rgba(236,230,210,0.3); }
-  :global(.climb-case-content) .outcomeSection { background: #252f29; }
-  :global(.climb-case-content) .surfaceGrid article > p { color: #8b4428; }
-}
+:global(.climb-case-content) :is(.techList li, .resultsTable caption, .award) { color: #a9c7b5; }
+:global(.climb-case-content) .techList li { border-color: rgba(236,230,210,0.3); }
+:global(.climb-case-content) .outcomeSection { background: #252f29; }
+:global(.climb-case-content) .surfaceGrid article > p { color: #8b4428; }
 .caseStudy h1, .caseStudy h2, .caseStudy h3 { font-family: var(--font-newsreader), serif; font-weight: 450; letter-spacing: -0.045em; }
 .caseStudy h2 { font-size: clamp(2.8rem, 6vw, 6rem); line-height: 0.95; margin: 0; }
 .caseStudy h3 { font-size: 1.45rem; line-height: 1.2; margin: 0; }

@@ -107,8 +107,8 @@ test("Editorial Alpine foundation uses the approved visual tokens", async ({ pag
   await page.goto("./#list-view");
 
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(243, 238, 221)");
-  await expect(page.locator("#about")).toHaveCSS("background-color", "rgb(23, 63, 53)");
-  await expect(page.locator("#summit")).toHaveCSS("background-color", "rgb(31, 38, 33)");
+  await expect(page.locator("#about")).toHaveCSS("background-color", "rgb(18, 49, 41)");
+  await expect(page.locator("#summit")).toHaveCSS("background-color", "rgb(18, 23, 20)");
 
   const headingFont = await page.locator("#list-view h1").evaluate(
     (element) => getComputedStyle(element).fontFamily,

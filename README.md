@@ -6,7 +6,7 @@ The homepage defaults to the illustrated Climb after client enhancement: ordinar
 
 The complete server-rendered List View is visible without JavaScript and remains reachable through the view toggle or any hash targeting its content. Case Studies such as `#case-veritas` open with CSS `:target` even without script; standalone `/work/*/` routes remain available. Waypoint metadata comes from `content/waypoints.ts`, and Case Study prose stays in `app/work/*/page.mdx`.
 
-The large deterministic mountain SVG is built once from fixed seeds. Native scroll frames update cached transforms, trail offset, climber and marker positions without rerendering content. SVG SMIL provides landmark animation; an optional 2D canvas provides snow. Hidden tabs and List View idle the scene. No WebGL, external illustration assets, or camera controls are used. The stage stays daytime while content surfaces follow light/dark themes.
+The large deterministic mountain SVG is built once from fixed seeds. Native scroll frames update cached transforms, trail offset, climber and marker positions without rerendering content. SVG SMIL provides landmark animation; an optional 2D canvas provides snow. Hidden tabs and List View idle the scene. No WebGL, external illustration assets, or camera controls are used. The stage stays daytime and content surfaces keep one dark-green appearance, independent of the browser’s color preference.
 
 ## Adaptive and fail-safe Climb
 
@@ -82,7 +82,7 @@ npx playwright install chromium firefox webkit
 npm test
 ```
 
-Playwright exercises the production browser boundary: all ten stops and dwell, native wheel/page-key scrolling, keyboard markers and Landmarks, Landmark hover/click, panel-open List View transitions, Waypoint Panel content and focus return after scrolling, embedded and standalone Case Studies, arbitrary List View hashes, no-JavaScript content, live reduced motion, responsive layout, and WCAG 2.2 AA in light/dark themes. Source-integrity and pure-builder tests also check exact stop positions and determinism; reference comparisons check seeded scenery, all six Landmark builders, and every generated flag keyframe against the approved handoff.
+Playwright exercises the production browser boundary: all ten stops and dwell, native wheel/page-key scrolling, keyboard markers and Landmarks, Landmark hover/click, panel-open List View transitions, Waypoint Panel content and focus return after scrolling, embedded and standalone Case Studies, arbitrary List View hashes, no-JavaScript content, live reduced motion, responsive layout, and WCAG 2.2 AA with either browser color preference. Source-integrity and pure-builder tests also check exact stop positions and determinism; reference comparisons check seeded scenery, all six Landmark builders, and every generated flag keyframe against the approved handoff.
 
 `tests/climb-adaptive.spec.ts` checks the production `/portfolio/` experience with simulated device hints, live preference/network changes, optional canvas failures, required-feature failures, and controlled frame timestamps. This suite runs in Chromium, Firefox, and WebKit; the existing broader suite and visual baselines remain Chromium-only. WebKit and narrow viewports are compatibility proxies, not evidence of a physical iOS Safari or installed Microsoft Edge run.
 

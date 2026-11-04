@@ -152,7 +152,7 @@ test("snow starts at altitude, clears on live reduced-motion changes, and stops 
 
 for (const width of [390, 1440]) {
   for (const index of [0, 1, 8, 9]) {
-    test(`${journeyStops[index].label} card is accessible at ${width}px in either theme`, async ({ page }) => {
+    test(`${journeyStops[index].label} card keeps its dark-green appearance at ${width}px with either browser preference`, async ({ page }) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
       await openClimb(page);
@@ -160,6 +160,8 @@ for (const width of [390, 1440]) {
       await scrollToStop(page, index);
       const card = page.locator(`[data-card="${index}"]`);
       await expect(card).toBeInViewport();
+      await expect(card).toHaveCSS("background-color", "rgb(37, 47, 41)");
+      await expect(card).toHaveCSS("color", "rgb(236, 230, 210)");
       expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
       const sky = await page.locator(".climb-sky").evaluate((element) => getComputedStyle(element).getPropertyValue("--sky-top"));
       await page.emulateMedia({ colorScheme: "dark" });

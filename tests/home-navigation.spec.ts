@@ -48,7 +48,7 @@ for (const width of [320, 390, 1440]) {
       await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeInViewport();
       expect(await header.boundingBox()).toEqual(bounds);
       expect(await navigation.getByRole("link", { name: "Work", exact: true }).boundingBox()).toEqual(workBounds);
-      await expect(header).toHaveCSS("background-color", colorScheme === "dark" ? "rgb(26, 33, 29)" : "rgb(243, 238, 221)");
+      await expect(header).toHaveCSS("background-color", "rgb(26, 33, 29)");
       await navigation.getByRole("link", { name: "Work", exact: true }).click();
       await expect(page).toHaveURL(/#work$/);
       await expect(navigation.getByRole("link", { name: "Work", exact: true })).toHaveAttribute("aria-current", "location");
