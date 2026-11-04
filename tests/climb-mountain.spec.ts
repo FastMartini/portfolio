@@ -36,6 +36,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await reference.route("https://fonts.googleapis.com/**", (route) => route.abort());
     await reference.goto(pathToFileURL(resolve("docs/handoff/reference/alpine-spruce-reference.html")).href);
     await expect(reference.locator("svg.mtn")).toBeAttached();
+    // Its first camera frame runs after the inline script creates the SVG.
+    await expect(reference.locator("svg.mtn")).toHaveCSS("transform", /matrix/);
     await reference.evaluate(() => {
       // Match the production camera's transform hierarchy. A directly scaled
       // SVG is rasterized differently from an SVG inside a scaled HTML camera.
