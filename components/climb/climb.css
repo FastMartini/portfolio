@@ -59,7 +59,9 @@
 .climb-marker:is(:hover, [data-hovered="true"], [aria-expanded="true"]) .climb-marker-pin { background: #173f35; color: #fffbed; }
 .climb-marker:is(:hover, :focus-visible, [data-hot="true"], [data-hovered="true"], [aria-expanded="true"]) .climb-marker-label { opacity: 1; }
 .climb-marker:focus-visible .climb-marker-pin { outline: 3px solid #173f35; outline-offset: 3px; }
-.climb-mountain .lm { cursor: pointer; outline: none; transition: filter 200ms ease; }
+/* Filter/transform transitions promote overlapping SVG paint into GPU layers.
+   Apply these control states immediately; the scenery's SMIL remains live. */
+.climb-mountain .lm { cursor: pointer; outline: none; }
 .climb-mountain .lm:is(:hover, .is-hot, [data-hovered="true"], [aria-expanded="true"]) { filter: drop-shadow(0 0 10px rgba(181,101,59,0.9)) brightness(1.06); }
 .climb-mountain .lm:focus-visible { filter: drop-shadow(0 0 3px #fffbed) drop-shadow(0 0 6px #173f35); }
 .climb-panel {
@@ -150,6 +152,7 @@
 .climb-enhancement .button-primary:hover { background: #fffbed; }
 /* Keep the durable List View in the fixed dark-green palette. */
 .portfolio-navigation { --parchment: #1a211d; --ink: #ece6d2; --line: rgba(236,230,210,0.15); color: var(--ink); }
+.portfolio-navigation .site-header nav a::after { transition: none; }
 .climb-list { --parchment: #1a211d; --parchment-deep: #1e2621; --ink: #ece6d2; --copper-text: #e3a983; --line: rgba(236,230,210,0.15); background: var(--parchment); color: var(--ink); }
 .climb-list .work { background-image: linear-gradient(to bottom, #1e2621, #212a25); }
 .climb-list .personal-interlude { background-image: linear-gradient(to bottom, #212a25, #1a211d); }

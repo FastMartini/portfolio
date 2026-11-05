@@ -93,7 +93,9 @@ test("native scrolling across the whole route keeps the scene painted with a con
       return missing;
     }, { frames, backing });
     await testInfo.attach("rendered-route-coverage.json", {
-      body: JSON.stringify({ endpoints, frames: frames.length, missing }), contentType: "application/json",
+      body: JSON.stringify({ browser: browser.version(), headed,
+        viewport: await page.evaluate(() => ({ width: innerWidth, height: innerHeight, deviceScaleFactor: devicePixelRatio })),
+        endpoints, frames: frames.length, missing }), contentType: "application/json",
     });
     expect(missing, "no captured frame should expose the page backing through the scene").toBe(0);
   } finally { await browser.close(); }
