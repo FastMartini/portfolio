@@ -196,7 +196,9 @@ export function buildScenery() {
       top += `<circle cx="${(x - radius * 0.12).toFixed(0)}" cy="${(y - radius * 0.08).toFixed(0)}" r="${(radius * 0.92).toFixed(0)}"/>`;
     }
     const flat = `<ellipse cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" rx="${(width * 0.55).toFixed(0)}" ry="${(step * 0.5).toFixed(0)}"/>`;
-    return `<g clip-path="url(#cloud-base)" transform="translate(0 0)"><g fill="#d7dee5">${base}${flat}</g><g fill="#ffffff">${top}</g></g>`;
+    // These shapes fit inside the old 9000-unit cloud-base rectangle. Its
+    // redundant clip split paint surfaces without changing any visible pixels.
+    return `<g transform="translate(0 0)"><g fill="#d7dee5">${base}${flat}</g><g fill="#ffffff">${top}</g></g>`;
   }
   function cloudBand(count: number, yMin: number, yMax: number, wMin: number, wMax: number) {
     let markup = "";

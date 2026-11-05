@@ -1,6 +1,105 @@
-import { expect, test } from "@playwright/test";
+import { chromium, expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 import { mountainView } from "../components/climb/mountain/geometry";
+
+test("native scrolling across the whole route keeps the scene painted with a constrained GPU cache", async ({ browserName, baseURL }, testInfo) => {
+  test.skip(browserName !== "chromium", "GPU cache controls and screencasting require Chromium");
+  test.setTimeout(90_000);
+  const headed = process.env.SCROLL_BROWSER_HEADED === "1";
+  const browser = await chromium.launch({
+    headless: !headed,
+    channel: process.env.SCROLL_BROWSER_CHANNEL || undefined,
+    args: ["--force-gpu-mem-available-mb=128"],
+  });
+  try {
+    // Visible-window checks use the physical content area; an emulated viewport
+    // larger than the window would include pixels Chrome is not displaying.
+    const page = await browser.newPage(headed
+      ? { baseURL, viewport: null, deviceScaleFactor: undefined }
+      : { baseURL, viewport: { width: 1512, height: 850 }, deviceScaleFactor: 2 });
+    await openClimb(page);
+    await page.locator(".splash").waitFor({ state: "hidden" });
+    // This color exists only behind the opaque scene. It catches missing paint
+    // independently of the site's theme, unlike checking for a dark background.
+    const backing = [253, 3, 217];
+    await page.addStyleTag({ content: `html, body { background: rgb(${backing.join(",")}) !important; }` });
+    await page.locator("#climb").evaluate(() => window.scrollTo(0, 100));
+    await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
+    // One complete forward/backward pass reproduces the upper-route failure,
+    // while leaving enough time for pixel analysis on the Linux software GPU.
+    const travel = await page.locator("#climb").evaluate((root: HTMLElement) => root.offsetHeight - innerHeight - 200);
+    const steps = Math.ceil(travel / 500);
+    await page.waitForTimeout(1500);
+    const session = await page.context().newCDPSession(page);
+    const frames: string[] = [];
+    session.on("Page.screencastFrame", (event) => {
+      frames.push(event.data);
+      void session.send("Page.screencastFrameAck", { sessionId: event.sessionId }).catch(() => {});
+    });
+    await session.send("Page.startScreencast", { format: "jpeg", quality: 85, maxWidth: 1000, maxHeight: 650, everyNthFrame: 1 });
+    const root = page.locator("#climb");
+    const endpoints: { position: string; settled: string }[] = [];
+    async function captureEndpoint(position: string) {
+      await expect(root).toHaveAttribute("data-position", position, { timeout: 15000 });
+      await expect(root).toHaveAttribute("data-settled", "true", { timeout: 15000 });
+      endpoints.push(await root.evaluate((element) => ({ position: element.dataset.position!, settled: element.dataset.settled! })));
+      // An idle compositor need not deliver another screencast event. Capture
+      // the settled endpoint explicitly while the screencast is still active.
+      frames.push((await session.send("Page.captureScreenshot", { format: "jpeg", quality: 85 })).data);
+    }
+    await captureEndpoint("0.0000");
+    const pointer = await page.evaluate(() => ({ x: innerWidth * 0.75, y: innerHeight * 0.75 }));
+    await page.mouse.move(pointer.x, pointer.y);
+    for (const direction of [1, -1]) {
+      for (let i = 0; i < steps; i++) {
+        await page.mouse.wheel(0, direction * travel / steps);
+        await page.waitForTimeout(25);
+      }
+      await captureEndpoint(direction === 1 ? "1.0000" : "0.0000");
+    }
+    await session.send("Page.stopScreencast");
+    expect(endpoints).toEqual([
+      { position: "0.0000", settled: "true" },
+      { position: "1.0000", settled: "true" },
+      { position: "0.0000", settled: "true" },
+    ]);
+    expect(frames.length).toBeGreaterThan(50);
+    // DOM visibility and settled screenshots cannot detect transient lost tiles.
+    const missing = await page.evaluate(async ({ frames, backing }) => {
+      const canvas = new OffscreenCanvas(1, 1);
+      const context = canvas.getContext("2d", { willReadFrequently: true })!;
+      const [red, green, blue] = backing;
+      let missing = 0;
+      for (const frame of frames) {
+        const image = new Image();
+        image.src = `data:image/jpeg;base64,${frame}`;
+        await image.decode();
+        canvas.width = image.width; canvas.height = image.height;
+        context.drawImage(image, 0, 0);
+        const pixels = context.getImageData(0, 0, image.width, image.height).data;
+        let blank = false;
+        for (let y = 80; y < image.height - 32 && !blank; y += 32) {
+          for (let x = 0; x < image.width - 32 && !blank; x += 32) {
+            let exposed = 0;
+            for (let dy = 0; dy < 32; dy++) for (let dx = 0; dx < 32; dx++) {
+              const p = ((y + dy) * image.width + x + dx) * 4;
+              if (Math.abs(pixels[p] - red) < 8 && Math.abs(pixels[p + 1] - green) < 8 && Math.abs(pixels[p + 2] - blue) < 8) exposed++;
+            }
+            blank = exposed > 980;
+          }
+        }
+        if (blank) missing++;
+      }
+      return missing;
+    }, { frames, backing });
+    await testInfo.attach("rendered-route-coverage.json", {
+      body: JSON.stringify({ browser: browser.version(), headed,
+        viewport: await page.evaluate(() => ({ width: innerWidth, height: innerHeight, deviceScaleFactor: devicePixelRatio })),
+        endpoints, frames: frames.length, missing }), contentType: "application/json",
+    });
+    expect(missing, "no captured frame should expose the page backing through the scene").toBe(0);
+  } finally { await browser.close(); }
+});
 
 for (const samplingDelay of [0, 900]) {
   test(`scrolling keeps sharp artwork and running animations with ${samplingDelay ? "sparse" : "native"} frame samples`, async ({ page }) => {

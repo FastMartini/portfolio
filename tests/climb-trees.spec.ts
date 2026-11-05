@@ -2,11 +2,25 @@ import { expect, test } from "@playwright/test";
 import { buildScenery } from "../components/climb/mountain/scenery";
 import sceneryBeforeTrees from "./fixtures/scenery-before-trees.json";
 
-test("Alpine spruce leaves clouds, terrain, and mountain shading byte-identical", () => {
+test("Alpine spruce preserves cloud, terrain, and shading data without redundant cloud clips", () => {
   const scenery = buildScenery();
   for (const key of ["distant", "backdrop", "bands", "shade", "cloudsFront"] as const) {
-    expect(scenery[key], key).toBe(sceneryBeforeTrees[key]);
+    // Only the no-op cloud clip changes; every shape and paint attribute stays
+    // byte-identical to the approved fixture.
+    expect(scenery[key], key).toBe(sceneryBeforeTrees[key].replaceAll(' clip-path="url(#cloud-base)"', ""));
   }
+});
+
+test("seeded clouds fit entirely inside the removed clip rectangle", async ({ page }) => {
+  await page.goto("./climb-preview/");
+  await expect(page.locator(".climb-mountain")).toHaveAttribute("data-ready", "true");
+  const bounds = await page.locator('.climb-vector-camera g[transform="translate(0 0)"]').evaluateAll((clouds) =>
+    clouds.map((cloud) => {
+      const box = (cloud as SVGGraphicsElement).getBBox();
+      return { left: box.x, top: box.y, right: box.x + box.width, bottom: box.y + box.height };
+    }));
+  expect(bounds).toHaveLength(46);
+  expect(bounds.every((box) => box.left >= -4000 && box.top >= -4000 && box.right <= 5000 && box.bottom <= 5000)).toBe(true);
 });
 
 test("Alpine spruce generation is deterministic and every tree references a defined variant", () => {

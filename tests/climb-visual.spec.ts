@@ -5,6 +5,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   for (const [index, name] of [[0, "trailhead"], [4, "waypoint-03"], [7, "waypoint-06"], [9, "summit"]] as const) {
     test(`illustrated Climb snapshot: ${name} at ${viewport.width}px`, async ({ page }) => {
       await page.setViewportSize(viewport);
+      // Light browser preferences must still render the fixed dark-green UI.
       await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
       await openClimb(page);
       await expect(page.locator("#climb")).toBeVisible();
@@ -18,7 +19,10 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await page.locator("svg.climb-layer-svg").evaluateAll((nodes) => {
         nodes.forEach((node) => { const svg = node as SVGSVGElement; svg.pauseAnimations(); svg.setCurrentTime(0); });
       });
-      if (index === 0 || index === 9) await expect(page.locator(`[data-card="${index}"]`)).toBeVisible();
+      if (index === 0 || index === 9) {
+        await expect(page.locator(`[data-card="${index}"]`)).toBeVisible();
+        await expect(page.locator(`[data-card="${index}"]`)).toHaveCSS("background-color", "rgb(37, 47, 41)");
+      }
       else await expect(page.locator(`[data-marker="${index}"]`)).toBeVisible();
       if (index === 0) {
         await expect.poll(() => page.getByRole("img", { name: "Diego Martinez" })

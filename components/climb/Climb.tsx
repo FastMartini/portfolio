@@ -11,7 +11,6 @@ import { AmbientSound } from "./AmbientSound";
 import type { AmbientSoundController } from "./AmbientSound";
 import type { SnowController } from "./Snow";
 import { TrailRail } from "./TrailRail";
-import { TrailSign } from "./TrailSign";
 import type { ClimbFrame } from "./progress";
 import { useClimbProgress } from "./useClimbProgress";
 import { createWeatherRenderer } from "./weather";
@@ -294,9 +293,9 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   }
 
   function navigate(event: MouseEvent<HTMLElement>) {
-    const target = (event.target as Element).closest<HTMLElement>("[data-marker], .lm[data-stop], [data-open-stop]");
+    const target = (event.target as Element).closest<HTMLElement>("[data-marker], .lm[data-stop]");
     if (target && stage.current) {
-      const stop = Number(target.dataset.marker ?? target.dataset.stop ?? target.dataset.openStop);
+      const stop = Number(target.dataset.marker ?? target.dataset.stop);
       openWaypoint(stop);
       return;
     }
@@ -375,7 +374,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
             {quality === "full" && <Snow ref={snow} />}
             <Markers openStop={selection?.stop ?? null} />
             </div>
-            <div className="climb-navigation" inert={selection !== null}>{cards}<TrailSign /><TrailRail /></div>
+            <div className="climb-navigation" inert={selection !== null}>{cards}<TrailRail /></div>
             <WaypointPanel selection={selection} summaries={summaries} cases={cases} onClose={closePanel}
               onDismissed={finishDismissal}
               onCase={(caseStudy) => {

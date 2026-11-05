@@ -14,7 +14,9 @@ export function Snow({ ref }: { ref: Ref<SnowController> }) {
   useEffect(() => {
     const element = canvas.current;
     let context: CanvasRenderingContext2D | null = null;
-    try { context = element?.getContext("2d") ?? null; }
+    // Keep this small effect on the CPU. An accelerated canvas above the SVG
+    // promotes overlapping terrain into costly GPU surfaces during camera travel.
+    try { context = element?.getContext("2d", { willReadFrequently: true }) ?? null; }
     catch { return; } // Snow is optional; a blocked canvas must not break content.
     if (!element || !context) return;
     const random = seededRandom(31);

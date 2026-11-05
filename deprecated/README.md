@@ -9,6 +9,7 @@ checking.
 | `docs/handoff/CODEX_HANDOFF (1).md` | `docs/handoff/CODEX_HANDOFF (1).md` | Extra copy of the canonical handoff. |
 | `docs/handoff/codex-handoff/` | `docs/handoff/codex-handoff/` | Duplicate handoff package; the maintained copy remains in `docs/handoff/`. |
 | `assets/photos/dm.jpg` | `public/photos/dm.jpg` | Original portrait; the site serves the four responsive WebP versions instead. |
+| `components/climb/TrailSign.tsx` | `components/climb/TrailSign.tsx` | Removed bottom-left orientation card; Waypoint markers and the Trail Rail provide navigation. |
 
 The active handoff and `docs/handoff/reference/` remain in place because the
 artwork acceptance tests use them. Application modules, test fixtures, visual
