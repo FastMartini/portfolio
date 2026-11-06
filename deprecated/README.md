@@ -34,5 +34,10 @@ To recover a removed branch, replace `<branch>` with its original name:
 git fetch deprecated/local/before-cleanup/before-cleanup.bundle 'refs/heads/<branch>:refs/heads/<branch>'
 ```
 
+`local/resume-replacements/` preserves dated incoming résumé uploads and previous
+published PDFs. The current PDF alone belongs in `public/resume/`, using its
+existing filename so public links remain stable. These local copies are ignored
+by Git and are not served by the site.
+
 New build output still belongs in the ignored `.next/`, `out/`, `test-results/`,
 and `playwright-report/` directories. Dependencies stay in `node_modules/`.

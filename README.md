@@ -53,6 +53,14 @@ Local development runs without a base path. Production acceptance tests build an
 
 Tests always start their own production-export server, never reuse another worktree's export. If port 4173 is occupied, use a separate port, for example `TEST_SITE_PORT=4181 npm test`.
 
+## Résumé asset
+
+The published résumé is `public/resume/Martinez_Diego_2026.pdf`. Replace that PDF
+in place to keep the shared résumé links working across Climb and List View.
+Keep incoming uploads and superseded copies in the ignored
+`deprecated/local/resume-replacements/` directory, rather than the repository root
+or the served asset directory.
+
 ## Verification
 
 Search and sharing metadata use `content/site.ts` and the typed Waypoint registry.
