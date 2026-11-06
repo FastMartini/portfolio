@@ -102,11 +102,11 @@ test("keyboard visitor can enter the full text from the Climb", async ({ page })
 });
 
 test("Editorial Alpine foundation uses the approved visual tokens", async ({ page }) => {
-  // Check the durable palette, independently of translucent WebGL enhancement surfaces.
+  // Check the default Dark reading palette independently of the illustrated Climb.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./#list-view");
 
-  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(243, 238, 221)");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(26, 33, 29)");
   await expect(page.locator("#about")).toHaveCSS("background-color", "rgb(18, 49, 41)");
   await expect(page.locator("#summit")).toHaveCSS("background-color", "rgb(18, 23, 20)");
 

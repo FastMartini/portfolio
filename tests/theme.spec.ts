@@ -253,6 +253,18 @@ for (const theme of ["dark", "light"] as const) {
   });
 }
 
+test("the exported not-found page restores readable header and content in both themes", async ({ page }) => {
+  for (const theme of ["dark", "light"] as const) {
+    await ready(page);
+    await select(page, theme);
+    expect((await page.goto("./work/unpublished-project/"))?.status()).toBe(404);
+    await expect(page.getByRole("heading", { name: "Page not found." })).toBeVisible();
+    await expect(page.getByRole("main")).toHaveCSS("background-color", ground[theme]);
+    await expect(page.getByRole("banner")).toHaveCSS("color", theme === "dark" ? "rgb(236, 230, 210)" : "rgb(31, 38, 33)");
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  }
+});
+
 for (const width of [320, 390, 1280]) {
   test(`controls fit ${width}px in both themes and the standalone header`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return <>
-    <header className="site-header">
+    <header data-theme-root="" className="site-header">
       <Link className="wordmark" href="/">Diego Martinez</Link>
     </header>
     <main data-theme-root="" className={styles.page}>
