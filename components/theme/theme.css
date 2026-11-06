@@ -7,6 +7,7 @@
 
 /* Focus: copper outline with an outer ink stroke. */
 :where(a, button):focus-visible { outline: 3px solid #b5653b; outline-offset: 3px; box-shadow: 0 0 0 7.5px var(--focus-edge); }
+:where([data-theme-root]) { color: var(--ink); }
 
 
 .site-header { gap: 1rem; }

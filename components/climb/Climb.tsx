@@ -260,7 +260,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     if (!element) return;
     lastRenderedStop.current = frame.nearest;
     lastPosition.current = frame.position;
-    ambience.current?.setPosition(frame.position);
+    if (frame.geometryChanged !== false) ambience.current?.setPosition(frame.position);
     try {
       const controller = currentTheme.current;
       const environment = controller ? renderers.current?.weather(frame.position, controller.blend()) : undefined;

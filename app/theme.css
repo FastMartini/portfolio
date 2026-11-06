@@ -2,7 +2,6 @@
    UI roots own settled and animated values; the SVG world inherits neither. */
 [data-theme-root] {
   color-scheme: dark;
-  color: var(--ink);
   --bg: #1a211d;
   --bg-alt: #1e2621;
   --bg-alt-2: #212a25;
@@ -31,7 +30,6 @@
 
 :root[data-theme="light"] [data-theme-root] {
   color-scheme: light;
-  color: var(--ink);
   --bg: #f3eedd;
   --bg-alt: #e9e1cc;
   --bg-alt-2: #e1e5d7;

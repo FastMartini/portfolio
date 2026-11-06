@@ -65,13 +65,21 @@ export function createThemeController(root: HTMLElement = document.documentEleme
     }
     if (!moving) state.settled = true;
     emit(); // settled === true on the final frame: listeners remove inline values
-    if (moving) state.raf = requestAnimationFrame(frame);
+    if (moving) kick();
     else state.last = 0;
   }
-  const kick = () => { if (!state.raf) state.raf = requestAnimationFrame(frame); };
+  const kick = () => {
+    if (state.raf) return;
+    if (typeof requestAnimationFrame === "function" && typeof cancelAnimationFrame === "function") state.raf = requestAnimationFrame(frame);
+    else jump();
+  };
+  const cancel = () => {
+    if (state.raf && typeof cancelAnimationFrame === "function") cancelAnimationFrame(state.raf);
+    state.raf = 0;
+  };
 
   function jump() { // destination immediately: hidden tabs, route changes, motion-preference changes
-    cancelAnimationFrame(state.raf); state.raf = 0; state.last = 0;
+    cancel(); state.last = 0;
     state.p = state.target; state.v = 0; state.settled = true; emit();
   }
 
@@ -83,6 +91,7 @@ export function createThemeController(root: HTMLElement = document.documentEleme
     state.target = t;
     root.dataset.theme = theme;
     if (opts.persist !== false) { try { localStorage.setItem(STORAGE_KEY, theme); } catch { /* in-memory only */ } }
+    emit(); // Update the control's action immediately, without advancing paint.
     if (opts.instant || document.hidden) jump(); else kick();
   }
 
@@ -105,7 +114,7 @@ export function createThemeController(root: HTMLElement = document.documentEleme
     jump,
     subscribe(fn: Listener) { listeners.add(fn); fn(blend(), state.settled); return () => listeners.delete(fn); },
     dispose() {
-      cancelAnimationFrame(state.raf);
+      cancel();
       removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", onVisibility);
       try { reducedQuery?.removeEventListener("change", onMotion); } catch { /* Optional browser preference observation. */ }

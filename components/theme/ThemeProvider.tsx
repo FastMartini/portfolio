@@ -24,11 +24,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     });
     // Panels and route content may mount between animation frames. Pin them to
     // the same current palette before the browser paints the added subtree.
-    const observer = new MutationObserver(() => {
-      if (!controller.settled) applyUiTokens(roots(), controller.blend());
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => { observer.disconnect(); stop(); clearUiTokens(roots()); controller.dispose(); };
+    let observer: MutationObserver | undefined;
+    const stopObserver = () => { try { observer?.disconnect(); } catch { /* Optional enhancement observation. */ } };
+    try {
+      if (typeof MutationObserver === "function") {
+        observer = new MutationObserver(() => {
+          if (!controller.settled) applyUiTokens(roots(), controller.blend());
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+    } catch { stopObserver(); }
+    return () => { stopObserver(); stop(); clearUiTokens(roots()); controller.dispose(); };
   }, []);
 
   useLayoutEffect(() => { state.controller?.jump(); }, [pathname, state.controller]);

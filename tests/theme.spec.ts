@@ -79,6 +79,20 @@ test("refresh during an unfinished change restores its destination without repla
   await expect(page.locator(".climb-list")).toHaveCSS("background-color", ground.light);
 });
 
+for (const feature of ["MutationObserver", "requestAnimationFrame"] as const) {
+  test(`missing ${feature} preserves List View and manual theme selection`, async ({ page }) => {
+    await page.addInitScript((name) => Object.defineProperty(window, name, { value: undefined, configurable: true }), feature);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await ready(page, "./#case-veritas");
+    await expect(page.locator("#case-veritas")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeHidden();
+    await select(page, "light");
+    await expect(page.locator("#case-veritas")).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+}
+
 test("rapid reversals keep rendered surfaces and text continuous and honor the last choice", async ({ page }) => {
   await ready(page);
   // Exercise real browser colors on a reproducible 60 Hz clock. Sparse native

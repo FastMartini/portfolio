@@ -4,7 +4,6 @@ const tokens = JSON.parse(await readFile(new URL("../components/theme/tokens.jso
 const block = (selector, index) => {
   const values = [
     `  color-scheme: ${index ? "light" : "dark"};`,
-    "  color: var(--ink);",
     ...Object.entries(tokens.surface).map(([key, pair]) => `  --${key}: ${pair[index]};`),
     ...Object.entries(tokens.line).map(([key, pair]) => `  --${key}: rgba(${pair[index].join(",")});`),
     ...Object.entries(tokens.ink).map(([key, { pair }]) => `  --${key}: ${pair[index]};`),
