@@ -5,9 +5,9 @@ import sceneryBeforeTrees from "./fixtures/scenery-before-trees.json";
 test("Alpine spruce preserves cloud, terrain, and shading data without redundant cloud clips", () => {
   const scenery = buildScenery();
   for (const key of ["distant", "backdrop", "bands", "shade", "cloudsFront"] as const) {
-    // Only the no-op cloud clip changes; every shape and paint attribute stays
-    // byte-identical to the approved fixture.
-    expect(scenery[key], key).toBe(sceneryBeforeTrees[key].replaceAll(' clip-path="url(#cloud-base)"', ""));
+    // Theme class hooks and the removed no-op clip leave all original geometry
+    // and paint attributes byte-identical to the approved daytime fixture.
+    expect(scenery[key].replace(/ class="(?:far-a|far-b|clouds|cb|ct)"/g, ""), key).toBe(sceneryBeforeTrees[key].replaceAll(' clip-path="url(#cloud-base)"', ""));
   }
 });
 
