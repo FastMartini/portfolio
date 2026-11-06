@@ -3,7 +3,7 @@ import type { LandmarkArt, Parts } from "../parts";
 
 // 01: fire lookout watchtower
 export function watchtower(parts: Parts): LandmarkArt {
-  const { line, rect, shadow, pulseOpacity, roof } = parts;
+  const { light, line, rect, shadow, pulseOpacity, roof } = parts;
   let g = shadow(55);
   g += rect(-38, -4, 10, 5, STW_S) + rect(28, -4, 10, 5, STW_S);
   g += line("M-34 0 L-19 -118 M34 0 L19 -118", WOOD_D, 5) + line("M-22 0 L-12 -118 M22 0 L12 -118", WOOD, 3);
@@ -15,7 +15,7 @@ export function watchtower(parts: Parts): LandmarkArt {
   g += rect(-27, -160, 54, 34, WALL) + rect(4, -160, 23, 34, WALL_S);
   g += line("M-27 -152 H27 M-27 -144 H27 M-27 -136 H27", WALL_S, 0.8, ' opacity="0.8"');
   g += rect(-23, -154, 46, 14, WOOD_D);
-  g += rect(-21, -152, 13, 10, WIN) + '<rect x="-6.5" y="-152" width="13" height="10" fill="' + WARM + '">' + pulseOpacity(0.55, 1, 4.2) + "</rect>" + rect(8, -152, 13, 10, WIN);
+  g += rect(-21, -152, 13, 10, WIN) + light('<rect x="-6.5" y="-152" width="13" height="10" fill="' + WARM + '">' + pulseOpacity(0.55, 1, 4.2) + "</rect>", { x: 0, y: -147, r: 16.25 }) + rect(8, -152, 13, 10, WIN);
   g += line("M-36 -126 V-136 M-24 -126 V-136 M-12 -126 V-136 M0 -126 V-136 M12 -126 V-136 M24 -126 V-136 M36 -126 V-136 M-37 -136 H37", WOOD_D, 1.4);
   g += roof(-38, 38, -158, -186, 4);
   g += line("M0 -186 V-200", WOOD_D, 1.6) + '<path fill="' + ROOF + '" d="M0 -200 Q6 -200 13 -196.5 Q6 -194 0 -193 Z"><animate attributeName="d" dur="1.8s" repeatCount="indefinite" values="M0 -200 Q6 -200 13 -196.5 Q6 -194 0 -193 Z;M0 -200 Q6 -198 13 -198 Q6 -195 0 -193 Z;M0 -200 Q6 -201 12 -195.5 Q6 -193 0 -193 Z;M0 -200 Q6 -200 13 -196.5 Q6 -194 0 -193 Z"/></path>';

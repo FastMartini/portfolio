@@ -5,6 +5,7 @@ export function createMountainRenderer(host: HTMLElement) {
   const svg = host.querySelector<SVGSVGElement>("svg.mtn");
   const distant = host.querySelectorAll<SVGSVGElement>("svg.far");
   const walked = host.querySelector<SVGPathElement>("#a-walked");
+  const nightWalked = host.querySelector<SVGPathElement>("#n-walked");
   const climber = host.querySelector<SVGGElement>("#a-climber");
   const camera = document.createElement("div");
   camera.className = "climb-vector-camera";
@@ -24,7 +25,9 @@ export function createMountainRenderer(host: HTMLElement) {
     distant.forEach((layer, index) => {
       layer.style.transform = `translateY(${(position * height * (index === 0 ? 0.45 : 0.75)).toFixed(1)}px)`;
     });
-    walked.setAttribute("stroke-dashoffset", (trailLength * (1 - position)).toFixed(1));
+    const offset = (trailLength * (1 - position)).toFixed(1);
+    walked.setAttribute("stroke-dashoffset", offset);
+    nightWalked?.setAttribute("stroke-dashoffset", offset);
     climber.setAttribute("transform", `translate(${view.point[0].toFixed(1)} ${view.point[1].toFixed(1)})`);
     host.dataset.ready = "true";
   }, dispose() {

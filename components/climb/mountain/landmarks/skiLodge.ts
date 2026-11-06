@@ -3,7 +3,7 @@ import type { LandmarkArt, Parts } from "../parts";
 
 // 03: A-frame ski lodge with the lift's top terminal built onto its side and skis on a rack
 export function skiLodge(parts: Parts): LandmarkArt {
-  const { line, shape, rect, shadow, pulseOpacity, warmWin, smoke, bullwheel, roof, masonry } = parts;
+  const { light, line, shape, rect, shadow, pulseOpacity, warmWin, smoke, bullwheel, roof, masonry } = parts;
   let g = shadow(95);
   // lift terminal lean-to attached to the lodge
   g += rect(-140, -6, 92, 6, WOOD_D);
@@ -21,12 +21,12 @@ export function skiLodge(parts: Parts): LandmarkArt {
   }
   g += shape("M-58 4 L-30 -54 L-27 -52 L-54 4 Z", SNOW, ' opacity="0.9"');
   g += '<path d="M-15 -42 L0 -70 L15 -42 Z" fill="' + WOOD_D + '"/>';
-  g += '<path d="M-12 -43.5 L0 -66 L12 -43.5 Z" fill="' + WARM + '">' + pulseOpacity(0.6, 1, 4.6) + "</path>";
+  g += light('<path d="M-12 -43.5 L0 -66 L12 -43.5 Z" fill="' + WARM + '">' + pulseOpacity(0.6, 1, 4.6) + "</path>");
   g += line("M0 -66 V-43.5 M-7 -52 H7", WOOD_D, 1);
   g += rect(-28, -34, 56, 3, WOOD_D);
   for (let bal = -26; bal <= 26; bal += 4) g += line("M" + bal + " -34 V-41", WOOD_D, 0.9);
   g += line("M-28 -41 H28", WOOD_D, 1.6);
-  g += rect(-8, -23, 16, 23, WOOD_D) + rect(-6, -21, 12, 21, ROOF) + '<circle cx="3" cy="-10" r="1" fill="' + WARM + '"/>';
+  g += rect(-8, -23, 16, 23, WOOD_D) + rect(-6, -21, 12, 21, ROOF) + light('<circle cx="3" cy="-10" r="1" fill="' + WARM + '"/>');
   g += warmWin(-24, -22, 9, 10, false) + warmWin(15, -22, 9, 10, false);
   g += smoke(19.5, -110, 1);
   return { svg: g, top: -130, w: 92, cable: [-106, -47] };

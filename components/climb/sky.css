@@ -1,0 +1,40 @@
+/* New sky-local elements inside .climb-sky (behind the mountain), from the approved prototype.
+   Markup: <div class="climb-sky"><div class="climb-stars"></div><div class="climb-sun"></div>
+           <div class="climb-moon"></div><div class="climb-twilight"></div></div>
+   (.climb-sun already exists; keep its current rule.) Opacity of each is written by the environment renderer. */
+
+/* Moon: SAME box, anchor and disc size as .climb-sun (disc = 22% of the gradient radius, about 110px across).
+   It crossfades with the sun in place and never travels. Slightly brighter than v1 by request. */
+.climb-moon {
+  position: absolute; width: 22rem; height: 22rem; right: 12%; top: 4%; transform: translate(50%, -10%);
+  opacity: 0; pointer-events: none;
+  background:
+    radial-gradient(circle 13px at calc(50% + 17px) calc(50% + 14px), rgba(158,166,176,0.30) 0 85%, transparent 100%),
+    radial-gradient(circle 9px at calc(50% - 16px) calc(50% + 22px), rgba(158,166,176,0.26) 0 85%, transparent 100%),
+    radial-gradient(circle 15px at calc(50% - 8px) calc(50% - 16px), rgba(158,166,176,0.22) 0 85%, transparent 100%),
+    radial-gradient(circle 55px at 50% 50%, #fffdf6 0 62%, #f1f1ea 88%, #e4e7e6 98%, rgba(228,231,230,0) 100%),
+    radial-gradient(circle, rgba(226,234,248,0.42) 0 23%, rgba(206,220,244,0.20) 31%, rgba(190,208,240,0.07) 46%, rgba(190,208,240,0) 64%);
+}
+
+/* Stars: about 28 static points, seeded, sizes 1.0-2.3px, per-star opacity 0.45-0.9, in the top 54% of the sky,
+   none inside x > 74% && y < 40% (the sun/moon corner). Half carry data-m="0" and hide at <= 600px.
+   They never twinkle. Generate deterministically (seededRandom(41)) so server and client match. */
+.climb-stars { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.climb-stars i { position: absolute; border-radius: 50%; background: #e9eef6; }
+@media (max-width: 600px) { .climb-stars i[data-m="0"] { display: none; } }
+
+/* Twilight: restrained warm horizon, peaks mid-transition, normal motion only. */
+.climb-twilight {
+  position: absolute; inset: 30% 0 0; opacity: 0; pointer-events: none;
+  background: linear-gradient(to top, rgba(232,150,96,0.62), rgba(214,128,104,0.26) 38%, rgba(160,110,120,0) 78%);
+}
+
+/* Settled fallbacks cover the first enhanced paint, before its frame renderer. */
+:root .climb-sky { --sky-top: #1c2431; --sky-bottom: #313a47; }
+:root[data-theme="light"] .climb-sky { --sky-top: #e7dcc0; --sky-bottom: #f6efdc; }
+:root:not([data-theme="light"]) .climb-moon { opacity: 0.62; }
+:root:not([data-theme="light"]) .climb-stars { opacity: 0.35; }
+:root:not([data-theme="light"]) :is(#night-veil, #night-lights) { opacity: 1; }
+:root:not([data-theme="light"]) .far-a { fill: #3a4762; }
+:root:not([data-theme="light"]) .far-b { fill: #2a354c; }
+:root:not([data-theme="light"]) .clouds { --cloud-base: #4f5d74; --cloud-top: #7a889e; }

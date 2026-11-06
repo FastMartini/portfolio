@@ -37,7 +37,7 @@ function far(base: number, amplitude: number, seed: number, fill: string) {
   const points: Point[] = [[-50, 600]];
   for (let x = -50; x <= 1650; x += 70 + random() * 90) points.push([x, base - random() * amplitude]);
   points.push([1650, 600]);
-  return `<svg class="far" aria-hidden="true" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice"><polygon points="${polygon(points)}" fill="${fill}" opacity="0.55"/></svg>`;
+  return `<svg class="far" aria-hidden="true" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice"><polygon class="${seed === 11 ? "far-a" : "far-b"}" points="${polygon(points)}" fill="${fill}" opacity="0.55"/></svg>`;
 }
 
 // `pad` widens the clearing by the tree's crown half-width, so crowns (not just trunks) stay clear.
@@ -198,7 +198,7 @@ export function buildScenery() {
     const flat = `<ellipse cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" rx="${(width * 0.55).toFixed(0)}" ry="${(step * 0.5).toFixed(0)}"/>`;
     // These shapes fit inside the old 9000-unit cloud-base rectangle. Its
     // redundant clip split paint surfaces without changing any visible pixels.
-    return `<g transform="translate(0 0)"><g fill="#d7dee5">${base}${flat}</g><g fill="#ffffff">${top}</g></g>`;
+    return `<g transform="translate(0 0)"><g class="cb" fill="#d7dee5">${base}${flat}</g><g class="ct" fill="#ffffff">${top}</g></g>`;
   }
   function cloudBand(count: number, yMin: number, yMax: number, wMin: number, wMax: number) {
     let markup = "";
@@ -229,8 +229,9 @@ export function buildScenery() {
   }
 
   return {
+    hillsBackPoints: polygon(hillsBack),
     distant: far(330, 220, 11, "#9fb0ad") + far(430, 180, 23, "#7d918d"),
-    backdrop: `<g filter="url(#softer)" opacity="0.7">${cloudsHigh}</g><g filter="url(#softer)" opacity="0.75">${cloudsBack}</g>` +
+    backdrop: `<g class="clouds" filter="url(#softer)" opacity="0.7">${cloudsHigh}</g><g class="clouds" filter="url(#softer)" opacity="0.75">${cloudsBack}</g>` +
       `<polygon points="${polygon(hillsBack)}" fill="#4b6447"/><polygon points="${polygon(hillsFront)}" fill="#6f7c55"/><polygon points="${silhouette}" fill="#8b8476"/>`,
     bands: `<polygon points="${polygon(forest)}" fill="#34503f"/><polygon points="${polygon(meadow)}" fill="#6f7c55"/><polygon points="${polygon(snow)}" fill="#f4f2ea"/>` +
       `<g fill="none" stroke="#fffbed" stroke-width="1.2" opacity="0.28">${contours}</g>`,
@@ -239,7 +240,7 @@ export function buildScenery() {
     edgeTrees: paintDepth(edgeTrees),
     hillTrees,
     treeDefs,
-    cloudsFront: `<g filter="url(#soft)" opacity="0.92">${cloudsFront}</g>`,
+    cloudsFront: `<g class="clouds" filter="url(#soft)" opacity="0.92">${cloudsFront}</g>`,
   };
 }
 

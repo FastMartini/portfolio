@@ -12,7 +12,7 @@ export default function NotFound() {
     <header className="site-header">
       <Link className="wordmark" href="/">Diego Martinez</Link>
     </header>
-    <main className={styles.page}>
+    <main data-theme-root="" className={styles.page}>
       <p className="eyebrow">404 · Off the trail</p>
       <h1>Page not found.</h1>
       <p>This trail doesn’t lead to a published page. You can find my projects and contact details back at the Trailhead.</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent, ReactNode, PointerEvent, FocusEvent, KeyboardEvent } from "react";
 import { journeyStops } from "../../content/journey";
 import { createHudRenderer } from "./hud";
@@ -13,7 +13,9 @@ import type { SnowController } from "./Snow";
 import { TrailRail } from "./TrailRail";
 import type { ClimbFrame } from "./progress";
 import { useClimbProgress } from "./useClimbProgress";
-import { createWeatherRenderer } from "./weather";
+import { createEnvironmentRenderer } from "./environment";
+import { Sky } from "./Sky";
+import { useTheme } from "../theme/ThemeProvider";
 import { Markers } from "./Markers";
 import { createMarkerRenderer, setLandmarkHot } from "./marker-render";
 import { WaypointPanel } from "./WaypointPanel";
@@ -25,6 +27,7 @@ import { SceneRecovery } from "./SceneRecovery";
 import { sceneCleanup, sceneTask } from "./recovery";
 
 import "./climb.css";
+import "./sky.css";
 
 function traceStartup(step: string, detail?: unknown) {
   if (process.env.NODE_ENV === "development") console.warn("[DEBUG-climb-startup]", step, detail);
@@ -42,6 +45,9 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
 }) {
   // The complete server-rendered List View is visible until enhancement succeeds.
   const [enhanced, setEnhanced] = useState(false);
+  const { controller: theme } = useTheme();
+  const currentTheme = useRef(theme);
+  useLayoutEffect(() => { currentTheme.current = theme; }, [theme]);
   const [listMode, setListMode] = useState(true);
   const [selection, setSelection] = useState<PanelSelection | null>(null);
   const [quality, setQuality] = useState<ClimbQuality>("full");
@@ -51,7 +57,8 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   const navigation = useRef<HTMLDivElement>(null);
   const snow = useRef<SnowController>(null);
   const ambience = useRef<AmbientSoundController>(null);
-  const renderers = useRef<{ mountain: ReturnType<typeof createMountainRenderer>; weather: ReturnType<typeof createWeatherRenderer>; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
+  const renderers = useRef<{ mountain: ReturnType<typeof createMountainRenderer>; weather: ReturnType<typeof createEnvironmentRenderer>; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
+  const lastPosition = useRef(0);
   const focusList = useRef<boolean | string>(false);
   const reading = useRef<PanelSelection | null>(null);
   // Recovery outlives the enhancement subtree: its DOM refs can already be
@@ -199,14 +206,14 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     return cleanup;
   }, [revealList, lighten, failScene]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = stage.current;
     const art = element?.querySelector<HTMLElement>(".climb-mountain");
     if (!element || !art) return;
     try {
       const markers = createMarkerRenderer(element, restorePendingFocus, failScene);
       const mountain = createMountainRenderer(art);
-      renderers.current = { mountain, weather: createWeatherRenderer(element), hud: createHudRenderer(element, navigation.current), markers };
+      renderers.current = { mountain, weather: createEnvironmentRenderer(element), hud: createHudRenderer(element, navigation.current), markers };
       return () => { markers.dispose(); mountain.dispose(); renderers.current = null; };
     } catch (error) {
       traceStartup("renderers failed", error);
@@ -252,16 +259,29 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     const element = stage.current;
     if (!element) return;
     lastRenderedStop.current = frame.nearest;
+    lastPosition.current = frame.position;
     ambience.current?.setPosition(frame.position);
     try {
-      const snowAmount = renderers.current?.weather(frame.position) ?? 0;
-      renderers.current?.mountain.render(frame.position);
-      renderers.current?.hud(frame);
-      renderers.current?.markers.render(frame);
-      snow.current?.setWeather(snowAmount, frame.reducedMotion);
+      const controller = currentTheme.current;
+      const environment = controller ? renderers.current?.weather(frame.position, controller.blend()) : undefined;
+      // A theme-only frame changes paint, not navigation geometry. Keep the
+      // camera, reading cards, and marker geometry cached between scrolls.
+      if (frame.geometryChanged !== false) {
+        renderers.current?.mountain.render(frame.position);
+        renderers.current?.hud(frame);
+        renderers.current?.markers.render(frame);
+      }
+      snow.current?.setWeather(environment?.snowAmount ?? 0, frame.reducedMotion, environment?.snowflake);
     } catch (error) { traceStartup("scene frame failed", error); failScene(); }
   }, [failScene]);
-  useClimbProgress(root, enhanced && !listMode, render, failScene);
+  useClimbProgress(root, enhanced && !listMode, render, failScene, theme);
+
+  useLayoutEffect(() => {
+    // The hidden scene may have idled through a whole theme change. Update it
+    // before revealing it, including a view switch in the middle of a blend.
+    if (listMode || !theme) return;
+    sceneTask(failScene, () => renderers.current?.weather(lastPosition.current, theme.blend()))();
+  }, [enhanced, listMode, theme, failScene]);
 
   function toggleView() {
     pendingFocus.current = null;
@@ -350,7 +370,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       {/* Keep navigation outside both reading modes and scene recovery. */}
       <div className="portfolio-navigation" ref={navigation}
         onClickCapture={(event) => sceneTask(failScene, navigateHeader)(event)}>
-        <a className="skip-link climb-skip" href={listMode ? "#main-content" : "#list-view"}>
+        <a data-theme-root="" className="skip-link climb-skip" href={listMode ? "#main-content" : "#list-view"}>
           {listMode ? "Skip to content" : "Skip to full text"}
         </a>
         {header}
@@ -366,8 +386,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
             onPointerOut={(event) => sceneTask(failScene, () => highlight(event, false))()}
             onFocus={(event) => sceneTask(failScene, () => highlight(event, true))()}
             onBlur={(event) => sceneTask(failScene, () => highlight(event, false))()}>
-            <div className="climb-sky" aria-hidden="true" />
-            <div className="climb-sun" aria-hidden="true" />
+            <Sky />
             <div className="climb-scene">
             {mountain}
             <div className="climb-haze" aria-hidden="true" />

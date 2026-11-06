@@ -19,7 +19,7 @@ type PortfolioHeaderProps = {
 
 export function SkipLink({ href, label }: { href: string; label: string }) {
   return (
-    <a className="skip-link" href={href}>
+    <a data-theme-root="" className="skip-link" href={href}>
       {label}
     </a>
   );

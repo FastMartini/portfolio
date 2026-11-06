@@ -1,6 +1,6 @@
 // Reference per-frame UI token writer (from the approved prototype).
 //
-// Settled values live in theme.css on :root. While a transition runs, this writes
+// Settled values live in theme.css on UI roots. While a transition runs, this writes
 // inline custom properties ONLY on UI roots (header, .climb-list, .climb-cards / HUD,
 // .climb-panel, the Case Study article). Never write them on html, body or
 // .climb-stage: inherited custom properties would restyle the whole SVG every frame.

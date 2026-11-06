@@ -8,6 +8,7 @@ import { THEME_SCRIPT } from "../components/theme/prepaint";
 
 import "./globals.css";
 import "./theme.css";
+import "../components/theme/theme.css";
 import "../components/splash/splash.css";
 
 const newsreader = Newsreader({

@@ -1,6 +1,6 @@
 const NS = "http://www.w3.org/2000/svg";
 const ANIMATED = "animate, animateTransform, animateMotion";
-const ISOLATED = ".lm, .lift, .campfire, #a-walked, #a-climber";
+const ISOLATED = ".lm, .lift, .campfire, #a-walked, #a-climber, #night-lights";
 
 // Give animated artwork its own paint surfaces. The original vector nodes stay
 // live in the same depth order; camera travel never swaps artwork or timelines.

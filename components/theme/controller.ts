@@ -51,7 +51,10 @@ export function createThemeController(root: HTMLElement = document.documentEleme
 
   function frame(ts: number) {
     state.raf = 0;
-    const dt = state.last ? Math.min(MAX_DT, ts - state.last) : 16;
+    // Reduced motion follows elapsed time even when native painting is sparse;
+    // a 150 ms preference fade must not turn into several slow scene frames.
+    const elapsed = state.last ? ts - state.last : 16;
+    const dt = state.reduced ? elapsed : Math.min(MAX_DT, elapsed);
     state.last = ts;
     const moving = step(dt);
     if (!moving) state.settled = true;
@@ -70,7 +73,7 @@ export function createThemeController(root: HTMLElement = document.documentEleme
     const t = theme === "dark" ? 1 : 0;
     if (t === state.target && state.p === t) return;
     // Pin the CURRENT look inline before the stylesheet flips, or one frame shows the destination.
-    if (state.settled) { state.settled = false; emit(); }
+    if (state.settled) { state.settled = false; emit(); state.last = performance.now(); }
     state.target = t;
     root.dataset.theme = theme;
     if (opts.persist !== false) { try { localStorage.setItem(STORAGE_KEY, theme); } catch { /* in-memory only */ } }
