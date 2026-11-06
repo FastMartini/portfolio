@@ -78,6 +78,8 @@ for (const width of [390, 1440]) {
       await expect(header.getByRole("link", { name, exact: true })).toBeFocused();
     }
     await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeFocused();
+    await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "List view", exact: true })).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page.locator("#list-view")).toBeVisible();
