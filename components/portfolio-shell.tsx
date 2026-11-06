@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "./theme/ThemeToggle";
 
 type ShellLink = {
   href: string;
@@ -35,6 +36,7 @@ export function PortfolioHeader({
 }: PortfolioHeaderProps) {
   return (
     <header
+      data-theme-root=""
       className={`site-header${
         variant === "case-study" ? " site-header--case-study" : ""
       }`}
@@ -48,8 +50,11 @@ export function PortfolioHeader({
             {link.label}
           </a>
         ))}
-        {action}
       </nav>
+      <div className="site-header-controls">
+        <ThemeToggle />
+        {action}
+      </div>
     </header>
   );
 }
