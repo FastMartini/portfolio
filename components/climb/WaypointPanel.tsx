@@ -37,7 +37,7 @@ export function WaypointPanel({ selection, summaries, cases, onClose, onCase, on
     if (element) { element.scrollTop = 0; element.focus({ preventScroll: true }); }
   }, [selection]);
   const waypoint = waypoints.find((item) => item.slug === journeyStops[selection?.stop ?? 2].id) ?? waypoints[0];
-  return <dialog className="climb-panel" id="waypoint-panel" ref={dialog} aria-labelledby="panel-title"
+  return <dialog data-theme-root="" className="climb-panel" id="waypoint-panel" ref={dialog} aria-labelledby="panel-title"
     onCancel={(event) => { event.preventDefault(); onClose(); }} onClick={(event) => {
       if ((event.target as Element).closest("[data-read-case]")) { event.preventDefault(); onCase(true); }
     }}>

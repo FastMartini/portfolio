@@ -5,7 +5,7 @@ import { ResumeLink } from "../resume-link";
 
 export function StopCards() {
   return (
-    <div className="climb-cards">
+    <div className="climb-cards" data-theme-root="">
       <article className="climb-card" data-card="0" inert aria-hidden="true">
         <p className="climb-card-place">Trailhead</p>
         <h1>Software engineer building intelligent, data-driven products.</h1>

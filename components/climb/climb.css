@@ -1,7 +1,5 @@
 .climb-enhancement {
-  --climb-bg: #1a211d; --climb-surface: #252f29; --climb-text: #ece6d2;
-  --climb-muted: rgba(236,230,210,0.74); --climb-accent: #e3a983; --climb-line: rgba(236,230,210,0.15);
-  color: var(--climb-text);
+  color: var(--r-ink);
 }
 .climb-list[hidden], .climb-enhancement[hidden], .climb-view-toggle[hidden] { display: none !important; }
 .climb-view-toggle {
@@ -25,7 +23,7 @@
   font-size: 0.8rem; max-width: 15rem; padding: 0.7rem; position: fixed; left: 1rem;
   top: calc(var(--home-header-height) + 4rem); z-index: 51;
 }
-.climb-sound-toggle, .climb-sound-status { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
+
 @media (min-width: 901px) {
   /* Leave the Trail Rail's 44px targets and a gap beside the sound control. */
   .climb-sound-toggle, .climb-sound-status { left: calc(44px + 1.75rem); }
@@ -65,10 +63,8 @@
 .climb-mountain .lm:is(:hover, .is-hot, [data-hovered="true"], [aria-expanded="true"]) { filter: drop-shadow(0 0 10px rgba(181,101,59,0.9)) brightness(1.06); }
 .climb-mountain .lm:focus-visible { filter: drop-shadow(0 0 3px #fffbed) drop-shadow(0 0 6px #173f35); }
 .climb-panel {
-  --parchment: var(--climb-bg); --parchment-deep: var(--climb-surface); --ink: var(--climb-text);
-  --copper-text: var(--climb-accent); --line: var(--climb-line);
-  background: var(--climb-bg); border: 0; border-left: 1px solid var(--climb-line); bottom: 0; box-shadow: -24px 0 60px -40px rgba(0,0,0,0.6);
-  color: var(--climb-text); flex-direction: column; height: 100svh; left: auto; margin: 0; max-height: none; max-width: 100%;
+  background: var(--bg); border: 0; border-left: 1px solid var(--line); bottom: 0; box-shadow: -24px 0 60px -40px rgba(0,0,0,0.6);
+  color: var(--r-ink); flex-direction: column; height: 100svh; left: auto; margin: 0; max-height: none; max-width: 100%;
   overflow: hidden; padding: var(--home-header-height) 0 0; position: fixed; right: 0; top: 0; width: min(34rem, 100%); z-index: 50;
 }
 .climb-panel[open] { animation: climb-panel-enter 500ms cubic-bezier(.2,.7,.2,1); display: flex; }
@@ -77,16 +73,16 @@
   to { transform: translateX(0); }
 }
 .climb-panel::backdrop { background: transparent; }
-.climb-panel-head { align-items: center; border-bottom: 1px solid var(--climb-line); display: flex; flex: none; gap: 1rem; justify-content: space-between; padding: 0.85rem 1.5rem; }
-.climb-panel-head p { color: var(--climb-accent); font-size: 0.82rem; font-weight: 700; margin: 0; }
+.climb-panel-head { align-items: center; border-bottom: 1px solid var(--line); display: flex; flex: none; gap: 1rem; justify-content: space-between; padding: 0.85rem 1.5rem; }
+.climb-panel-head p { color: var(--r-accent); font-size: 0.82rem; font-weight: 700; margin: 0; }
 .climb-panel-tools { display: flex; flex: none; gap: 0.5rem; }
-.climb-panel-tools button { background: transparent; border: 1px solid var(--climb-line); border-radius: 999px; color: var(--climb-text); cursor: pointer; font: inherit; font-size: 0.8rem; font-weight: 700; min-height: 44px; padding: 0.4rem 0.8rem; }
+.climb-panel-tools button { background: transparent; border: 1px solid var(--line); border-radius: 999px; color: var(--r-ink); cursor: pointer; font: inherit; font-size: 0.8rem; font-weight: 700; min-height: 44px; padding: 0.4rem 0.8rem; }
 .climb-panel-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem 1.5rem 3rem; }
 .climb-panel-body:focus { outline: none; }
 .climb-panel-title { font-size: 1rem; font-weight: 450; line-height: 1.3; margin: 0 0 1.5rem; }
 .climb-panel .waypoint-story h3 { font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; }
 .climb-panel .waypoint-details { margin-top: 1.75rem; }
-.climb-panel .waypoint-meta, .climb-panel .technology-list li { color: var(--climb-text); }
+.climb-panel .waypoint-meta, .climb-panel .technology-list li { color: var(--r-ink); }
 .climb-panel .waypoint-evidence { background: #173f35; color: #fffbed; }
 .inline-case { display: none; }
 .inline-case:target, .inline-case:has(:target) { display: block; }
@@ -96,7 +92,7 @@
 .inline-cases { min-width: 0; }
 @media (min-width: 901px) { .climb-stage[data-panel-open="true"] .climb-scene { transform: translateX(-17rem); } }
 @media (max-width: 900px) {
-  .climb-panel { border-left: 0; border-top: 1px solid var(--climb-line); border-radius: 1rem 1rem 0 0; height: 82svh; max-height: calc(100svh - var(--home-header-height) - 4.25rem); padding: 0 0 env(safe-area-inset-bottom, 0px); top: auto; }
+  .climb-panel { border-left: 0; border-top: 1px solid var(--line); border-radius: 1rem 1rem 0 0; height: 82svh; max-height: calc(100svh - var(--home-header-height) - 4.25rem); padding: 0 0 env(safe-area-inset-bottom, 0px); top: auto; }
 }
 @media (max-width: 560px) { .climb-marker-label { max-width: 10rem; } }
 @media (prefers-reduced-motion: reduce) { .climb-scene, .climb-mountain .lm { transition: none; } }
@@ -112,7 +108,7 @@
 .climb-snow { height: 100%; inset: 0; pointer-events: none; position: absolute; width: 100%; }
 .climb-cards { pointer-events: none; }
 .climb-card {
-  background: var(--climb-surface); border: 1px solid var(--climb-line); box-shadow: 0 18px 50px -30px rgba(31,38,33,0.5);
+  background: var(--raised); border: 1px solid var(--line); box-shadow: 0 18px 50px -30px rgba(31,38,33,0.5);
   left: clamp(4.5rem, 6vw, 6rem); max-height: calc(100svh - 7.5rem); opacity: 0; overflow: auto;
   padding: clamp(1.4rem, 2.5vw, 2.25rem); pointer-events: none; position: absolute; top: calc(50% + var(--home-header-height) / 2);
   transform: translateY(-50%); visibility: hidden; width: min(30rem, 40vw);
@@ -125,19 +121,19 @@
   visibility: hidden; width: min(28vw, 24rem, calc(75svh - 6rem));
 }
 .climb-portrait[data-visible="true"] { visibility: visible; }
-.climb-card .climb-card-place { color: var(--climb-accent); font-family: var(--font-newsreader), serif; font-size: 1.05rem; font-style: italic; margin-bottom: 0.75rem; }
+.climb-card .climb-card-place { color: var(--r-accent); font-family: var(--font-newsreader), serif; font-size: 1.05rem; font-style: italic; margin-bottom: 0.75rem; }
 .climb-card h1, .climb-card h2 { font-size: clamp(2rem, 3.4vw, 3.25rem); letter-spacing: -0.035em; line-height: 1; margin: 0 0 1rem; max-width: none; }
-.climb-card p { color: var(--climb-muted); line-height: 1.7; margin: 0 0 0.9rem; }
-.climb-card .climb-card-lead { color: var(--climb-text); font-family: var(--font-newsreader), serif; font-size: 1.2rem; line-height: 1.45; }
+.climb-card p { color: var(--r-muted); line-height: 1.7; margin: 0 0 0.9rem; }
+.climb-card .climb-card-lead { color: var(--r-ink); font-family: var(--font-newsreader), serif; font-size: 1.2rem; line-height: 1.45; }
 .climb-card-hint { border-left: 2px solid var(--copper); font-size: 0.9rem; padding-left: 0.8rem; }
 .climb-card-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.25rem 0 1rem; }
 .climb-card-actions .button { border: 1px solid transparent; cursor: pointer; font-family: inherit; }
-.climb-card-actions .button-secondary { border-color: var(--climb-text); color: var(--climb-text); background: transparent; }
-.climb-card .resume-note { color: var(--climb-muted); border-color: var(--climb-line); }
-.climb-card-contact { border-top: 1px solid var(--climb-line); list-style: none; margin: 1rem 0 0; padding: 0; }
-.climb-card-contact a { border-bottom: 1px solid var(--climb-line); display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; justify-content: space-between; padding: 0.8rem 0; text-decoration: none; }
+.climb-card-actions .button-secondary { border-color: var(--r-ink); color: var(--r-ink); background: transparent; }
+.climb-card .resume-note { color: var(--r-muted); border-color: var(--line); }
+.climb-card-contact { border-top: 1px solid var(--line); list-style: none; margin: 1rem 0 0; padding: 0; }
+.climb-card-contact a { border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; justify-content: space-between; padding: 0.8rem 0; text-decoration: none; }
 .climb-card-contact span { font-family: var(--font-newsreader), serif; font-size: 1.3rem; }
-.climb-card-contact small { color: var(--climb-muted); font-size: 0.85rem; }
+.climb-card-contact small { color: var(--r-muted); font-size: 0.85rem; }
 .climb-rail { left: 0.75rem; position: absolute; top: 50%; transform: translateY(-50%); }
 .climb-rail ol { display: grid; list-style: none; margin: 0; padding: 0; }
 .climb-rail li { position: relative; }
@@ -147,25 +143,23 @@
 .climb-rail button[data-waypoint] span { border-radius: 1px; transform: rotate(45deg); }
 .climb-rail button[aria-current="step"] span { background: #b5653b; border-color: #b5653b; height: 0.75rem; width: 0.75rem; }
 .climb-rail button:hover span { background: #173f35; }
-.climb-view-toggle { background: #252f29; border-color: rgba(236,230,210,0.3); color: #ece6d2; }
-.climb-enhancement .button-primary { background: #e9e1cc; color: #173f35; }
-.climb-enhancement .button-primary:hover { background: #fffbed; }
-/* Keep the durable List View in the fixed dark-green palette. */
-.portfolio-navigation { --parchment: #1a211d; --ink: #ece6d2; --line: rgba(236,230,210,0.15); color: var(--ink); }
+
+
+
+/* UI roots receive transition tokens without invalidating the detailed SVG. */
+.portfolio-navigation { color: var(--ink); }
 .portfolio-navigation .site-header nav a::after { transition: none; }
-.climb-list { --parchment: #1a211d; --parchment-deep: #1e2621; --ink: #ece6d2; --copper-text: #e3a983; --line: rgba(236,230,210,0.15); background: var(--parchment); color: var(--ink); }
-.climb-list .work { background-image: linear-gradient(to bottom, #1e2621, #212a25); }
-.climb-list .personal-interlude { background-image: linear-gradient(to bottom, #212a25, #1a211d); }
-.climb-list .summit, .climb-list footer { background-color: #121714; }
-.climb-list .about { background-color: #123129; }
-.climb-list :is(.eyebrow, .section-kicker-dark, .waypoint-meta, .technology-list li, .interlude-stamp) { color: #a9c7b5; }
-.climb-list .technology-list li { border-color: rgba(236,230,210,0.3); }
+.climb-list { background: var(--bg); color: var(--ink); }
 .climb-list .waypoint-marker { color: #173f35; }
 .climb-list .waypoint-marker:is(:hover, :focus-visible, [aria-current="location"]) { color: #fffbed; }
-.climb-list .button-secondary { border-color: #a9c7b5; color: #a9c7b5; }
-.climb-list .button-secondary:hover { color: #fffbed; }
-.climb-list .resume-note { color: rgba(236,230,210,0.74); }
-.climb-list :is(.string, .fret) { background: rgba(169,199,181,0.38); }
+.climb-cards { color: var(--r-ink); }
+.climb-view-toggle, .climb-sound-toggle, .climb-sound-status {
+  background: var(--btn); border-color: var(--line-strong); color: var(--btn-ink);
+}
+.climb-view-toggle:hover, .climb-sound-toggle:hover { background: var(--btn-hover); }
+.climb-view-toggle:active, .climb-sound-toggle[aria-pressed="true"] { background: var(--btn-active); color: var(--btn-ink); }
+.climb-enhancement .button-primary { background: var(--r-primary); color: var(--r-primary-ink); }
+.climb-enhancement .button-primary:hover { background: var(--r-primary-hover); }
 @media (max-width: 900px) {
   .climb-rail { display: none; }
   .climb-card { bottom: 1rem; left: 1rem; max-height: 52svh; right: 1rem; top: auto; transform: none; width: auto; }

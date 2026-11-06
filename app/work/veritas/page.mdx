@@ -23,7 +23,7 @@ export const metadata = veritasWaypoint.metadata;
 export function CaseStudyContent({ idPrefix = "", embedded = false }) {
   const Title = embedded ? "h2" : "h1";
   return (
-<article className={styles.caseStudy}>
+<article className={styles.caseStudy} data-theme-root="">
     <header className={styles.hero}>
       <div className={styles.heroCopy}>
         <p className={styles.eyebrow}>{`Waypoint ${String(veritasWaypoint.order).padStart(2, "0")} · ${veritasWaypoint.period}`}</p>
