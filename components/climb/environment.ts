@@ -1,8 +1,5 @@
-// Reference night extension for components/climb/weather.ts (from the approved prototype).
-// Day frames are the existing SKY table, unchanged. Night frames sit at the same
-// altitude positions. Both use weather.ts's frame search + smoothstep, then are mixed
-// in OKLab by the scene blend n. ONE renderer writes all of this, called from the
-// existing Climb frame; the theme controller only requests a frame.
+// Approved night palette, composed with the existing altitude weather.
+// One frame path owns all environment writes, including stationary toggles.
 
 import { cssRgb, hexRgb, lerp, mixLab, rgbHex, smooth, type Rgb } from "../theme/color";
 import { weather } from "./weather";
@@ -60,7 +57,7 @@ export function environment(position: number, b: Blend) {
 }
 export type Environment = ReturnType<typeof environment>;
 
-// Sketch of the extended renderer. Keep weather.ts's write-if-changed discipline.
+// Cache scene references and write only changed paint values.
 export function createEnvironmentRenderer(stage: HTMLElement) {
   const q = <E extends Element>(s: string) => stage.querySelector<E>(s)!;
   const sky = q<HTMLElement>(".climb-sky"), sun = q<HTMLElement>(".climb-sun"), moon = q<HTMLElement>(".climb-moon");

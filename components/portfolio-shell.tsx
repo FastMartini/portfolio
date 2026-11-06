@@ -45,16 +45,18 @@ export function PortfolioHeader({
         <span>{homeLabel}</span>
       </Link>
       <nav aria-label={navLabel}>
-        {links.map((link) => (
-          <a href={link.href} key={link.href}>
-            {link.label}
-          </a>
-        ))}
+        <div className="site-header-links">
+          {links.map((link) => (
+            <a href={link.href} key={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </div>
+        <div className="site-header-controls">
+          <ThemeToggle />
+          {action}
+        </div>
       </nav>
-      <div className="site-header-controls">
-        <ThemeToggle />
-        {action}
-      </div>
     </header>
   );
 }

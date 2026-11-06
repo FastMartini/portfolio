@@ -57,3 +57,7 @@
   --r-primary-ink: #fffbed;
   --focus-edge: #1f2621;
 }
+
+/* Backing colors are literals, keeping palette variables out of the SVG. */
+body { background: #1a211d; }
+:root[data-theme="light"] body { background: #f3eedd; }

@@ -22,7 +22,7 @@ a { color: inherit; }
 a:focus-visible { outline: 3px solid var(--copper); outline-offset: 5px; }
 
 .skip-link {
-  background: var(--cream); color: var(--ink-label); left: 1rem; padding: 0.75rem 1rem;
+  background: var(--btn); color: var(--btn-ink); left: 1rem; padding: 0.75rem 1rem;
   position: fixed; top: 1rem; transform: translateY(-200%); transition: transform 150ms ease; z-index: 20;
 }
 .skip-link:focus { transform: translateY(0); }
@@ -187,7 +187,7 @@ footer p { margin: 0; } footer a { text-decoration: none; }
 }
 
 @media (max-width: 600px) {
-  .site-header--case-study nav { display: none; }
+  .site-header--case-study .site-header-links { display: none; }
   .site-header { padding-top: 1rem; }
   .trailhead { padding-top: 7.5rem; }
   h1 { font-size: clamp(3.7rem, 17vw, 5.8rem); }

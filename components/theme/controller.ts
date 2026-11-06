@@ -1,6 +1,5 @@
-// Reference theme controller (from the approved prototype). Framework-free; wrap it in a
-// React provider mounted in app/layout.tsx so List View, Climb, panels and Case Study
-// routes share ONE instance.
+// One framework-free transition clock shared by List View, Climb, panels,
+// and Case Study routes through the root ThemeProvider.
 //
 // Model: one selected destination (light | dark) and one phase p in [0, 1]
 // (0 = Light, 1 = Dark). Every visual is a pure function of p, so any view that
@@ -49,14 +48,21 @@ export function createThemeController(root: HTMLElement = document.documentEleme
     return state.p !== state.target;
   }
 
-  function frame(ts: number) {
+  function frame() {
     state.raf = 0;
-    // Reduced motion follows elapsed time even when native painting is sparse;
-    // a 150 ms preference fade must not turn into several slow scene frames.
-    const elapsed = state.last ? ts - state.last : 16;
-    const dt = state.reduced ? elapsed : Math.min(MAX_DT, elapsed);
-    state.last = ts;
-    const moving = step(dt);
+    // Selection and frames use one clock. Native frame timestamps can describe
+    // an earlier paint, especially in software WebKit. Integrate long gaps in
+    // small steps instead of stretching a one-second fade over many seconds.
+    const now = performance.now();
+    const elapsed = state.last ? Math.max(0, now - state.last) : 16;
+    state.last = now;
+    let remaining = Math.min(elapsed, NORMAL_MS + TURN_TAU_MS * 5);
+    let moving = state.p !== state.target;
+    while (remaining > 0 && moving) {
+      const dt = state.reduced ? remaining : Math.min(MAX_DT, remaining);
+      moving = step(dt);
+      remaining -= dt;
+    }
     if (!moving) state.settled = true;
     emit(); // settled === true on the final frame: listeners remove inline values
     if (moving) state.raf = requestAnimationFrame(frame);

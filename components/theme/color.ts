@@ -1,4 +1,3 @@
-// Reference implementation (from the approved prototype). Framework-free, no dependencies.
 // OKLab mixing for surfaces and inks; WCAG 2.x relative-luminance contrast.
 
 export type Rgb = readonly [number, number, number]; // 0..1 sRGB

@@ -6,7 +6,13 @@ The homepage defaults to the illustrated Climb after client enhancement: ordinar
 
 The complete server-rendered List View is visible without JavaScript and remains reachable through the view toggle or any hash targeting its content. Case Studies such as `#case-veritas` open with CSS `:target` even without script; standalone `/work/*/` routes remain available. Waypoint metadata comes from `content/waypoints.ts`, and Case Study prose stays in `app/work/*/page.mdx`.
 
-The large deterministic mountain SVG is built once from fixed seeds. Native scroll frames update cached transforms, trail offset, climber and marker positions without rerendering content. SVG SMIL provides landmark animation; an optional 2D canvas provides snow. Hidden tabs and List View idle the scene. No WebGL, external illustration assets, or camera controls are used. The stage stays daytime and content surfaces keep one dark-green appearance, independent of the browser’s color preference.
+The large deterministic mountain SVG is built once from fixed seeds. Native scroll frames update cached transforms, trail offset, climber and marker positions without rerendering content. SVG SMIL provides landmark animation; an optional 2D canvas provides snow. Hidden tabs and List View idle the scene. No WebGL, external illustration assets, or camera controls are used. Dark is the first-visit default, with a manual Light/Dark header control shared across List View, Climb, and Case Studies. The selected appearance persists across refreshes and tabs, independently of the browser’s color preference. Day and night retain the same altitude weather; the shared transition blends sky and selective environmental lighting while keeping the original live vectors.
+
+## Appearance
+
+The approved theme design adds warm parchment reading surfaces and moonlit Climb lighting. All four Climb cards use cream surfaces in Light mode. A shared controller supports continuous reversal, mid-transition view switches, pre-paint restoration, and a short color-only reduced-motion fade. The pine splash remains unchanged.
+
+Palette values live in `components/theme/tokens.json`; run `npm run theme:generate` after changing them. UI roots own both settled and animated tokens so the mountain does not inherit frame-by-frame interface colors. See [the implementation and validation notes](docs/handoff/theme-validation.md) and [ADR 0005](docs/adr/0005-scope-theme-palettes-to-ui-roots.md).
 
 ## Adaptive and fail-safe Climb
 

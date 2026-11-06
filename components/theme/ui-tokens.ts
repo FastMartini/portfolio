@@ -1,4 +1,4 @@
-// Reference per-frame UI token writer (from the approved prototype).
+// Approved per-frame UI palette, scoped away from the SVG world.
 //
 // Settled values live in theme.css on UI roots. While a transition runs, this writes
 // inline custom properties ONLY on UI roots (header, .climb-list, .climb-cards / HUD,
