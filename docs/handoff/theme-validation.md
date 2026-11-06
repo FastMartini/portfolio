@@ -30,7 +30,16 @@ The immutable baseline was current `main`, commit `aaa198f`, containing the merg
 
 ## Acceptance evidence
 
-The production export is tested through the existing Playwright server with `/portfolio/` as its deployment base path. Browser-suite results are finalized below after the current runs complete.
+The production export is tested through the existing Playwright server with `/portfolio/` as its deployment base path.
+
+- Final local regression gate: **435 passed, 2 Chromium-specific GPU checks skipped in WebKit**, no failures or retries, across Chromium and WebKit. This run compares committed visual baselines without updating them.
+- Focused theme gate: **44 passed** across Chromium and WebKit, including the exported 404 page in both palettes.
+- Custom-domain routing/metadata gate with an empty deployment base path: **28 passed** across Chromium and WebKit.
+- Lint, TypeScript and production static builds passed. Approved `tokens.json` values match the supplied reference exactly, and regenerating the settled stylesheet leaves no diff.
+- [Linux three-engine gate](https://github.com/FastMartini/portfolio/actions/runs/42199556791): **573 passed, 1 passed on retry, 4 engine-specific skips**, workflow successful. The retry was the existing WebKit sparse-native-frame navigation fixture; all 66 theme-specific cases passed on their first attempt. Firefox application checks ran successfully on Linux.
+- Reviewed and committed 22 visual baselines per platform (macOS and Linux): six Dark List View captures, eight Light Climb captures and eight Dark Climb captures. Linux images came from the successful three-engine run's artifact, not locally substituted macOS images.
+
+Linux setup uses Ubuntu's standard package mirror after the hosted Azure mirror spent over thirteen minutes fetching the first twenty packages. The same Playwright browsers and dependencies then installed in 89 seconds; no browser or regression check was removed.
 
 | Surface / behavior | Coverage |
 | --- | --- |
@@ -46,7 +55,7 @@ The production export is tested through the existing Playwright server with `/po
 
 ### Visual review
 
-The reviewed endpoint snapshots cover Trailhead, Waypoints 03 and 06, and Summit at desktop/mobile sizes in both themes. Existing Dark List View baselines change only around the new header control. Original daytime vector comparisons remain strict: tests exclude only the added night nodes and semantic class hooks.
+The reviewed endpoint snapshots cover Trailhead, Waypoints 03 and 06, and Summit at desktop/mobile sizes in both themes. Existing Dark List View baselines change around the new header control; the Resume note also adopts the approved opaque muted-ink token in place of its old translucent color. Original daytime vector comparisons remain strict: tests exclude only the added night nodes and semantic class hooks.
 
 The following boards capture the actual production application at 250, 500 and 750ms. Rows are Trailhead, snow stage and Summit; columns are elapsed time. The browser clock advances at 60Hz and SMIL is fixed at time zero for visual comparison. This is controlled-time visual evidence, separate from native moving-paint evidence. [Frame measurements](theme-evidence/transition-frames.json) record the rendered colors and opacities.
 
@@ -75,9 +84,16 @@ Installed visible Chrome **156.0.8078.81**, physical content area **1200 × 760*
 - The approved continuous text fade briefly lowers intermediate contrast. Endpoint axe passes do not imply full-transition WCAG contrast compliance.
 - The approved hill clip can tint a thin strip above foreground hill crests, and a few edge-tree slivers can retain daytime color. These remain the supplied design's known compromises.
 - WebKit means Playwright's WebKit engine, not a physical iOS Safari device. GPU cache stress is Chromium-specific; the other engines run applicable rendering, motion, fallback and interaction checks.
+- Animation-duration and color-step assertions use a controlled 60Hz browser clock. Native software WebKit delivered only 3–4 observation frames in isolated reduced-motion fades (272–407ms), and one parallel run took 930ms. The controller integrates elapsed time rather than extending its duration, but blocked native paint cannot be made frame-exact. Smoothness on physical Safari devices remains a review item.
 
 ## Reproduction
 
 Use the existing Playwright production-export boundary, including the configured deployment base path. Run `npm run lint`, `npm run typecheck`, and `npm test`. The `theme.spec.ts` suite is included in Chromium, Firefox, and WebKit selections and exercises the real theme control, first paint, persistence, interruptions, panels, reading routes, tab synchronization, reduced motion, accessibility, and responsive controls.
 
 The existing GPU-cache protocol remains the rendering gate. Evaluate normal memory separately from the artificial constraint and capture moving frames, not only endpoints. The backing-color oracle detects missing paint; separate transition captures assess continuity and intermediate appearance.
+
+```bash
+# Both starting themes, visible installed Chrome, native scrolling and theme changes.
+SCROLL_BROWSER_CHANNEL=chrome SCROLL_BROWSER_HEADED=1 SCROLL_THEME_TRANSITIONS=1 SCROLL_GPU_BUDGET=normal npm test -- tests/climb-rendering.spec.ts --project=chromium --workers=1 --grep 'whole route'
+SCROLL_BROWSER_CHANNEL=chrome SCROLL_BROWSER_HEADED=1 SCROLL_THEME_TRANSITIONS=1 SCROLL_GPU_BUDGET=128 npm test -- tests/climb-rendering.spec.ts --project=chromium --workers=1 --grep 'whole route' --repeat-each=3
+```
