@@ -166,21 +166,20 @@ test("reduced motion fades briefly without twilight and live preference changes 
   await ready(page);
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
   await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
-  const elapsed = await page.evaluate(async () => {
-    const start = performance.now();
-    document.querySelector<HTMLButtonElement>(".theme-toggle")!.click();
-    await new Promise<void>((resolve) => {
-      const sample = () => getComputedStyle(document.querySelector(".site-header")!).backgroundColor === "rgb(243, 238, 221)" ? resolve() : requestAnimationFrame(sample);
-      requestAnimationFrame(sample);
-    });
-    return performance.now() - start;
-  });
-  expect(elapsed).toBeGreaterThan(70);
-  expect(elapsed).toBeLessThan(600);
+  // Verify the designed duration against rendered styles on a controlled
+  // browser clock. Native software WebKit can miss entire paint opportunities
+  // under parallel load; wall-clock observation measures that scheduler too.
+  await page.clock.install();
+  await page.clock.pauseAt(new Date(Date.now() + 1000));
+  await page.evaluate(() => document.querySelector<HTMLButtonElement>(".theme-toggle")!.click());
+  await page.clock.runFor(64);
+  await expect(page.getByRole("banner")).not.toHaveCSS("background-color", ground.light);
+  await page.clock.runFor(112);
+  await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.light);
   await expect(page.locator(".climb-twilight")).toHaveCSS("opacity", "0");
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.getByRole("button", { name: "Switch to dark theme" }).click();
-  await page.waitForTimeout(200);
+  await page.evaluate(() => document.querySelector<HTMLButtonElement>(".theme-toggle")!.click());
+  await page.clock.runFor(200);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.dark);
 });
