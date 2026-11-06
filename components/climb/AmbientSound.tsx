@@ -44,7 +44,7 @@ export function AmbientSound({ ref, active }: { ref: Ref<AmbientSoundController>
     } catch { fail(); }
   }
   return <>
-    <button type="button" className="climb-sound-toggle" hidden={!active}
+    <button data-theme-root="" type="button" className="climb-sound-toggle" hidden={!active}
       aria-label="Ambient sound" aria-pressed={enabled} onClick={toggle}
       title={enabled ? "Mute ambient sound" : "Turn on fire and snow sounds"}>
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -53,7 +53,7 @@ export function AmbientSound({ ref, active }: { ref: Ref<AmbientSoundController>
       </svg>
       <span>Sound {enabled ? "on" : "off"}</span>
     </button>
-    <span className="climb-sound-status" role="status" hidden={!active || !failed}>
+    <span data-theme-root="" className="climb-sound-status" role="status" hidden={!active || !failed}>
       {failed ? "Sound could not start. You can try turning it on again." : ""}
     </span>
   </>;

@@ -14,4 +14,4 @@ export function readClimbProgress(scroll: number) {
   return { u, position, nearest: Math.round(u) };
 }
 
-export type ClimbFrame = ReturnType<typeof readClimbProgress> & { reducedMotion: boolean };
+export type ClimbFrame = ReturnType<typeof readClimbProgress> & { reducedMotion: boolean; geometryChanged?: boolean };

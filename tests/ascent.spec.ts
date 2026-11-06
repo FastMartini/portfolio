@@ -90,6 +90,8 @@ test("the navigation view toggle is keyboard reachable and switches both ways", 
   const navigation = page.getByRole("navigation", { name: "Primary navigation" });
   await navigation.getByRole("link", { name: "Contact", exact: true }).focus();
   await page.keyboard.press("Tab");
+  await expect(navigation.getByRole("button", { name: "Switch to light theme" })).toBeFocused();
+  await page.keyboard.press("Tab");
   const toggle = navigation.getByRole("button", { name: "Climb view" });
   await expect(toggle).toBeFocused();
   await page.keyboard.press("Enter");

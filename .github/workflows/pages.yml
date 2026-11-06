@@ -32,7 +32,12 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: |
+          # Avoid intermittent multi-minute package downloads from the Azure mirror.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/apt-mirrors.txt
+          fi
+          npx playwright install --with-deps chromium firefox webkit
 
       - name: Start a virtual audio output for native playback tests
         run: |

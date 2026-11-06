@@ -1,0 +1,41 @@
+/* Theme-independent values (do not tokenize):
+   cream text on deliberate dark sections #fffbed, muted rgba(255,251,237,.72), copper-light #e0a07a
+   waypoint evidence block #173f35 / #fffbed
+   Climb markers + Trail Rail: pin #fffbed, ink #173f35, current #b5653b
+   List View pine primary button #173f35 -> hover #285d4f -> active #10302a, text #fffbed
+   copper fill / focus ring #b5653b */
+
+/* Focus: copper outline with an outer ink stroke. */
+:where(a, button):focus-visible { outline: 3px solid #b5653b; outline-offset: 3px; box-shadow: 0 0 0 7.5px var(--focus-edge); }
+:where([data-theme-root]) { color: var(--ink); }
+
+
+.site-header { gap: 1rem; }
+.site-header nav { align-items: center; flex: 1; justify-content: space-between; }
+.site-header-links { display: flex; gap: inherit; margin-inline: auto; }
+.site-header-controls { align-items: center; display: flex; flex: none; gap: 0.5rem; letter-spacing: normal; text-transform: none; }
+.theme-toggle {
+  align-items: center; background: var(--btn); border: 1px solid var(--line-strong); border-radius: 999px;
+  color: var(--btn-ink); cursor: pointer; display: inline-flex; flex: none; font: inherit;
+  font-size: 0.78rem; font-weight: 700; gap: 0.45rem; justify-content: center;
+  min-height: 44px; min-width: 44px; padding: 0.45rem 0.85rem; white-space: nowrap;
+}
+.theme-toggle[hidden] { display: none; }
+.theme-toggle:hover { background: var(--btn-hover); }
+.theme-toggle:active { background: var(--btn-active); }
+.site-header-controls .climb-view-toggle { position: static; }
+@media (max-width: 1100px) and (min-width: 901px) {
+  .site-header nav { gap: 1.25rem; }
+}
+@media (max-width: 900px) {
+  .site-header:not(.site-header--case-study) .site-header-controls { position: absolute; right: var(--page-padding); top: 0.75rem; }
+  .site-header:not(.site-header--case-study) nav { width: 100%; }
+  .site-header:not(.site-header--case-study) .site-header-links { margin-inline: 0; }
+}
+@media (max-width: 600px) {
+  .theme-toggle { height: 44px; padding: 0; width: 44px; }
+  .theme-toggle span { display: none; }
+  .site-header--case-study nav { justify-content: flex-end; }
+}
+
+.climb-mountain { color: #1f2621; color-scheme: light; }

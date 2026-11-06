@@ -2,14 +2,16 @@ import { chromium, expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 import { mountainView } from "../components/climb/mountain/geometry";
 
-test("native scrolling across the whole route keeps the scene painted with a constrained GPU cache", async ({ browserName, baseURL }, testInfo) => {
+for (const theme of ["dark", "light"] as const) {
+test(`native scrolling across the whole route keeps the ${theme} scene painted with a constrained GPU cache`, async ({ browserName, baseURL }, testInfo) => {
   test.skip(browserName !== "chromium", "GPU cache controls and screencasting require Chromium");
   test.setTimeout(90_000);
   const headed = process.env.SCROLL_BROWSER_HEADED === "1";
+  const gpuBudget = process.env.SCROLL_GPU_BUDGET ?? "128";
   const browser = await chromium.launch({
     headless: !headed,
     channel: process.env.SCROLL_BROWSER_CHANNEL || undefined,
-    args: ["--force-gpu-mem-available-mb=128"],
+    args: gpuBudget === "normal" ? [] : [`--force-gpu-mem-available-mb=${gpuBudget}`],
   });
   try {
     // Visible-window checks use the physical content area; an emulated viewport
@@ -17,7 +19,7 @@ test("native scrolling across the whole route keeps the scene painted with a con
     const page = await browser.newPage(headed
       ? { baseURL, viewport: null, deviceScaleFactor: undefined }
       : { baseURL, viewport: { width: 1512, height: 850 }, deviceScaleFactor: 2 });
-    await openClimb(page);
+    await openClimb(page, theme);
     await page.locator(".splash").waitFor({ state: "hidden" });
     // This color exists only behind the opaque scene. It catches missing paint
     // independently of the site's theme, unlike checking for a dark background.
@@ -36,6 +38,7 @@ test("native scrolling across the whole route keeps the scene painted with a con
       frames.push(event.data);
       void session.send("Page.screencastFrameAck", { sessionId: event.sessionId }).catch(() => {});
     });
+    const captureStart = Date.now();
     await session.send("Page.startScreencast", { format: "jpeg", quality: 85, maxWidth: 1000, maxHeight: 650, everyNthFrame: 1 });
     const root = page.locator("#climb");
     const endpoints: { position: string; settled: string }[] = [];
@@ -52,12 +55,17 @@ test("native scrolling across the whole route keeps the scene painted with a con
     await page.mouse.move(pointer.x, pointer.y);
     for (const direction of [1, -1]) {
       for (let i = 0; i < steps; i++) {
+        if (process.env.SCROLL_THEME_TRANSITIONS === "1" && i === Math.floor(steps / 2)) {
+          await page.getByRole("button", { name: /Switch to (light|dark) theme/ }).click();
+          await page.mouse.move(pointer.x, pointer.y);
+        }
         await page.mouse.wheel(0, direction * travel / steps);
         await page.waitForTimeout(25);
       }
       await captureEndpoint(direction === 1 ? "1.0000" : "0.0000");
     }
     await session.send("Page.stopScreencast");
+    const captureMs = Date.now() - captureStart;
     expect(endpoints).toEqual([
       { position: "0.0000", settled: "true" },
       { position: "1.0000", settled: "true" },
@@ -65,41 +73,63 @@ test("native scrolling across the whole route keeps the scene painted with a con
     ]);
     expect(frames.length).toBeGreaterThan(50);
     // DOM visibility and settled screenshots cannot detect transient lost tiles.
+    const analysisStart = Date.now();
     const missing = await page.evaluate(async ({ frames, backing }) => {
       const canvas = new OffscreenCanvas(1, 1);
       const context = canvas.getContext("2d", { willReadFrequently: true })!;
       const [red, green, blue] = backing;
-      let missing = 0;
-      for (const frame of frames) {
-        const image = new Image();
-        image.src = `data:image/jpeg;base64,${frame}`;
-        await image.decode();
-        canvas.width = image.width; canvas.height = image.height;
+      async function readPixels(blob: Blob) {
+        const image = await createImageBitmap(blob);
+        const { width, height } = image;
+        if (canvas.width !== width) canvas.width = width;
+        if (canvas.height !== height) canvas.height = height;
         context.drawImage(image, 0, 0);
-        const pixels = context.getImageData(0, 0, image.width, image.height).data;
-        let blank = false;
-        for (let y = 80; y < image.height - 32 && !blank; y += 32) {
-          for (let x = 0; x < image.width - 32 && !blank; x += 32) {
+        const pixels = context.getImageData(0, 0, width, height).data;
+        image.close();
+        return { pixels, width, height };
+      }
+      function exposesBacking({ pixels, width, height }: Awaited<ReturnType<typeof readPixels>>) {
+        for (let y = 80; y < height - 32; y += 32) {
+          for (let x = 0; x < width - 32; x += 32) {
             let exposed = 0;
             for (let dy = 0; dy < 32; dy++) for (let dx = 0; dx < 32; dx++) {
-              const p = ((y + dy) * image.width + x + dx) * 4;
+              const p = ((y + dy) * width + x + dx) * 4;
               if (Math.abs(pixels[p] - red) < 8 && Math.abs(pixels[p + 1] - green) < 8 && Math.abs(pixels[p + 2] - blue) < 8) exposed++;
             }
-            blank = exposed > 980;
+            if (exposed > 980) return true;
           }
         }
-        if (blank) missing++;
+        return false;
+      }
+      // Both controls use the same JPEG decoder and pixel oracle as captures.
+      // This guards against silently accepting every frame after decoder changes.
+      const control = new OffscreenCanvas(160, 160);
+      const paint = control.getContext("2d")!;
+      paint.fillStyle = `rgb(${backing.join(",")})`;
+      paint.fillRect(0, 0, 160, 160);
+      if (!exposesBacking(await readPixels(await control.convertToBlob({ type: "image/jpeg" })))) throw new Error("Missing-paint oracle failed its exposed-backing control");
+      paint.fillStyle = "black";
+      paint.fillRect(0, 0, 160, 160);
+      if (exposesBacking(await readPixels(await control.convertToBlob({ type: "image/jpeg" })))) throw new Error("Missing-paint oracle failed its opaque control");
+      let missing = 0;
+      for (const frame of frames) {
+        // Close each decoded bitmap before reading the next captured frame.
+        const binary = atob(frame), bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        if (exposesBacking(await readPixels(new Blob([bytes], { type: "image/jpeg" })))) missing++;
       }
       return missing;
     }, { frames, backing });
     await testInfo.attach("rendered-route-coverage.json", {
-      body: JSON.stringify({ browser: browser.version(), headed,
+      body: JSON.stringify({ browser: browser.version(), headed, gpuBudget, theme, transitions: process.env.SCROLL_THEME_TRANSITIONS === "1",
         viewport: await page.evaluate(() => ({ width: innerWidth, height: innerHeight, deviceScaleFactor: devicePixelRatio })),
-        endpoints, frames: frames.length, missing }), contentType: "application/json",
+        endpoints, frames: frames.length, missing, captureMs, analysisMs: Date.now() - analysisStart }), contentType: "application/json",
     });
     expect(missing, "no captured frame should expose the page backing through the scene").toBe(0);
   } finally { await browser.close(); }
 });
+
+}
 
 for (const samplingDelay of [0, 900]) {
   test(`scrolling keeps sharp artwork and running animations with ${samplingDelay ? "sparse" : "native"} frame samples`, async ({ page }) => {
@@ -195,7 +225,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 700 
 }
 
 test("weather changes do not inherit through the detailed vectors", async ({ page }) => {
-  await openClimb(page);
+  await openClimb(page, "light");
   await expect(page.locator(".climb-sky")).toHaveCSS("--sky-top", "rgb(231,220,192)");
   expect(await page.locator("svg.mtn").evaluate((svg) => getComputedStyle(svg).getPropertyValue("--sky-top"))).toBe("");
 });

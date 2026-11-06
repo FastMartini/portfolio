@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "./theme/ThemeToggle";
 
 type ShellLink = {
   href: string;
@@ -18,7 +19,7 @@ type PortfolioHeaderProps = {
 
 export function SkipLink({ href, label }: { href: string; label: string }) {
   return (
-    <a className="skip-link" href={href}>
+    <a data-theme-root="" className="skip-link" href={href}>
       {label}
     </a>
   );
@@ -35,6 +36,7 @@ export function PortfolioHeader({
 }: PortfolioHeaderProps) {
   return (
     <header
+      data-theme-root=""
       className={`site-header${
         variant === "case-study" ? " site-header--case-study" : ""
       }`}
@@ -43,12 +45,17 @@ export function PortfolioHeader({
         <span>{homeLabel}</span>
       </Link>
       <nav aria-label={navLabel}>
-        {links.map((link) => (
-          <a href={link.href} key={link.href}>
-            {link.label}
-          </a>
-        ))}
-        {action}
+        <div className="site-header-links">
+          {links.map((link) => (
+            <a href={link.href} key={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </div>
+        <div className="site-header-controls">
+          <ThemeToggle />
+          {action}
+        </div>
       </nav>
     </header>
   );

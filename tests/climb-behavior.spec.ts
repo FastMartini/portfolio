@@ -43,7 +43,7 @@ test("altitude weather preserves morning, snowfall, white-out, and clear summit 
 
 test("all ten stops show their card or Waypoint marker and update the bottom-to-top Trail Rail without corner boxes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await openClimb(page);
+  await openClimb(page, "light");
   const root = page.locator("#climb");
   await expect(root).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Software engineer building intelligent, data-driven products.");

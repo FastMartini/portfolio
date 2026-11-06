@@ -1,0 +1,3 @@
+# Scope theme palettes to UI roots
+
+The selected theme lives on the document root, while settled and animated palette tokens belong to registered UI roots; the Climb environment consumes the same transition blend through its own renderer. Defining the settled palette on `:root` made a theme flip invalidate the detailed SVG forest: the reduced-motion browser repro took 1.4–2.2 seconds, despite a 150 ms controller. Scoping both palettes to UI roots made that regression test pass while keeping theme state shared across routes and views. New reading surfaces and controls register a `data-theme-root`; the mountain inherits fixed illustration paint and receives only targeted environmental updates.

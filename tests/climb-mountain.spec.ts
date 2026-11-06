@@ -27,7 +27,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await expect(page.locator(".climb-mountain")).toHaveAttribute("data-ready", "true");
     await page.locator(".climb-preview-caption").evaluate((element) => element.remove());
     await page.evaluate(() => {
-      document.querySelectorAll(".lm, .lift").forEach((element) => element.remove());
+      document.querySelectorAll(".lm, .lift, #night-veil, #night-lights, #night-clip, #night-veil-grad").forEach((element) => element.remove());
       document.querySelectorAll('svg.climb-layer-svg > g[transform]:not(#a-climber), svg.climb-layer-svg > g[clip-path="url(#mtn-clip)"] > g[transform]')
         .forEach((element) => element.remove());
     });

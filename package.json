@@ -10,7 +10,8 @@
     "social:generate": "node scripts/generate-social-images.mjs",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "theme:generate": "node scripts/generate-theme-css.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",

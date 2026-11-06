@@ -3,7 +3,8 @@ import type { Page } from "@playwright/test";
 
 // Reduced-motion visitors now start in List View. Scene-specific tests opt in
 // through the real toggle; no fixture bypasses the production preference policy.
-export async function openClimb(page: Page) {
+export async function openClimb(page: Page, theme?: "light" | "dark") {
+  if (theme) await page.addInitScript((value) => localStorage.setItem("portfolio-theme", value), theme);
   await page.addInitScript(() => {
     for (const hint of ["deviceMemory", "hardwareConcurrency"]) {
       if (!Object.hasOwn(navigator, hint)) Object.defineProperty(navigator, hint, { value: 8, configurable: true });

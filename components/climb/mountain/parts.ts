@@ -4,6 +4,15 @@ export const WALL = "#d6ccb5", WALL_S = "#b3a891", ROOF = "#93573b", ROOF_S = "#
 
 // One fixed light sequence per scene build; never shared mutable module state.
 export function createParts() {
+  const lights: string[] = [];
+  // Return the original paint unchanged while emitting its night copy at build
+  // time. Shared animation markup keeps both sources on the same timeline.
+  function light(markup: string, halo?: { x: number; y: number; r: number }) {
+    const glow = halo ? `<circle cx="${halo.x}" cy="${halo.y}" r="${halo.r}" fill="${WARM}" opacity="0.34" filter="url(#lm-glow)"/>` : "";
+    lights.push(glow + markup);
+    return markup;
+  }
+  function takeLights() { return lights.splice(0).join(""); }
   function line(d2: string, c: string, w: number, extra = "") { return '<path d="' + d2 + '" fill="none" stroke="' + c + '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round"' + (extra || "") + "/>"; }
   function shape(d2: string, c: string, extra = "") { return '<path d="' + d2 + '" fill="' + c + '"' + (extra || "") + "/>"; }
   function rect(x: number, y: number, w: number, h: number, c: string, extra = "") { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + c + '"' + (extra || "") + "/>"; }
@@ -17,10 +26,10 @@ export function createParts() {
   function warmWin(x: number, y: number, w: number, h: number, shutters: boolean) {
     const cx = x + w / 2, cy = y + h / 2;
     let out = "";
-    out += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (Math.max(w, h) * 0.85).toFixed(1) + '" fill="' + WARM + '" opacity="0.12" filter="url(#lm-glow)">' + pulseOpacity(0.04, 0.22, 3.8) + "</circle>";
+    out += light('<circle cx="' + cx + '" cy="' + cy + '" r="' + (Math.max(w, h) * 0.85).toFixed(1) + '" fill="' + WARM + '" opacity="0.12" filter="url(#lm-glow)">' + pulseOpacity(0.04, 0.22, 3.8) + "</circle>");
     if (shutters) out += rect(x - 6, y - 1, 5, h + 2, WOOD) + rect(x + w + 1, y - 1, 5, h + 2, WOOD);
     out += rect(x - 1.5, y - 1.5, w + 3, h + 3, WOOD_D);
-    out += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + WARM + '">' + pulseOpacity(0.62, 1, 3.8) + "</rect>";
+    out += light('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + WARM + '">' + pulseOpacity(0.62, 1, 3.8) + "</rect>", { x: cx, y: cy, r: Math.max(w, h) * 1.25 });
     out += line("M" + cx + " " + y + " V" + (y + h) + " M" + x + " " + cy + " H" + (x + w), WOOD_D, 1);
     out += rect(x - 3, y + h + 1, w + 6, 2.5, WOOD_D);
     return out;
@@ -85,7 +94,7 @@ export function createParts() {
     return out;
   }
 
-  return { line, shape, rect, shadow, pulseOpacity, warmWin, smoke, bullwheel, roof, masonry };
+  return { light, takeLights, line, shape, rect, shadow, pulseOpacity, warmWin, smoke, bullwheel, roof, masonry };
 }
 export type Parts = ReturnType<typeof createParts>;
 export type LandmarkArt = { svg: string; top: number; w: number; cable?: readonly [number, number] };
