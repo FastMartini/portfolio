@@ -1,0 +1,248 @@
+{
+  "date": "2026-11-06",
+  "description": "Installed visible Chrome, native full-route scroll in both directions, theme toggles while scrolling; every captured frame decoded and inspected for exposed backing. Positive and negative decoder controls retained.",
+  "normalMemory": [
+    {
+      "browser": "156.0.8078.81",
+      "headed": true,
+      "gpuBudget": "normal",
+      "theme": "dark",
+      "transitions": true,
+      "viewport": {
+        "width": 1200,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "endpoints": [
+        {
+          "position": "0.0000",
+          "settled": "true"
+        },
+        {
+          "position": "1.0000",
+          "settled": "true"
+        },
+        {
+          "position": "0.0000",
+          "settled": "true"
+        }
+      ],
+      "frames": 340,
+      "missing": 0,
+      "captureMs": 10491,
+      "analysisMs": 21904
+    },
+    {
+      "browser": "156.0.8078.81",
+      "headed": true,
+      "gpuBudget": "normal",
+      "theme": "light",
+      "transitions": true,
+      "viewport": {
+        "width": 1200,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "endpoints": [
+        {
+          "position": "0.0000",
+          "settled": "true"
+        },
+        {
+          "position": "1.0000",
+          "settled": "true"
+        },
+        {
+          "position": "0.0000",
+          "settled": "true"
+        }
+      ],
+      "frames": 364,
+      "missing": 0,
+      "captureMs": 10385,
+      "analysisMs": 22864
+    }
+  ],
+  "gpu128MB": [
+    {
+      "browser": "156.0.8078.81",
+      "headed": true,
+      "gpuBudget": "128",
+      "theme": "dark",
+      "transitions": true,
+      "viewport": {
+        "width": 1200,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "endpoints": [
+        {
+          "position": "0.0000",
+          "settled": "true"
+        },
+        {
+          "position": "1.0000",
+          "settled": "true"
+        },
+        {
+          "position": "0.0000",
+          "settled": "true"
+        }
+      ],
+      "frames": 356,
+      "missing": 0,
+      "captureMs": 11027,
+      "analysisMs": 22098
+    },
+    {
+      "browser": "156.0.8078.81",
+      "headed": true,
+      "gpuBudget": "128",
+      "theme": "light",
+      "transitions": true,
+      "viewport": {
+        "width": 1200,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "endpoints": [
+        {
+          "position": "0.0000",
+          "settled": "true"
+        },
+        {
+          "position": "1.0000",
+          "settled": "true"
+        },
+        {
+          "position": "0.0000",
+          "settled": "true"
+        }
+      ],
+      "frames": 366,
+      "missing": 0,
+      "captureMs": 14362,
+      "analysisMs": 24927
+    },
+    {
+      "browser": "156.0.8078.81",
+      "headed": true,
+      "gpuBudget": "128",
+      "theme": "dark",
+      "transitions": true,
+      "viewport": {
+        "width": 1200,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "endpoints": [
+        {
+          "position": "0.0000",
+          "settled": "true"
+        },
+        {
+          "position": "1.0000",
+          "settled": "true"
+        },
+        {
+          "position": "0.0000",
+          "settled": "true"
+        }
+      ],
+      "frames": 385,
+      "missing": 0,
+      "captureMs": 24498,
+      "analysisMs": 31507
+    },
+    {
+      "browser": "156.0.8078.81",
+      "headed": true,
+      "gpuBudget": "128",
+      "theme": "light",
+      "transitions": true,
+      "viewport": {
+        "width": 1200,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "endpoints": [
+        {
+          "position": "0.0000",
+          "settled": "true"
+        },
+        {
+          "position": "1.0000",
+          "settled": "true"
+        },
+        {
+          "position": "0.0000",
+          "settled": "true"
+        }
+      ],
+      "frames": 376,
+      "missing": 0,
+      "captureMs": 12163,
+      "analysisMs": 28680
+    },
+    {
+      "browser": "156.0.8078.81",
+      "headed": true,
+      "gpuBudget": "128",
+      "theme": "dark",
+      "transitions": true,
+      "viewport": {
+        "width": 1200,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "endpoints": [
+        {
+          "position": "0.0000",
+          "settled": "true"
+        },
+        {
+          "position": "1.0000",
+          "settled": "true"
+        },
+        {
+          "position": "0.0000",
+          "settled": "true"
+        }
+      ],
+      "frames": 367,
+      "missing": 0,
+      "captureMs": 10205,
+      "analysisMs": 13954
+    },
+    {
+      "browser": "156.0.8078.81",
+      "headed": true,
+      "gpuBudget": "128",
+      "theme": "light",
+      "transitions": true,
+      "viewport": {
+        "width": 1200,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "endpoints": [
+        {
+          "position": "0.0000",
+          "settled": "true"
+        },
+        {
+          "position": "1.0000",
+          "settled": "true"
+        },
+        {
+          "position": "0.0000",
+          "settled": "true"
+        }
+      ],
+      "frames": 347,
+      "missing": 0,
+      "captureMs": 8156,
+      "analysisMs": 16204
+    }
+  ]
+}

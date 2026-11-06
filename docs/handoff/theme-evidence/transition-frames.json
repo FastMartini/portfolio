@@ -1,0 +1,185 @@
+{
+  "capture": "Production static export, Chromium, 1280x800. Browser clock paused then advanced at 60 Hz to 250/500/750ms; SMIL fixed at time zero for visual comparison. Native moving-paint evidence is separate.",
+  "frames": [
+    {
+      "file": "to-light-trailhead-250.png",
+      "direction": "dark to light",
+      "altitude": "trailhead",
+      "ms": 250,
+      "header": "rgb(30, 36, 32)",
+      "skyTop": "rgb(38,45,57)",
+      "moon": "0.583",
+      "twilight": "0.2"
+    },
+    {
+      "file": "to-light-trailhead-500.png",
+      "direction": "dark to light",
+      "altitude": "trailhead",
+      "ms": 500,
+      "header": "rgb(84, 88, 81)",
+      "skyTop": "rgb(93,96,97)",
+      "moon": "0.398",
+      "twilight": "0.827"
+    },
+    {
+      "file": "to-light-trailhead-750.png",
+      "direction": "dark to light",
+      "altitude": "trailhead",
+      "ms": 750,
+      "header": "rgb(206, 203, 188)",
+      "skyTop": "rgb(169,164,150)",
+      "moon": "0.171",
+      "twilight": "0.72"
+    },
+    {
+      "file": "to-light-snow-250.png",
+      "direction": "dark to light",
+      "altitude": "snow",
+      "ms": 250,
+      "header": "rgb(30, 36, 32)",
+      "skyTop": "rgb(44,52,61)",
+      "moon": "0",
+      "twilight": "0.2"
+    },
+    {
+      "file": "to-light-snow-500.png",
+      "direction": "dark to light",
+      "altitude": "snow",
+      "ms": 500,
+      "header": "rgb(84, 88, 81)",
+      "skyTop": "rgb(77,86,94)",
+      "moon": "0",
+      "twilight": "0.827"
+    },
+    {
+      "file": "to-light-snow-750.png",
+      "direction": "dark to light",
+      "altitude": "snow",
+      "ms": 750,
+      "header": "rgb(206, 203, 188)",
+      "skyTop": "rgb(121,131,138)",
+      "moon": "0",
+      "twilight": "0.72"
+    },
+    {
+      "file": "to-light-summit-250.png",
+      "direction": "dark to light",
+      "altitude": "summit",
+      "ms": 250,
+      "header": "rgb(30, 36, 32)",
+      "skyTop": "rgb(16,28,53)",
+      "moon": "0.941",
+      "twilight": "0.2"
+    },
+    {
+      "file": "to-light-summit-500.png",
+      "direction": "dark to light",
+      "altitude": "summit",
+      "ms": 500,
+      "header": "rgb(84, 88, 81)",
+      "skyTop": "rgb(26,55,97)",
+      "moon": "0.643",
+      "twilight": "0.827"
+    },
+    {
+      "file": "to-light-summit-750.png",
+      "direction": "dark to light",
+      "altitude": "summit",
+      "ms": 750,
+      "header": "rgb(206, 203, 188)",
+      "skyTop": "rgb(36,91,156)",
+      "moon": "0.276",
+      "twilight": "0.72"
+    },
+    {
+      "file": "to-dark-trailhead-250.png",
+      "direction": "light to dark",
+      "altitude": "trailhead",
+      "ms": 250,
+      "header": "rgb(238, 233, 217)",
+      "skyTop": "rgb(217,208,183)",
+      "moon": "0.037",
+      "twilight": "0.2"
+    },
+    {
+      "file": "to-dark-trailhead-500.png",
+      "direction": "light to dark",
+      "altitude": "trailhead",
+      "ms": 500,
+      "header": "rgb(170, 169, 157)",
+      "skyTop": "rgb(152,149,138)",
+      "moon": "0.222",
+      "twilight": "0.827"
+    },
+    {
+      "file": "to-dark-trailhead-750.png",
+      "direction": "light to dark",
+      "altitude": "trailhead",
+      "ms": 750,
+      "header": "rgb(54, 60, 54)",
+      "skyTop": "rgb(77,82,86)",
+      "moon": "0.449",
+      "twilight": "0.72"
+    },
+    {
+      "file": "to-dark-snow-250.png",
+      "direction": "light to dark",
+      "altitude": "snow",
+      "ms": 250,
+      "header": "rgb(238, 233, 217)",
+      "skyTop": "rgb(148,159,165)",
+      "moon": "0",
+      "twilight": "0.2"
+    },
+    {
+      "file": "to-dark-snow-500.png",
+      "direction": "light to dark",
+      "altitude": "snow",
+      "ms": 500,
+      "header": "rgb(170, 169, 157)",
+      "skyTop": "rgb(111,121,128)",
+      "moon": "0",
+      "twilight": "0.827"
+    },
+    {
+      "file": "to-dark-snow-750.png",
+      "direction": "light to dark",
+      "altitude": "snow",
+      "ms": 750,
+      "header": "rgb(54, 60, 54)",
+      "skyTop": "rgb(68,77,85)",
+      "moon": "0",
+      "twilight": "0.72"
+    },
+    {
+      "file": "to-dark-summit-250.png",
+      "direction": "light to dark",
+      "altitude": "summit",
+      "ms": 250,
+      "header": "rgb(238, 233, 217)",
+      "skyTop": "rgb(42,114,194)",
+      "moon": "0.059",
+      "twilight": "0.2"
+    },
+    {
+      "file": "to-dark-summit-500.png",
+      "direction": "light to dark",
+      "altitude": "summit",
+      "ms": 500,
+      "header": "rgb(170, 169, 157)",
+      "skyTop": "rgb(34,83,143)",
+      "moon": "0.357",
+      "twilight": "0.827"
+    },
+    {
+      "file": "to-dark-summit-750.png",
+      "direction": "light to dark",
+      "altitude": "summit",
+      "ms": 750,
+      "header": "rgb(54, 60, 54)",
+      "skyTop": "rgb(23,47,85)",
+      "moon": "0.724",
+      "twilight": "0.72"
+    }
+  ]
+}
