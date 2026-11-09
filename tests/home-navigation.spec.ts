@@ -1,18 +1,23 @@
 import { expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 
-test("Devpost is available alongside Diego's contact links in both views", async ({ page, browser, baseURL }) => {
+test("Summit offers the resume and Devpost alongside contact links in both views", async ({ page, browser, baseURL }) => {
   const devpost = "https://devpost.com/FastMartini?ref_content=user-portfolio&ref_feature=portfolio&ref_medium=global-nav";
+  const resumeName = "View résumé (PDF, opens in a new tab)";
+  const resumePath = /\/resume\/Martinez_Diego_2026\.pdf$/;
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);
   await scrollToClimbStop(page, 9);
+  await expect(page.locator('[data-card="9"]').getByRole("link", { name: resumeName })).toHaveAttribute("href", resumePath);
   await expect(page.getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
   await page.getByRole("button", { name: "List view", exact: true }).click();
+  await expect(page.locator("#summit").getByRole("link", { name: resumeName })).toHaveAttribute("href", resumePath);
   await expect(page.getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
 
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
   const staticPage = await context.newPage();
   await staticPage.goto("./#summit");
+  await expect(staticPage.locator("#summit").getByRole("link", { name: resumeName })).toHaveAttribute("href", resumePath);
   await expect(staticPage.getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
   await context.close();
 });

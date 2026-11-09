@@ -158,7 +158,8 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .summit .handwritten { color: var(--copper-text-dark); }
 .summit-heading { margin: clamp(5rem, 10vw, 9rem) 0; max-width: 70rem; }
 .summit-heading h2 { max-width: 10ch; }
-.summit-heading > p:last-child { color: rgba(255, 251, 237, 0.72); margin-top: 2rem; max-width: 38rem; }
+.summit-heading > p:last-of-type { color: rgba(255, 251, 237, 0.72); margin-top: 2rem; max-width: 38rem; }
+.summit-actions { margin-top: 1.5rem; }
 .contact-list { border-top: 1px solid rgba(255, 251, 237, 0.25); }
 .contact-list a { align-items: center; border-bottom: 1px solid rgba(255, 251, 237, 0.25); display: grid; gap: 1rem; grid-template-columns: 3rem minmax(8rem, 0.8fr) minmax(12rem, 1.2fr) auto; min-height: 6rem; text-decoration: none; transition: color 180ms ease, padding 180ms ease; }
 .contact-list a:hover { color: var(--copper-text-dark); padding-left: 0.75rem; }

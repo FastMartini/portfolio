@@ -176,6 +176,9 @@ export function ListView() {
             If you’re assembling a team, shaping an ambitious product, or want
             to compare notes, I’d be glad to hear from you.
           </p>
+          <div className="summit-actions">
+            <ResumeLink />
+          </div>
         </div>
         <div className="contact-list" aria-label="Contact Diego">
           {contactLinks.map((link, index) => (

@@ -74,12 +74,15 @@ test("portfolio remains complete without client-side JavaScript", async ({
   await expect(page.getByRole("heading", { name: "Beyond the build." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Let's build what comes next." })).toBeVisible();
 
-  const resume = page.getByRole("link", { name: "View résumé (PDF, opens in a new tab)" });
-  await expect(resume).toBeVisible();
-  await expect(resume).toHaveAttribute("href", /\/resume\/Martinez_Diego_2026\.pdf$/);
-  await expect(resume).toHaveAttribute("target", "_blank");
-  await expect(resume).toHaveAttribute("rel", "noopener noreferrer");
-  const resumeResponse = await page.request.get(await resume.getAttribute("href") ?? "");
+  const resumes = page.getByRole("link", { name: "View résumé (PDF, opens in a new tab)" });
+  await expect(resumes).toHaveCount(2);
+  for (const resume of await resumes.all()) {
+    await expect(resume).toBeVisible();
+    await expect(resume).toHaveAttribute("href", /\/resume\/Martinez_Diego_2026\.pdf$/);
+    await expect(resume).toHaveAttribute("target", "_blank");
+    await expect(resume).toHaveAttribute("rel", "noopener noreferrer");
+  }
+  const resumeResponse = await page.request.get(await resumes.first().getAttribute("href") ?? "");
   expect(resumeResponse.status()).toBe(200);
   expect(resumeResponse.headers()["content-type"]).toBe("application/pdf");
   expect((await resumeResponse.body()).subarray(0, 5).toString()).toBe("%PDF-");
