@@ -54,7 +54,7 @@ export function AmbientSoundToggle() {
   const sound = useContext(AmbientSoundContext);
   if (!sound) return null;
   const { active, enabled, failed, toggle } = sound;
-  return <div className="climb-sound-control" hidden={!active}>
+  return <div className="climb-sound-control" aria-hidden={!active} inert={!active}>
     <button type="button" className="climb-sound-toggle"
       aria-label="Ambient sound" aria-pressed={enabled} onClick={toggle}
       title={enabled ? "Mute ambient sound" : "Turn on fire and snow sounds"}>
