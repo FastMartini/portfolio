@@ -11,9 +11,12 @@ test("visitor understands Diego's professional identity at the Trailhead", async
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Software engineer building intelligent, data-driven products.",
+      name: "Howdy, I'm Diego 👋",
     }),
   ).toBeVisible();
+  await expect(page.locator("#trailhead .trailhead-lead")).toHaveText(
+    "Software engineer, problem solver, and lifelong learner passionate about building technology that makes an impact.",
+  );
 });
 
 test("visitor follows the Mountain Journey and reaches direct contact options", async ({
@@ -63,7 +66,7 @@ test("portfolio remains complete without client-side JavaScript", async ({
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Software engineer building intelligent, data-driven products.",
+      name: "Howdy, I'm Diego 👋",
     }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Engineering with intent." })).toBeVisible();

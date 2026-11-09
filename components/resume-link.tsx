@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
+
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-export function ResumeLink({ className = "button button-primary" }: { className?: string }) {
+export function ResumeLink({ className = "button button-primary", children = "Resume" }: { className?: string; children?: ReactNode }) {
   return (
     <a
       className={`${className} resume-link`}
@@ -9,7 +11,7 @@ export function ResumeLink({ className = "button button-primary" }: { className?
       rel="noopener noreferrer"
       aria-label="View résumé (PDF, opens in a new tab)"
     >
-      Resume
+      {children}
     </a>
   );
 }

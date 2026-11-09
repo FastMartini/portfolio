@@ -65,7 +65,8 @@ a:focus-visible { outline: 3px solid var(--copper); outline-offset: 5px; }
 h1, h2, p { text-wrap: pretty; }
 h1, h2 { font-family: var(--font-newsreader), serif; font-weight: 450; letter-spacing: -0.055em; }
 h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-width: 11ch; }
-.trailhead-intro { font-size: clamp(1rem, 1.4vw, 1.2rem); line-height: 1.75; margin: 2.25rem 0 0; max-width: 36rem; }
+.trailhead-lead { font-size: clamp(1.15rem, 1.6vw, 1.4rem); font-weight: 600; line-height: 1.5; margin: 1.5rem 0 0; max-width: 36rem; }
+.trailhead-intro { font-size: clamp(1rem, 1.4vw, 1.2rem); line-height: 1.75; margin: 1.25rem 0 0; max-width: 36rem; }
 .trailhead-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 2.5rem; }
 .button {
   align-items: center; border-radius: 999px; display: inline-flex; font-size: 0.76rem; font-weight: 700;
@@ -158,8 +159,7 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .summit .handwritten { color: var(--copper-text-dark); }
 .summit-heading { margin: clamp(5rem, 10vw, 9rem) 0; max-width: 70rem; }
 .summit-heading h2 { max-width: 10ch; }
-.summit-heading > p:last-of-type { color: rgba(255, 251, 237, 0.72); margin-top: 2rem; max-width: 38rem; }
-.summit-actions { margin-top: 1.5rem; }
+.summit-heading > p:last-child { color: rgba(255, 251, 237, 0.72); margin-top: 2rem; max-width: 38rem; }
 .contact-list { border-top: 1px solid rgba(255, 251, 237, 0.25); }
 .contact-list a { align-items: center; border-bottom: 1px solid rgba(255, 251, 237, 0.25); display: grid; gap: 1rem; grid-template-columns: 3rem minmax(8rem, 0.8fr) minmax(12rem, 1.2fr) auto; min-height: 6rem; text-decoration: none; transition: color 180ms ease, padding 180ms ease; }
 .contact-list a:hover { color: var(--copper-text-dark); padding-left: 0.75rem; }
