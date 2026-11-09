@@ -167,6 +167,39 @@ test("static SVG journey and its native links remain complete without JavaScript
 
 for (const width of [320, 390, 768, 1440, 1920, 3840]) {
   for (const javaScriptEnabled of [true, false]) {
+    test(`About artwork is complete and proportional at ${width}px ${javaScriptEnabled ? "with" : "without"} JavaScript`, async ({ browser, baseURL }) => {
+      const context = await browser.newContext({ baseURL, javaScriptEnabled, viewport: { width, height: 900 } });
+      const page = await context.newPage();
+      await page.goto("./#about");
+      await page.evaluate(() => document.fonts.ready);
+      const bounds = await page.locator("#about .journey-ridge").evaluate((element: SVGSVGElement) => {
+        const view = element.viewBox.baseVal, matrix = element.getScreenCTM()!;
+        const topLeft = new DOMPoint(view.x, view.y).matrixTransform(matrix);
+        const bottomRight = new DOMPoint(view.x + view.width, view.y + view.height).matrixTransform(matrix);
+        return {
+          artwork: { left: topLeft.x, top: topLeft.y, right: bottomRight.x, bottom: bottomRight.y },
+          section: element.closest("section")!.getBoundingClientRect().toJSON(),
+          frames: [element.getBoundingClientRect().toJSON(), element.closest("section")!.getBoundingClientRect().toJSON()],
+          scaleX: matrix.a, scaleY: matrix.d,
+        };
+      });
+      expect(bounds.scaleX).toBeGreaterThan(0);
+      expect(bounds.scaleX).toBeCloseTo(bounds.scaleY, 3);
+      expect(bounds.artwork.left).toBeCloseTo(bounds.section.left, 1);
+      expect(bounds.artwork.right).toBeCloseTo(bounds.section.right, 1);
+      for (const frame of bounds.frames) {
+        expect(bounds.artwork.left).toBeGreaterThanOrEqual(frame.left - 0.5);
+        expect(bounds.artwork.top).toBeGreaterThanOrEqual(frame.top - 0.5);
+        expect(bounds.artwork.right).toBeLessThanOrEqual(frame.right + 0.5);
+        expect(bounds.artwork.bottom).toBeLessThanOrEqual(frame.bottom + 0.5);
+      }
+      await context.close();
+    });
+  }
+}
+
+for (const width of [320, 390, 768, 1440, 1920, 3840]) {
+  for (const javaScriptEnabled of [true, false]) {
     test(`Summit artwork fills the section with a complete sun at ${width}px ${javaScriptEnabled ? "with" : "without"} JavaScript`, async ({ browser, baseURL }) => {
       const context = await browser.newContext({ baseURL, javaScriptEnabled, viewport: { width, height: 900 } });
       const page = await context.newPage();

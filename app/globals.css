@@ -89,7 +89,7 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .scroll-cue { align-items: center; bottom: 2rem; display: flex; font-size: 0.62rem; font-weight: 700; gap: 0.7rem; left: var(--page-padding); letter-spacing: 0.12em; position: absolute; text-decoration: none; text-transform: uppercase; }
 
 .about, .work, .personal-interlude, .summit { padding: clamp(6rem, 12vw, 11rem) var(--page-padding); }
-.about { background: var(--deep); color: var(--cream); min-height: 90svh; position: relative; }
+.about { background: var(--deep); color: var(--cream); min-height: max(90svh, calc(100vw * 700 / 1440)); position: relative; }
 .section-kicker { border-top: 1px solid rgba(255, 251, 237, 0.25); color: var(--cream); justify-content: space-between; padding-top: 1rem; }
 .section-kicker-dark { border-color: var(--line); color: var(--ink-label); }
 .about-copy { display: grid; gap: clamp(2rem, 8vw, 8rem); grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr); margin-top: clamp(5rem, 12vh, 9rem); }
