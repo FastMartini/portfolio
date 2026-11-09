@@ -40,6 +40,15 @@ function listTarget() {
   } catch { return null; }
 }
 
+function updateWaypointHighlight(stage: HTMLElement, stop: number, keyboardInput: boolean) {
+  const marker = stage.querySelector<HTMLButtonElement>(`[data-marker="${stop}"]`);
+  const landmark = stage.querySelector(`.lm[data-stop="${stop}"]`);
+  const focused = keyboardInput && (marker === document.activeElement || landmark === document.activeElement);
+  marker?.setAttribute("data-keyboard-focused", String(focused && marker === document.activeElement));
+  landmark?.setAttribute("data-keyboard-focused", String(focused && landmark === document.activeElement));
+  setLandmarkHot(stage, stop, focused || marker?.dataset.hovered === "true" || landmark?.getAttribute("data-hovered") === "true");
+}
+
 export function Climb({ children, header, mountain, cards, summaries, cases }: {
   children: ReactNode; header: ReactNode; mountain: ReactNode; cards: ReactNode; summaries: Record<string, ReactNode>; cases: Record<string, ReactNode>;
 }) {
@@ -68,6 +77,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   const activeClimb = useRef(false);
   const returnMarker = useRef<HTMLButtonElement | null>(null);
   const pendingFocus = useRef<HTMLButtonElement | null>(null);
+  const keyboardInput = useRef(true);
 
   const revealList = useCallback(() => {
     if (!activeClimb.current) return;
@@ -92,6 +102,29 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     setListMode(true);
     setEnhanced(false);
   }, [revealList]);
+
+  useEffect(() => {
+    function input(keyboard: boolean) {
+      keyboardInput.current = keyboard;
+      const focused = document.activeElement?.closest<HTMLElement>("[data-marker], .lm[data-stop]");
+      const element = stage.current;
+      if (element && focused && element.contains(focused)) {
+        sceneTask(failScene, () => updateWaypointHighlight(element, Number(focused.dataset.marker ?? focused.dataset.stop), keyboard))();
+      }
+    }
+    const pointer = () => input(false);
+    const keyboard = (event: globalThis.KeyboardEvent) => {
+      if (!event.metaKey && !event.ctrlKey && !event.altKey && !["Shift", "Control", "Alt", "Meta"].includes(event.key)) input(true);
+    };
+    // Track input across the shared header and nonmodal panel. WebKit can mark
+    // programmatically restored mouse focus as :focus-visible after close().
+    window.addEventListener("pointerdown", pointer, true);
+    window.addEventListener("keydown", keyboard, true);
+    return () => {
+      window.removeEventListener("pointerdown", pointer, true);
+      window.removeEventListener("keydown", keyboard, true);
+    };
+  }, [failScene]);
 
   const lighten = useCallback(() => {
     currentQuality.current = "light";
@@ -356,8 +389,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       if (marker) marker.dataset.hovered = String(hot);
       landmark?.setAttribute("data-hovered", String(hot));
     }
-    // Pointer exit must not clear either control while it owns keyboard focus.
-    setLandmarkHot(stage.current, stop, hot || marker === document.activeElement || landmark === document.activeElement);
+    updateWaypointHighlight(stage.current, stop, keyboardInput.current);
   }
 
   function closePanel() {

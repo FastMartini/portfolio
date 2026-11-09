@@ -56,6 +56,33 @@ test("Waypoint circles highlight only on hover or while open", async ({ page }) 
 });
 
 for (const target of ["marker", "Landmark"] as const) {
+  for (const reducedMotion of ["reduce", "no-preference"] as const) {
+    test(`pointer dismissal clears the ${target} highlight with ${reducedMotion} motion`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.emulateMedia({ reducedMotion });
+      await openClimb(page);
+      await stop(page, 3);
+      const marker = page.locator('[data-marker="3"]');
+      const landmark = page.locator('.lm[data-stop="3"]');
+      const control = target === "marker" ? marker : landmark.locator('ellipse[fill="transparent"]');
+      await control.click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await page.getByRole("button", { name: "Close panel", exact: true }).click();
+      await expect(page.getByRole("dialog")).toBeHidden();
+      await expect(marker).toBeFocused();
+      await expect(marker.locator(".climb-marker-label")).toHaveCSS("opacity", "0");
+      await expect(marker.locator(".climb-marker-pin")).toHaveCSS("background-color", "rgb(255, 251, 237)");
+      await expect(landmark).toHaveCSS("filter", "none");
+
+      await control.hover();
+      await expect(marker.locator(".climb-marker-label")).toHaveCSS("opacity", "1");
+      await expect(landmark).not.toHaveCSS("filter", "none");
+      await page.mouse.move(5, 5);
+      await expect(marker.locator(".climb-marker-label")).toHaveCSS("opacity", "0");
+      await expect(landmark).toHaveCSS("filter", "none");
+    });
+  }
+
   test(`keyboard focus on a ${target} highlights its paired marker and Landmark without filling the circle`, async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -120,6 +147,7 @@ test("each marker and its Landmark open canonical Waypoint content and return fo
     await stop(page, index);
     const marker = page.getByRole("button", { name: `Open Waypoint ${String(waypoint.order).padStart(2, "0")}: ${waypoint.name}`, exact: true });
     await expect(marker).toBeVisible();
+    await page.keyboard.press("Tab");
     await marker.focus();
     await expect(page.locator(`.lm[data-stop="${index}"]`)).toHaveClass(/is-hot/);
     await page.keyboard.press("Enter");
