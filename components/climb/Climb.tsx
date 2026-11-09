@@ -399,6 +399,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
 
   return (
     <ViewContext.Provider value={{ enhanced, listMode, toggleView }}>
+      <AmbientSound ref={ambience} active={enhanced && !listMode}>
       {/* Keep navigation outside both reading modes and scene recovery. */}
       <div className="portfolio-navigation" ref={navigation}
         onClickCapture={(event) => sceneTask(failScene, navigateHeader)(event)}>
@@ -407,7 +408,6 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
         </a>
         {header}
       </div>
-      <AmbientSound ref={ambience} active={enhanced && !listMode} />
       <div data-theme-root="" className="climb-list" hidden={!listMode}>{children}</div>
       {enhanced && <SceneRecovery onFailure={failScene}><div className="climb-enhancement" hidden={listMode} data-quality={quality}>
         <main className="climb" id="climb" ref={root}
@@ -436,6 +436,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
           </div>
         </main>
       </div></SceneRecovery>}
+      </AmbientSound>
     </ViewContext.Provider>
   );
 }

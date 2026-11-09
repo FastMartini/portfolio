@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "./theme/ThemeToggle";
+import { AmbientSoundToggle } from "./climb/AmbientSound";
 
 type ShellLink = {
   href: string;
@@ -53,6 +54,7 @@ export function PortfolioHeader({
           ))}
         </div>
         <div className="site-header-controls">
+          <AmbientSoundToggle />
           <ThemeToggle />
           {action}
         </div>

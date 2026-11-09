@@ -13,28 +13,30 @@
 .site-header { gap: 1rem; }
 .site-header nav { align-items: center; flex: 1; justify-content: space-between; }
 .site-header-links { display: flex; gap: inherit; margin-inline: auto; }
-.site-header-controls { align-items: center; display: flex; flex: none; gap: 0.5rem; letter-spacing: normal; text-transform: none; }
-.theme-toggle {
-  align-items: center; background: var(--btn); border: 1px solid var(--line-strong); border-radius: 999px;
+.site-header-controls { align-items: center; display: flex; flex: none; gap: 0.25rem; letter-spacing: normal; text-transform: none; }
+.site-header-controls :is(.theme-toggle, .climb-sound-toggle, .climb-view-toggle) {
+  align-items: center; background: transparent; border: 1px solid transparent; border-radius: 999px;
   color: var(--btn-ink); cursor: pointer; display: inline-flex; flex: none; font: inherit;
-  font-size: 0.78rem; font-weight: 700; gap: 0.45rem; justify-content: center;
-  min-height: 44px; min-width: 44px; padding: 0.45rem 0.85rem; white-space: nowrap;
+  font-size: 0.78rem; font-weight: 500; gap: 0.4rem; justify-content: center;
+  height: 44px; min-width: 44px; padding: 0; position: static; white-space: nowrap;
 }
 .theme-toggle[hidden] { display: none; }
-.theme-toggle:hover { background: var(--btn-hover); }
-.theme-toggle:active { background: var(--btn-active); }
-.site-header-controls .climb-view-toggle { position: static; }
+.site-header-controls :is(.theme-toggle, .climb-sound-toggle, .climb-view-toggle):hover { background: var(--btn-hover); }
+.site-header-controls :is(.theme-toggle, .climb-sound-toggle, .climb-view-toggle):active { background: var(--btn-active); }
+.site-header-controls .climb-view-toggle { border-color: var(--line-strong); margin-left: 0.5rem; padding-inline: 0.8rem; }
+.site-header-controls .climb-sound-toggle[aria-pressed="true"] { background: var(--raised); color: var(--ink-accent); }
 @media (max-width: 1100px) and (min-width: 901px) {
   .site-header nav { gap: 1.25rem; }
 }
 @media (max-width: 900px) {
+  .site-header:not(.site-header--case-study) .wordmark { font-size: 1.5rem; max-width: calc(100% - 12.25rem); }
   .site-header:not(.site-header--case-study) .site-header-controls { position: absolute; right: var(--page-padding); top: 0.75rem; }
   .site-header:not(.site-header--case-study) nav { width: 100%; }
-  .site-header:not(.site-header--case-study) .site-header-links { margin-inline: 0; }
+  .site-header:not(.site-header--case-study) .site-header-links { justify-content: space-between; margin-inline: 0; width: 100%; }
 }
 @media (max-width: 600px) {
-  .theme-toggle { height: 44px; padding: 0; width: 44px; }
-  .theme-toggle span { display: none; }
+  .site-header .site-header-controls .climb-view-toggle { margin-left: 0.25rem; min-width: 5.8rem; padding-inline: 0.5rem; }
+  .site-header:not(.site-header--case-study) .wordmark { font-size: 1.4rem; max-width: calc(100% - 12.5rem); }
   .site-header--case-study nav { justify-content: flex-end; }
 }
 

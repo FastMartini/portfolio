@@ -264,7 +264,7 @@ test("the exported not-found page restores readable header and content in both t
   }
 });
 
-for (const width of [320, 390, 1280]) {
+for (const width of [320, 390, 901, 1280]) {
   test(`controls fit ${width}px in both themes and the standalone header`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await ready(page);
@@ -281,6 +281,21 @@ for (const width of [320, 390, 1280]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     }
+    await page.getByRole("button", { name: "Climb view", exact: true }).click();
+    const header = page.getByRole("banner");
+    const sound = header.getByRole("button", { name: "Ambient sound", exact: true });
+    await expect(sound).toBeInViewport();
+    const controls = await header.locator(".wordmark, .site-header-controls button").evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().toJSON()));
+    for (let index = 0; index < controls.length; index++) {
+      expect(controls[index].height).toBeGreaterThanOrEqual(44);
+      expect(controls[index].x).toBeGreaterThanOrEqual(0);
+      expect(controls[index].right).toBeLessThanOrEqual(width);
+      if (index > 0) expect(controls[index - 1].right).toBeLessThanOrEqual(controls[index].x);
+    }
+    for (const link of await header.locator(".site-header-links a").all()) await expect(link).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    await expect(sound).toHaveAttribute("aria-pressed", "false");
     await ready(page, "./work/veritas/");
     await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);

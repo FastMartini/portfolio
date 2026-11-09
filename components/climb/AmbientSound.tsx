@@ -1,12 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import type { Ref } from "react";
+import { createContext, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
+import type { ReactNode, Ref } from "react";
 import { createAmbientAudio } from "./audio/controller";
 
 export type AmbientSoundController = { setPosition: (position: number) => void };
 
-export function AmbientSound({ ref, active }: { ref: Ref<AmbientSoundController>; active: boolean }) {
+const AmbientSoundContext = createContext<{
+  active: boolean; enabled: boolean; failed: boolean; toggle: () => void;
+} | null>(null);
+
+export function AmbientSound({ ref, active, children }: { ref: Ref<AmbientSoundController>; active: boolean; children: ReactNode }) {
   const engine = useRef<ReturnType<typeof createAmbientAudio> | null>(null);
   const position = useRef(0), wanted = useRef(false), mounted = useRef(false);
   const [enabled, setEnabled] = useState(false), [failed, setFailed] = useState(false);
@@ -43,18 +47,24 @@ export function AmbientSound({ ref, active }: { ref: Ref<AmbientSoundController>
       void engine.current.enable();
     } catch { fail(); }
   }
-  return <>
-    <button data-theme-root="" type="button" className="climb-sound-toggle" hidden={!active}
+  return <AmbientSoundContext.Provider value={{ active, enabled, failed, toggle }}>{children}</AmbientSoundContext.Provider>;
+}
+
+export function AmbientSoundToggle() {
+  const sound = useContext(AmbientSoundContext);
+  if (!sound) return null;
+  const { active, enabled, failed, toggle } = sound;
+  return <div className="climb-sound-control" hidden={!active}>
+    <button type="button" className="climb-sound-toggle"
       aria-label="Ambient sound" aria-pressed={enabled} onClick={toggle}
       title={enabled ? "Mute ambient sound" : "Turn on fire and snow sounds"}>
-      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
         <path d="M11 5 6 9H3v6h3l5 4Z" />
         {enabled ? <><path d="M15 8a6 6 0 0 1 0 8" /><path d="M18 5a10 10 0 0 1 0 14" /></> : <path d="m16 9 5 6m0-6-5 6" />}
       </svg>
-      <span>Sound {enabled ? "on" : "off"}</span>
     </button>
     <span data-theme-root="" className="climb-sound-status" role="status" hidden={!active || !failed}>
       {failed ? "Sound could not start. You can try turning it on again." : ""}
     </span>
-  </>;
+  </div>;
 }
