@@ -14,6 +14,7 @@ for (const waypoint of waypoints) {
     // Direct SVG focus can auto-scroll the document and change the camera.
     // Keep this activation setup at its intended stop; real Tab navigation is
     // exercised separately by the offscreen and panel-breakpoint regressions.
+    await page.keyboard.press("Tab");
     await landmark.evaluate((element) => element.focus({ preventScroll: true }));
     await expect(landmark).toBeFocused();
     await expect(landmark).toHaveAccessibleName(`Open ${waypoint.name} Landmark`);

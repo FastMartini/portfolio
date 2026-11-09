@@ -55,13 +55,13 @@
 }
 .climb-marker-label small { color: #8b4428; display: block; font-size: 0.72rem; }
 .climb-marker:is(:hover, [data-hovered="true"], [aria-expanded="true"]) .climb-marker-pin { background: #173f35; color: #fffbed; }
-.climb-marker:is(:hover, :focus-visible, [data-hot="true"], [data-hovered="true"], [aria-expanded="true"]) .climb-marker-label { opacity: 1; }
-.climb-marker:focus-visible .climb-marker-pin { outline: 3px solid #173f35; outline-offset: 3px; }
+.climb-marker:is(:hover, [data-hot="true"], [data-hovered="true"], [aria-expanded="true"]) .climb-marker-label { opacity: 1; }
+.climb-marker[data-keyboard-focused="true"] .climb-marker-pin { outline: 3px solid #173f35; outline-offset: 3px; }
 /* Filter/transform transitions promote overlapping SVG paint into GPU layers.
    Apply these control states immediately; the scenery's SMIL remains live. */
 .climb-mountain .lm { cursor: pointer; outline: none; }
 .climb-mountain .lm:is(:hover, .is-hot, [data-hovered="true"], [aria-expanded="true"]) { filter: drop-shadow(0 0 10px rgba(181,101,59,0.9)) brightness(1.06); }
-.climb-mountain .lm:focus-visible { filter: drop-shadow(0 0 3px #fffbed) drop-shadow(0 0 6px #173f35); }
+.climb-mountain .lm[data-keyboard-focused="true"] { filter: drop-shadow(0 0 3px #fffbed) drop-shadow(0 0 6px #173f35); }
 .climb-panel {
   background: var(--bg); border: 0; border-left: 1px solid var(--line); bottom: 0; box-shadow: -24px 0 60px -40px rgba(0,0,0,0.6);
   color: var(--r-ink); flex-direction: column; height: 100svh; left: auto; margin: 0; max-height: none; max-width: 100%;
