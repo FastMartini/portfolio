@@ -9,9 +9,8 @@ export function nightDefs(hillsBackPoints: string) {
     '<stop offset="0.48" stop-color="#1b2844" stop-opacity="0.50"/>' +
     '<stop offset="0.70" stop-color="#0f1a2e" stop-opacity="0.56"/>' +
     '<stop offset="1" stop-color="#0c1526" stop-opacity="0.60"/></linearGradient>' +
-    // Mountain body + foreground hills, raised 40 units so the top row of spruce crowns is covered.
-    `<clipPath id="night-clip"><polygon points="${silhouette}"/><polygon points="${hillsBackPoints}"/>` +
-    `<polygon points="${hillsBackPoints}" transform="translate(0 -40)"/></clipPath>`
+    // Keep the veil inside the terrain; raising this mask paints a blue ridge in the sky.
+    `<clipPath id="night-clip"><polygon points="${silhouette}"/><polygon points="${hillsBackPoints}"/></clipPath>`
   );
 }
 

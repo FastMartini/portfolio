@@ -3,30 +3,17 @@
 }
 .climb-list[hidden], .climb-enhancement[hidden], .climb-view-toggle[hidden] { display: none !important; }
 .climb-view-toggle {
-  background: var(--cream); border: 1px solid var(--line); border-radius: 999px; color: var(--ink);
-  cursor: pointer; font: inherit; font-size: 0.82rem; font-weight: 700; min-height: 44px;
-  padding: 0.45rem 0.9rem; position: fixed; right: var(--page-padding); top: 0.85rem; z-index: 61;
+  min-height: 44px;
 }
 .climb-enhancement button:not(.climb-marker):focus-visible, .climb-view-toggle:focus-visible { outline: 3px solid var(--copper); outline-offset: 4px; }
 .climb-skip { z-index: 62; }
-.climb-sound-toggle {
-  align-items: center; background: var(--cream); border: 1px solid var(--line); border-radius: 999px;
-  color: var(--ink); cursor: pointer; display: flex; font: inherit; font-size: 0.78rem; font-weight: 700;
-  gap: 0.45rem; min-height: 44px; min-width: 44px; padding: 0.65rem 0.85rem; position: fixed;
-  left: 1rem; top: calc(var(--home-header-height) + 0.75rem); z-index: 51;
-}
-.climb-sound-toggle[hidden] { display: none; }
-.climb-sound-toggle[aria-pressed="true"] { background: var(--pine); border-color: var(--pine); color: var(--cream); }
+.climb-sound-control { display: flex; flex: none; height: 44px; position: relative; width: 44px; }
+.climb-sound-control[aria-hidden="true"] { visibility: hidden; }
 .climb-sound-toggle:focus-visible { outline: 3px solid var(--copper); outline-offset: 4px; }
 .climb-sound-status {
-  background: var(--cream); border: 1px solid var(--line); border-radius: 0.5rem; color: var(--ink);
-  font-size: 0.8rem; max-width: 15rem; padding: 0.7rem; position: fixed; left: 1rem;
-  top: calc(var(--home-header-height) + 4rem); z-index: 51;
-}
-
-@media (min-width: 901px) {
-  /* Leave the Trail Rail's 44px targets and a gap beside the sound control. */
-  .climb-sound-toggle, .climb-sound-status { left: calc(44px + 1.75rem); }
+  background: var(--raised); border: 1px solid var(--line); border-radius: 0.5rem; color: var(--ink);
+  font-size: 0.8rem; font-weight: 500; max-width: min(16rem, calc(100vw - 2rem)); padding: 0.7rem;
+  position: fixed; right: var(--page-padding); top: calc(var(--home-header-height) + 0.5rem); width: max-content;
 }
 @media (max-width: 600px) {
   .climb-sound-toggle { justify-content: center; padding: 0.65rem; }
@@ -87,8 +74,8 @@
 .inline-case { display: none; }
 .inline-case:target, .inline-case:has(:target) { display: block; }
 .list-view:has(.inline-case:target, .inline-case :target) > .list-sections { display: none; }
-.inline-case-nav { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; padding: 6rem var(--page-padding) 2rem; }
-.inline-case { scroll-margin-top: 5rem; }
+.inline-case-nav { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; padding: calc(var(--home-header-height) + 1rem) var(--page-padding) 2rem; }
+.inline-case { scroll-margin-top: calc(var(--home-header-height) + 1rem); }
 .inline-cases { min-width: 0; }
 @media (min-width: 901px) { .climb-stage[data-panel-open="true"] .climb-scene { transform: translateX(-17rem); } }
 @media (max-width: 900px) {

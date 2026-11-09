@@ -220,7 +220,10 @@ for (const viewport of [{ width: 390, height: 600 }, { width: 390, height: 900 }
     await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
     expect(await page.evaluate(() => Reflect.get(window, "ambientStates"))).not.toContain("suspended");
     const box = (await toggle.boundingBox())!;
-    expect(box.x + box.width).toBeLessThan(viewport.width / 2);
+    await expect(page.getByRole("banner").getByRole("button", { name: "Ambient sound", exact: true })).toBeVisible();
+    const header = (await page.getByRole("banner").boundingBox())!;
+    expect(box.y).toBeGreaterThanOrEqual(header.y);
+    expect(box.y + box.height).toBeLessThanOrEqual(header.y + header.height);
     const heading = (await panel.locator(".climb-panel-head").boundingBox())!;
     expect(box.x < heading.x + heading.width && box.x + box.width > heading.x &&
       box.y < heading.y + heading.height && box.y + box.height > heading.y).toBe(false);

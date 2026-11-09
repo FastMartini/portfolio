@@ -20,6 +20,25 @@ test("pure mountain builders are deterministic and preserve shared depth order",
   expect(mountainView(0, 390, 844).scale).toBeCloseTo(844 / 1350 * 0.66);
 });
 
+test("night shading stays within the painted terrain instead of forming a blue ridge in the sky", async ({ page }) => {
+  await page.setContent(buildMountainMarkup());
+  const spill = await page.locator("#night-clip").evaluate((clip) => {
+    const mask = Array.from(clip.querySelectorAll<SVGPolygonElement>("polygon"));
+    const terrain = Array.from(document.querySelectorAll<SVGPolygonElement>('svg.mtn > g[aria-hidden="true"] > polygon'));
+    const contains = (polygon: SVGPolygonElement, point: DOMPoint) => {
+      const matrix = polygon.transform.baseVal.consolidate()?.matrix;
+      return polygon.isPointInFill(matrix ? point.matrixTransform(matrix.inverse()) : point);
+    };
+    let count = 0;
+    for (let x = -200; x <= 2200; x += 20) for (let y = 1600; y <= 3200; y += 20) {
+      const point = new DOMPoint(x, y);
+      if (mask.some((polygon) => contains(polygon, point)) && !terrain.some((polygon) => contains(polygon, point))) count++;
+    }
+    return count;
+  });
+  expect(spill, "Night shading must not spill into the empty sky above the foreground hills").toBe(0);
+});
+
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
   test(`static mountain matches the reference scenery at ${viewport.width}px`, async ({ page, browser }, testInfo) => {
     await page.setViewportSize(viewport);
