@@ -4,6 +4,12 @@
  */
 
 import OPEN from "./timing.json";
+const LIST = (() => {
+  const tilt = 900, hold = 500;
+  const zoom = [tilt + hold, OPEN.zoom[1]];
+  const hero = [zoom[0] + zoom[1], OPEN.hero[1]];
+  return { tilt, hold, zoom, hero, end: hero[0] + hero[1] };
+})();
 const CLIMB = { cover: 380, pull: [380, 870], tilt: [1150, 1000], end: 2600 };
 const CONTROLLER = Symbol.for("portfolio.splash");
 const EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"];
@@ -115,6 +121,74 @@ function lifecycle(el, options, onEnd) {
   return api;
 }
 
+// One cue clock for both view transitions; input, disposal and failures all
+// release its frame loop with the rest of the owned animations.
+function cueTimeline(life, el, duration) {
+  const win = el.ownerDocument.defaultView;
+  const clock = life.add(el, [{ opacity: 1 }, { opacity: 1 }], { duration, fill: "none" });
+  const cues = [];
+  let frame = 0;
+  life.cleanup(() => win.cancelAnimationFrame(frame));
+  const tick = () => {
+    win.cancelAnimationFrame(frame);
+    if (!life.active) return;
+    const t = clock.currentTime ?? 0;
+    for (const cue of cues) if (!cue.done && t >= cue.ms) {
+      cue.done = true;
+      try { cue.fn(); } catch { life.skip(); break; }
+    }
+    if (life.active) frame = win.requestAnimationFrame(tick);
+  };
+  frame = win.requestAnimationFrame(tick);
+  return { tick, at: (ms, fn) => cues.push({ ms, fn, done: false }) };
+}
+
+function freezeOpenMap(el, textured = false) {
+  const frozen = el.getAnimations({ subtree: true }).filter((a) => a instanceof CSSAnimation);
+  for (const a of frozen) {
+    const n = a.animationName;
+    if (/^splash-(exit|sheet|zoom-fallback)/.test(n)) { a.cancel(); continue; }
+    a.pause();
+    a.currentTime = /^splash-(face-grain|crease|sheen)/.test(n) ? (textured ? OPEN.unfold : 2800) : /^splash-world-off/.test(n) ? 0 : 1850;
+  }
+  return frozen;
+}
+
+// Reveal the actual heading once. Both opening and return use these same
+// offsets; the shared navigation stays available during view transitions.
+function revealHero(life, section, at, includeHeader = true) {
+  const doc = section.ownerDocument;
+  const rise = (target, offset, duration, distance = 6) => life.add(target,
+    [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
+    { delay: at + offset, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
+  life.add(section.querySelector("#trailhead-title"), [{ opacity: 0 }, { opacity: 1 }], { delay: at, duration: 420, easing: "ease-out" });
+  if (includeHeader) rise(doc.querySelector(".site-header"), 100, 450, -8);
+  rise(section.querySelector(".eyebrow"), 130, 420);
+  rise(section.querySelector(".trailhead-lead"), 190, 480);
+  rise(section.querySelector(".trailhead-intro"), 250, 460);
+  rise(section.querySelector(".trailhead-actions"), 310, 440);
+  rise(section.querySelector(".trailhead-portrait"), 370, 380, 12);
+  rise(section.querySelector(".scroll-cue"), 350, 400);
+}
+
+// The same paper takeover as the generated opening CSS, shifted to a new
+// zoom start. A single effect owns opacity and color throughout the handoff.
+function paperHandoff(life, el, zoomStart) {
+  const sheet = el.querySelector(".splash-sheet");
+  const delay = zoomStart + OPEN.paper[0] - OPEN.zoom[0];
+  const solid = OPEN.paper[1], fadeAt = OPEN.paperFade[0] - OPEN.paper[0];
+  const duration = fadeAt + OPEN.paperFade[1];
+  const paper = getComputedStyle(el).getPropertyValue("--paper").trim();
+  const page = getComputedStyle(el.ownerDocument.body).backgroundColor;
+  life.add(sheet, [
+    { opacity: 0, backgroundColor: paper, offset: 0 },
+    { opacity: 1, backgroundColor: page, offset: solid / duration },
+    { opacity: 1, backgroundColor: page, offset: fadeAt / duration },
+    { opacity: 0, backgroundColor: page, offset: 1 },
+  ], { delay, duration, fill: "both" });
+  life.add(sheet, [{ opacity: 1 }, { opacity: 0 }], { delay, duration: solid, pseudoElement: "::before", fill: "both" });
+}
+
 // ---------------------------------------------------------------- opening
 function start(el, options = {}) {
   const doc = el.ownerDocument, win = doc.defaultView, root = doc.documentElement;
@@ -160,17 +234,7 @@ function start(el, options = {}) {
     // Resolve the page surface before exposing it. There is no heading clone,
     // mask swap, or second opacity animation fighting the sheet's CSS effect.
     el.style.setProperty("--splash-page-bg", getComputedStyle(doc.body).backgroundColor);
-    const rise = (target, delay, duration, distance = 6) => life.add(target,
-      [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
-      { delay, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-    life.add(heading, [{ opacity: 0 }, { opacity: 1 }], { delay: OPEN.hero[0], duration: 420, easing: "ease-out" });
-    rise(doc.querySelector(".site-header"), 3150, 450, -8);
-    rise(section.querySelector(".eyebrow"), 3180, 420);
-    rise(section.querySelector(".trailhead-lead"), 3240, 480);
-    rise(section.querySelector(".trailhead-intro"), 3300, 460);
-    rise(section.querySelector(".trailhead-actions"), 3360, 440);
-    rise(section.querySelector(".trailhead-portrait"), 3420, 380, 12);
-    rise(section.querySelector(".scroll-cue"), 3400, 400);
+    revealHero(life, section, OPEN.hero[0]);
 
     // Resume the entire sequence from the held frame, sharing one origin.
     life.t0 = Number(doc.timeline.currentTime) - t;
@@ -241,14 +305,7 @@ function transitionToClimb(el, switchView, options = {}) {
   el.classList.add("splash--climb");
   doc.body.prepend(el);
   // Hold the opening's own CSS frames with the sheet settled flat.
-  const frozen = el.getAnimations({ subtree: true });
-  for (const a of frozen) {
-    if (!(a instanceof CSSAnimation)) continue;
-    const n = a.animationName;
-    if (/^splash-(exit|sheet|zoom-fallback)/.test(n)) { a.cancel(); continue; }
-    a.pause();
-    a.currentTime = /^splash-(face-grain|crease|sheen)/.test(n) ? 2800 : /^splash-world-off/.test(n) ? 0 : 1850;
-  }
+  const frozen = freezeOpenMap(el);
   const life = lifecycle(el, options, (_skipped, disposed) => { if (!disposed) doSwitch(); el.remove(); });
   life.cleanup(() => frozen.forEach((animation) => animation.cancel()));
   const { add } = life;
@@ -283,19 +340,7 @@ function transitionToClimb(el, switchView, options = {}) {
   add(sheet, [{ opacity: 1 }, { opacity: 0 }], { delay: C - 170, duration: 150, pseudoElement: "::before", fill: "both" });
   add(sheet, [{ visibility: "hidden" }, { visibility: "hidden" }], { delay: C, duration: CLIMB.end, fill: "none" });
   add(world, [{ opacity: 0 }, { opacity: 0 }], { duration: C, fill: "none" });
-  // Cues run off the same animation clock as everything else, so pausing or seeking holds them too.
-  const clock = add(el, [{ opacity: 1 }, { opacity: 1 }], { duration: CLIMB.end, fill: "none" });
-  const cues = [];
-  const at = (ms, fn) => cues.push({ ms, fn, done: false });
-  let cueFrame = 0;
-  life.cleanup(() => win.cancelAnimationFrame(cueFrame));
-  const tick = () => {
-    if (!life.active) return;
-    const t = clock.currentTime ?? 0;
-    for (const cue of cues) if (!cue.done && t >= cue.ms) { cue.done = true; cue.fn(); }
-    if (life.active) cueFrame = win.requestAnimationFrame(tick);
-  };
-  cueFrame = win.requestAnimationFrame(tick);
+  const { at, tick } = cueTimeline(life, el, CLIMB.end);
   at(C, doSwitch);
 
   // 2. Pull back from the page to the unfolded map.
@@ -351,6 +396,80 @@ function transitionToClimb(el, switchView, options = {}) {
   return el[CONTROLLER] = { skip: life.skip, dispose: life.dispose, holdFailsafe: life.holdFailsafe, animations: life.created, reduced: false, framing: f, tick };
 }
 
+// ------------------------------------------------- Climb View → List View
+function transitionToList(el, switchView, options = {}) {
+  const doc = el.ownerDocument, win = doc.defaultView;
+  const reduced = doc.documentElement.dataset.motion === "reduce" || win.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let switched = false;
+  const doSwitch = () => { if (!switched) { switched = true; switchView(); } };
+  if (reduced) {
+    doSwitch();
+    el.remove();
+    return { skip() {}, dispose() {}, holdFailsafe() {}, animations: [], reduced: true, destination: "list", active: false };
+  }
+
+  el.classList.add("splash--list");
+  doc.body.prepend(el);
+  const frozen = freezeOpenMap(el, true);
+  el.querySelector(".splash-sheet").style.opacity = "0";
+  const life = lifecycle(el, options, (_skipped, disposed) => { if (!disposed) doSwitch(); el.remove(); });
+  life.cleanup(() => frozen.forEach((a) => a.cancel()));
+  life.t0 = doc.timeline.currentTime;
+  const { add } = life;
+  const { at, tick } = cueTimeline(life, el, LIST.end);
+  const stage = doc.querySelector(".climb-stage");
+  const sky = stage?.querySelector(".climb-sky");
+  const lookDown = "cubic-bezier(0.45, 0, 0.2, 1)";
+  const hold = { duration: LIST.tilt, easing: lookDown, fill: "both" };
+
+  // Preserve the sky behind the moving scene until the floor covers it. The
+  // map rises during the same tilt, already open, rather than appearing later.
+  const skyBottom = (sky && getComputedStyle(sky).getPropertyValue("--sky-bottom").trim()) || "#f6efdc";
+  add(doc.querySelector(".climb-enhancement"), [{ backgroundColor: skyBottom }, { backgroundColor: skyBottom }], { duration: LIST.end, fill: "both" });
+  add(stage, [{ translate: "0 0" }, { translate: "0 -62vh" }], hold);
+  add(el.querySelector(".splash-table"), [{ translate: "0 140vh" }, { translate: "0 0" }], hold);
+  add(el.querySelector(".splash-rig"), [{ translate: "0 112vh" }, { translate: "0 0" }], hold);
+  add(el.querySelector(".splash-map"), [{ transform: "rotateX(58deg)" }, { transform: "rotateX(0deg)" }], hold);
+  // A flat contact shadow would arrive ahead of the still-tilted paper as a
+  // dark rectangle. Let it gather only as the map approaches the ground.
+  el.querySelectorAll(".splash-shadow").forEach((shadow) => add(shadow,
+    [{ opacity: 0 }, { opacity: getComputedStyle(shadow).opacity }],
+    { delay: 360, duration: LIST.tilt - 360, easing: "ease-out", fill: "both" }));
+
+  // The green floor fully covers the viewport here. Switch and reset scroll
+  // underneath it, then frame the same blank centre pane as the opening.
+  at(LIST.tilt, () => {
+    doSwitch();
+    const heading = doc.getElementById("trailhead-title");
+    const section = heading?.closest(".trailhead");
+    if (!section || !heading.getClientRects().length) { life.skip(); return; }
+    const r = heading.getBoundingClientRect();
+    const f = framing(el, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    const camera = el.querySelector(".splash-camera");
+    if (f) {
+      camera.style.transformOrigin = `${f.F.x}px ${f.F.y}px`;
+      add(camera, scaleFrames(1, f.S, pushEase), { delay: LIST.zoom[0], duration: LIST.zoom[1], fill: "both" });
+    } else {
+      add(camera, [{ transform: "scale(1)" }, { transform: `scale(${getComputedStyle(el).getPropertyValue("--zoom-fallback")})` }],
+        { delay: LIST.zoom[0], duration: LIST.zoom[1], easing: "cubic-bezier(0.6, 0, 0.16, 1)", fill: "both" });
+    }
+    paperHandoff(life, el, LIST.zoom[0]);
+    revealHero(life, section, LIST.hero[0], false);
+  });
+  // Grain and creases stay visible through the overhead hold, then lift as
+  // their magnified edges give way to the screen-space paper.
+  el.querySelectorAll(".splash-face").forEach((face) => add(face, [{ opacity: 1 }, { opacity: 0 }], { delay: LIST.zoom[0], duration: 600, pseudoElement: "::before", fill: "both" }));
+  el.querySelectorAll(".splash-crease").forEach((crease) => add(crease, [{ opacity: 0.22 }, { opacity: 0 }], { delay: LIST.zoom[0], duration: 600, fill: "both" }));
+  add(el.querySelector(".splash-world"), [{ visibility: "visible" }, { visibility: "visible" }], { duration: LIST.hero[0], fill: "backwards" });
+  add(el.querySelector(".splash-world"), [{ visibility: "hidden" }, { visibility: "hidden" }], { delay: LIST.hero[0], duration: LIST.end, fill: "none" });
+  at(LIST.end - 1, () => life.finish(false));
+  life.arm(LIST.end + 1500);
+  return el[CONTROLLER] = {
+    skip: life.skip, dispose: life.dispose, holdFailsafe: life.holdFailsafe, animations: life.created,
+    reduced: false, destination: "list", get active() { return life.active; }, tick,
+  };
+}
+
 // Animation enhancement is optional, including when a browser API throws.
 export function startSplash(element) {
   try { return start(element); }
@@ -369,4 +488,13 @@ export function toClimb(element, switchView) {
     return { skip() {}, dispose() {}, holdFailsafe() {}, animations: [], reduced: true };
   }
 }
-export { OPEN, CLIMB };
+export function toList(element, switchView) {
+  try { return transitionToList(element, switchView); }
+  catch {
+    element[CONTROLLER]?.dispose();
+    element.remove();
+    switchView();
+    return { skip() {}, dispose() {}, holdFailsafe() {}, animations: [], reduced: true, destination: "list", active: false };
+  }
+}
+export { OPEN, CLIMB, LIST };

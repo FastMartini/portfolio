@@ -34,7 +34,8 @@ regenerated from the Waypoint registry and uses self-hosted Newsreader/Manrope.
   enhancement failure, and unmount all release those resources.
 - Reduced motion bypasses the opening before paint and retains a 320 ms opacity-only Climb entrance.
   Pointer, key, wheel, touch, resize and enabling reduced motion dismiss the
-  active sequence. Climb-to-List remains immediate.
+  active sequence. Climb-to-List switches directly with reduced motion; normal
+  motion uses the look-down sequence described below.
 
 ## Validation
 
@@ -158,3 +159,57 @@ is measured only once after readiness, and completed intros cannot replay.
   pass. Updated desktop/mobile review captures show the final sequence.
 - Full Linux CI reruns when PR #34 is updated; the local checks above do not
   claim that the pending full run has passed.
+
+## Climb-to-List return
+
+The return reuses the opening's complete map markup, paper palette, camera
+framing/easing, and headline-first hero reveal. It starts with the rows and
+both gatefolds already flat; the whole sheet tilts into view without unfolding.
+
+| Phase | Time | Behavior |
+| --- | --- | --- |
+| Look down | 0–900 ms | Mountain moves upward while the open map and green floor rise from below; map tilt settles from 58° to overhead. |
+| Hold | 900–1400 ms | Camera scale 1, map centered at 50%/50%, flat folds, visible grain/creases. |
+| Zoom | 1400–2350 ms | Same measured center-pane push/easing as the opening. |
+| Paper takeover | 2050–2330 ms | One opacity/color effect covers the map and matches the selected List View surface. |
+| Hero | 2350–3100 ms | Actual headline appears first; supporting copy, actions and portrait use the opening's existing stagger. |
+
+The green floor fully covers the viewport before the view changes at 900 ms.
+The List View scroll and native fragment target reset under that cover. The
+paper is fully opaque 20 ms before the map world is hidden; it then lifts over
+the ready page, with no text clone or heading swap. The selected theme remains
+intact: cream paper hands off to cream in Light mode and the matching reading
+surface in Dark mode. Navigation stays above the overlay and remains usable.
+
+A temporary backing color matches the current sky behind the moving mountain;
+contact shadows gather as the map flattens, avoiding an early dark rectangle.
+The same lifecycle owns both view-transition clocks and releases every effect
+on completion, input, resize, motion changes, fragment navigation or reversal.
+Unsupported animation APIs switch directly. Reduced motion creates no return
+overlay or hero animation. Scene-recovery navigation remains immediate.
+
+Returning always lands at the List View Trailhead, including from an open
+Waypoint Panel or a previous inline Case Study. The previous Climb scroll
+position is retained when visitors switch back.
+
+![Climb-to-List return on desktop](return-desktop.png)
+
+![Climb-to-List return on mobile](return-mobile.png)
+
+### Return validation
+
+- Broader production-export checks: **212 passed**, two known WebKit 3D paint
+  captures skipped. This includes the opening, both view directions, shared
+  navigation, Climb behavior and theme integration in Chromium/WebKit.
+- After the final shadow adjustment, **32 return checks passed** across both
+  engines. Desktop/mobile and both themes cover the flat-map start, simultaneous
+  tilt/arrival, centered 500 ms hold, zoom, opaque paper handoff, headline-first
+  reveal, cleanup, input interruption, reversal, fragment navigation, reduced
+  motion, camera API failure and an open Waypoint Panel/previous Case Study.
+- **20 targeted fallback/cold-load checks passed** after guarding the prepaint
+  motion query against missing/throwing APIs. Homepage and deep-link reading
+  remain usable. Natural frame sampling checks observed-frame continuity, with
+  deterministic pose tests asserting exact timing independently of CI FPS.
+- Static-export builds, typecheck, lint and diff checks pass. The twelve map
+  raster assets are unchanged. Desktop/mobile captures above show the final
+  shadow treatment. Full Linux CI reruns on the updated PR.

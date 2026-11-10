@@ -42,7 +42,7 @@ export function splashMarkup(namespace: "opening" | "climb") {
     .replace(/url\(#([^)]+)\)/g, `url(#${namespace}-$1)`);
 }
 
-export function createClimbOverlay() {
+export function createMapOverlay() {
   const element = document.createElement("div");
   element.className = "splash";
   element.setAttribute("aria-hidden", "true");

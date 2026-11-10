@@ -35,7 +35,9 @@ html[data-splash] .splash.splash--skipped, html .splash.splash--finished { anima
 @keyframes splash-exit { 0%, 99.99% { visibility: visible; } 100% { visibility: hidden; } }
 
 /* Climb View transition reuses this overlay under the header; JS drives it. */
-html .splash.splash--climb { animation: none; display: block; z-index: 59; }
+html .splash:is(.splash--climb, .splash--list) { animation: none; display: block; z-index: 59; }
+
+.splash--list { --rig-top: 50%; }
 
 /* ---------- World: table, camera, rig ---------- */
 .splash-world { animation: splash-world-off var(--splash-duration) linear both; inset: 0; position: absolute; }

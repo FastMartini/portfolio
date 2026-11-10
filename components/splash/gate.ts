@@ -4,12 +4,14 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const homePaths = JSON.stringify([basePath || "/", `${basePath}/`]);
 
 export const SPLASH_GATE_SCRIPT = `(()=>{
-  if(document.documentElement.dataset.motion==="reduce"||matchMedia("(prefers-reduced-motion: reduce)").matches){
-    document.documentElement.dataset.splash="seen";return;
-  }
   if(location.hash||!${homePaths}.includes(location.pathname)){
     document.documentElement.dataset.splash="seen";return;
   }
+  try{
+    if(document.documentElement.dataset.motion==="reduce"||matchMedia("(prefers-reduced-motion: reduce)").matches){
+      document.documentElement.dataset.splash="seen";return;
+    }
+  }catch{document.documentElement.dataset.splash="seen";return;}
   try{
     if(sessionStorage.getItem("splash-seen")){
       document.documentElement.dataset.splash="seen";return;

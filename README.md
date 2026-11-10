@@ -24,7 +24,11 @@ covers the map until it matches the selected homepage background. The map
 artwork and parchment cover retain their existing design, without hands.
 
 The 2.6-second List-to-Climb transition switches views under paper at 380 ms;
-the mountain translates into place without scaling. Leaving Climb stays immediate.
+the mountain translates into place without scaling. Returning to List View
+looks down at the already-open map over 900 ms, holds overhead for 500 ms,
+then reuses the 950 ms camera push and 750 ms hero reveal. The covered view
+switch lands at the List View Trailhead while preserving the previous Ascent
+position for the next Climb visit. Reduced motion returns directly.
 Pointer, key, wheel, touch, resize, and enabling reduced motion dismiss the
 active sequence. Reduced motion shows the homepage directly and retains a
 320 ms opacity-only Climb entrance. Deep links, repeat session visits, and

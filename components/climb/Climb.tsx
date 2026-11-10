@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent, ReactNode, PointerEvent, FocusEvent, KeyboardEvent } from "react";
 import { flushSync } from "react-dom";
-import { toClimb } from "../splash/controller";
+import { toClimb, toList } from "../splash/controller";
 import type { SplashController } from "../splash/controller";
-import { createClimbOverlay } from "../splash/map/markup";
+import { createMapOverlay } from "../splash/map/markup";
 import { journeyStops } from "../../content/journey";
 import { createHudRenderer } from "./hud";
 import { createMountainRenderer } from "./mountain/render";
@@ -216,6 +216,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     });
     function hashChange() {
       if (!listTarget()) return;
+      if (location.hash === "#list-view" && transition.current?.destination === "list" && transition.current.active) return;
       transition.current?.dispose();
       if (activeClimb.current) {
         lastClimbScroll.current = window.scrollY;
@@ -330,7 +331,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     setSelection(null);
     if (listMode) {
       history.replaceState(null, "", location.pathname + location.search);
-      const overlay = createClimbOverlay();
+      const overlay = createMapOverlay();
       try {
         transition.current = toClimb(overlay, () => flushSync(() => setListMode(false)));
       } catch {
@@ -341,9 +342,16 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       }
     } else {
       lastClimbScroll.current = window.scrollY;
-      focusList.current = true;
-      history.replaceState(null, "", "#list-view");
-      setListMode(true);
+      const overlay = createMapOverlay();
+      const switchToList = () => {
+        activeClimb.current = false;
+        focusList.current = true;
+        // Native fragment navigation also clears a previously targeted Case Study.
+        location.replace("#list-view");
+        flushSync(() => setListMode(true));
+        window.scrollTo({ top: 0, behavior: "instant" });
+      };
+      transition.current = toList(overlay, switchToList);
     }
   }
 
