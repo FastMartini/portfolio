@@ -60,13 +60,6 @@ const T = {
   creaseHinge: track([[0, 0], [1180, 0], [1330, 0.5], [1800, 0.3], [2150, 0]]),
   sheen: track([[0, 0], [1240, 0], [1330, 1], [1650, 1], [1760, 0]]),
   sheenX: track([[0, -1.2], [1240, -1.2], [1760, 2.4, "inout"]]),
-  // Hand gestures layered on top of the tracked grip.
-  hIn: track([[0, 1.9], [330, 0, "out"]]),
-  hFlick: track([[0, 0], [370, 0], [430, -0.032, "out"], [560, 0]]),
-  hSmooth: track([[0, 0], [1350, 0], [1560, 1]]),
-  hOut: track([[0, 0], [1520, 0], [1960, 1, "leave"]]),
-  wFlick: track([[0, 0], [370, 0], [425, -7], [495, 3.5], [570, 0]]),
-  wSmooth: track([[0, 0], [1340, 0], [1500, 5], [1580, 4], [1700, -6]]),
   faceGrain: track([[0, 1], [1700, 1], [2150, 0]]),
 };
 
@@ -162,61 +155,10 @@ function build() {
       ([sx, dx, sy, dy, o, oy]) => `opacity:${f3(o)};transform:translate(${wlen(dx)},calc(var(--ph) * ${f3(dy * 2)} / 2 + var(--w) * ${f3(oy)})) scale(${f3(sx)},${f3(sy)})`, 1000 / 120, 1800);
   }
 
-  // Hands hold the free edges of the gatefold doors. Their grip points are the
-  // perspective projection of a point on each door, so they ride the paper.
-  for (const [variant, phw] of [["wide", 0.7], ["tall", 1.25]]) {
-    const P = 3.2, d = 0.45, gy = phw - 0.045;
-    for (const side of ["l", "r"]) {
-      const sign = side === "l" ? -1 : 1;
-      const fn = (t) => {
-        const th = (side === "l" ? T.doorL(t) : T.doorR(t)) * DEG;
-        const x3 = sign * (0.5 + d * Math.cos(th)), z3 = d * Math.sin(th);
-        const y3 = gy + T.mapY(t) * phw;
-        const k = P / (P - z3);
-        let x = x3 * k, y = y3 * k;
-        const smooth = T.hSmooth(t), out = T.hOut(t), inn = T.hIn(t);
-        x += sign * (0.045 * smooth + 0.42 * out + 0.06 * inn);
-        y += 0.012 * smooth + 1.15 * out + 1 * inn + T.hFlick(t);
-        // Forearms angle outward as the hands spread apart.
-        // Wrist: a flick with the opening toss, a roll as the door lifts toward the camera,
-        // a small set before each regrip, outward turn while smoothing, and a drop on release.
-        const o = side === "l" ? 0 : 85;
-        const wrist = T.wFlick(t) + 9 * Math.sin(th) * (th < 170 * DEG ? 1 : 0) + track([[0, 0], [690 + o, 0], [745 + o, -3.5], [800 + o, 0]])(t) + T.wSmooth(t);
-        const rot = sign * (-11 + 30 * clamp(Math.abs(x) - 0.05, 0, 1.1) + 9 * inn + 14 * out + wrist);
-        const s = Math.pow(k, 0.85) * (1 - 0.02 * smooth) * (1 + 0.025 * Math.max(0, -T.hFlick(t) / 0.032));
-        return [x, y, rot, s];
-      };
-      css += keyframes(`splash-hand-${side}-${variant}`, fn, [0.0025, 0.0025, 0.25, 0.004],
-        ([x, y, r, s]) => `transform:translate(${wlen(x)},${wlen(y)}) rotate(${f2(r)}deg) scale(${f3(s)})`, 1000 / 120, 2000);
-    }
-  }
   // Paper grain on the map faces fades out while the camera pushes in, so the
   // screen-space paper (fine grain) never meets a 4x-magnified grain.
   css += keyframes("splash-face-grain", (t) => [T.faceGrain(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2200);
 
-  // Articulated hand parts, in SVG user units. Each hand regrips just before its own door.
-  for (const side of ["l", "r"]) {
-    const o = side === "l" ? 0 : 85;
-    const thumbR = track([[0, -16], [260, -16], [330, 4, "out"], [380, 1], [425, 5], [490, 1], [690 + o, 1], [745 + o, -10, "out"], [800 + o, 3], [840 + o, 1],
-      [1340, 1], [1500, -6], [1560, -5], [1630, -21, "out"], [1960, -21]]);
-    const thumbY = track([[0, -6], [260, -6], [330, 0, "out"], [690 + o, 0], [745 + o, -8, "out"], [800 + o, 1], [840 + o, 0], [1340, 0], [1500, 4], [1630, -9, "out"], [1960, -9]]);
-    const thumbX = track([[0, 0], [1340, 0], [1500, -5], [1630, -3], [1960, -3]]);
-    const curl = track([[0, 1.05], [260, 1.05], [330, 0.86, "out"], [380, 0.9], [425, 0.84], [490, 0.89], [690 + o, 0.89], [745 + o, 1.02, "out"], [800 + o, 0.84], [840 + o, 0.88],
-      [1340, 0.88], [1500, 1.04], [1560, 1.02], [1650, 1.1, "out"], [1960, 1.1]]);
-    const spread = track([[0, 0], [1340, 0], [1500, 1], [1600, 0.6], [1960, 0]]);
-    const roll = track([[0, 1], [370, 1], [425, 0.93], [520, 1], [820 + o, 1], [1000 + o, 0.94], [1250 + o, 1], [1340, 1], [1500, 1.04], [1650, 0.97], [1960, 1]]);
-    const cast = track([[0, 0.12], [330, 0.34, "out"], [745 + o, 0.2], [800 + o, 0.34], [1580, 0.34], [1700, 0.1]]);
-    css += keyframes(`splash-thumb-${side}`, (t) => [thumbR(t), thumbX(t), thumbY(t)], [0.2, 0.3, 0.3],
-      ([r, x, y]) => `transform:translate(${f2(x)}px,${f2(y)}px) rotate(${f2(r)}deg)`, 1000 / 120, 2000);
-    css += keyframes(`splash-palm-${side}`, (t) => [roll(t)], [0.003], ([r]) => `transform:scaleX(${f3(r)})`, 1000 / 60, 2000);
-    css += keyframes(`splash-cast-hand-${side}`, (t) => [cast(t)], [0.01], ([c]) => `opacity:${f3(c)}`, 1000 / 60, 2000);
-    // Fingers curl together but not in lockstep: each lags its neighbour by 18 ms and spreads by its index.
-    for (let f = 1; f <= 4; f++) {
-      const lag = (f - 1) * 18, fan = (f - 2.5) * 2.2;
-      css += keyframes(`splash-finger-${side}-${f}`, (t) => [curl(t - lag), spread(t - lag) * fan], [0.004, 0.15],
-        ([c, a]) => `transform:rotate(${f2(a)}deg) scaleY(${f3(c)})`, 1000 / 120, 2000);
-    }
-  }
   return css;
 }
 

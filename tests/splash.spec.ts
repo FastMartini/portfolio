@@ -59,7 +59,7 @@ test("the full intro exits naturally without console or hydration errors", async
   const splash = page.locator(".splash");
   await expect(splash).toBeVisible();
   await expect(splash.locator(".splash-greeting--paper")).toHaveText("Howdy, I\'m Diego:");
-  await expect(splash.locator(".splash-hand")).toHaveCount(2);
+  await expect(splash.locator(".splash-hand")).toHaveCount(0);
   await expect(splash.locator(".wordmark-mark")).toHaveCount(0);
   await expect(splash).toBeHidden({ timeout: 5000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -196,11 +196,7 @@ for (const viewport of [
       }, sample.toString("base64"));
       expect(brightness).toBeGreaterThan(210);
     }
-    for (const side of ["l", "r"]) {
-      const hand = await page.locator(`.splash-hand--${side}`).boundingBox();
-      expect(hand!.x).toBeLessThan(viewport.width);
-      expect(hand!.x + hand!.width).toBeGreaterThan(0);
-    }
+    await expect(page.locator(".splash-hand")).toHaveCount(0);
     await seekIntro(page, 3000);
     const heading = await page.locator("#trailhead-title").boundingBox();
     for (const copy of ["paper", "page"]) {

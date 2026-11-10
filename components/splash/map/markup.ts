@@ -1,5 +1,5 @@
 import { trailheadIntro } from "../../../content/trailhead";
-import { hands, printLettering } from "./print.generated";
+import { printLettering } from "./print.generated";
 
 const base = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/splash`;
 const escape = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -34,7 +34,6 @@ export function splashMarkup(namespace: "opening" | "climb") {
   <div class="splash-world"><div class="splash-table"></div><div class="splash-camera"><div class="splash-rig">
     <i class="splash-probe"></i><i class="splash-shadow splash-shadow--soft"></i><i class="splash-shadow splash-shadow--contact"></i>
     <div class="splash-map">${rowMarkup(0)}${rowMarkup(1)}<div class="splash-sheen"><i></i></div><i class="splash-pane-cover"></i><p class="splash-pane-greeting"></p></div>
-    <div class="splash-hand splash-hand--l">${hands[0]}</div><div class="splash-hand splash-hand--r">${hands[1]}</div>
   </div></div></div>
   <p class="splash-greeting splash-greeting--page">${escape(trailheadIntro.heading)}</p>
   <div class="splash-sheet"><p class="splash-greeting splash-greeting--paper">${greeting}</p></div>`;

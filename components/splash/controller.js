@@ -7,7 +7,7 @@
  *             the dark (or light) page, swaps the decorative heading for the
  *             real <h1> in a single frame, and forms the page around it;
  *   climb     on "Climb view": the page becomes paper, the camera pulls back
- *             to the map in the person's hands, the view tilts up off the map
+ *             to the unfolded map, the view tilts up off the map
  *             to the mountain, and the Waypoints arrive.
  * Both dismiss on pointer, key, wheel, touch or resize. Every animation they
  * create is cancelled on finish or dismissal, which restores the page.
@@ -254,14 +254,14 @@ function transitionToClimb(el, switchView, options = {}) {
 
   el.classList.add("splash--climb");
   doc.body.prepend(el);
-  // Hold the opening's own CSS frames: the sheet settled flat, the hands holding its edges.
+  // Hold the opening's own CSS frames with the sheet settled flat.
   const frozen = el.getAnimations({ subtree: true });
   for (const a of frozen) {
     if (!(a instanceof CSSAnimation)) continue;
     const n = a.animationName;
     if (/^splash-(exit|sheet|zoom-fallback)/.test(n)) { a.cancel(); continue; }
     a.pause();
-    a.currentTime = /^splash-(hand|thumb|palm|finger|cast-hand)/.test(n) ? 1450 : /^splash-(face-grain|crease|sheen)/.test(n) ? 2200 : /^splash-world-off/.test(n) ? 0 : 1850;
+    a.currentTime = /^splash-(face-grain|crease|sheen)/.test(n) ? 2200 : /^splash-world-off/.test(n) ? 0 : 1850;
   }
   const life = lifecycle(el, options, (_skipped, disposed) => { if (!disposed) doSwitch(); el.remove(); });
   life.cleanup(() => frozen.forEach((animation) => animation.cancel()));
@@ -312,7 +312,7 @@ function transitionToClimb(el, switchView, options = {}) {
   cueFrame = win.requestAnimationFrame(tick);
   at(C, doSwitch);
 
-  // 2. Pull back from the page to the map in the person's hands.
+  // 2. Pull back from the page to the unfolded map.
   if (f) {
     camera.style.transformOrigin = `${f.F.x}px ${f.F.y}px`;
     if (showGreeting) {
@@ -337,17 +337,6 @@ function transitionToClimb(el, switchView, options = {}) {
   // over the pane hides them and lifts as the folds come into view.
   add(el.querySelector(".splash-pane-cover"), [{ opacity: 1 }, { opacity: 0 }], { delay: 470, duration: 420, easing: "ease-in-out", fill: "both" });
   el.querySelectorAll(".splash-crease").forEach((c) => add(c, [{ opacity: 0 }, { opacity: 0.32 }], { delay: 640, duration: 560, fill: "both" }));
-  // A small regrip as the hands take the weight again.
-  el.querySelectorAll(".splash-hand").forEach((hand, i) => {
-    const thumb = hand.querySelector(".h-thumb"), base = getComputedStyle(thumb).transform;
-    const lift = `${base === "none" ? "" : base} translate(0px,-7px) rotate(-9deg)`;
-    add(thumb, [{ transform: base }, { transform: lift, offset: 0.45 }, { transform: base }], { delay: 860 + i * 90, duration: 340, easing: "ease-in-out" });
-    hand.querySelectorAll(".h-f").forEach((finger, k) => {
-      const fb = getComputedStyle(finger).transform;
-      add(finger, [{ transform: fb }, { transform: `${fb === "none" ? "" : fb} scaleY(0.9)`, offset: 0.5 }, { transform: fb }], { delay: 880 + i * 90 + k * 18, duration: 360, easing: "ease-in-out" });
-    });
-  });
-
   // 3. Look up from the map to the mountain: the sheet tips away and drops out of view,
   //    the table edge slides down, and the Climb (already behind) descends into place.
   const [t0, td] = CLIMB.tilt, lookUp = "cubic-bezier(0.5, 0, 0.3, 1)";

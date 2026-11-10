@@ -16,8 +16,8 @@ Palette values live in `components/theme/tokens.json`; run `npm run theme:genera
 
 ## Map opening
 
-The first eligible visit plays the supplied 4.4-second folded-map opening into
-List View. Its greeting aligns to the real Trailhead heading and swaps to it at
+The first eligible visit plays a 4.4-second map-only opening into List View: the
+paper unfolds by itself, with no hands. Its greeting aligns to the real Trailhead heading and swaps to it at
 3960 ms without moving or painting two copies. The 2.6-second List-to-Climb
 transition switches views under paper at 380 ms; the mountain translates into
 place without scaling. Leaving Climb stays immediate.

@@ -38,5 +38,5 @@ const textDefs = defs
   .replace(/<(path|circle|ellipse|rect)\b[^>]*\/>/g, "");
 const shapeDefs = defs.replace(/<text\b[\s\S]*?<\/text>/g, "");
 
-return { textDefs, shapeDefs, hands: [print.hand(true), print.hand(false)] };
+return { textDefs, shapeDefs };
 }

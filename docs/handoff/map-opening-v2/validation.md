@@ -1,9 +1,10 @@
 # Map opening v2 integration
 
 Source: the supplied `HANDOFF.md` and `map-opening-prototype-v2.zip`.
-The supplied map print and sampled motion are preserved. Review feedback revises
-the hands to a palm-side grip and replaces the solid green cover band with
-parchment and fold creases; the remaining ten WebPs stay byte-for-byte unchanged. The greeting is shared with `content/trailhead.ts`; lettering is
+The supplied map print and map motion are preserved. The opening and
+List-to-Climb transition now show only the unfolding map, with all hand artwork
+and hand-specific animation removed. The parchment cover and clear crease
+lines from the prior revision remain. The greeting is shared with `content/trailhead.ts`; lettering is
 regenerated from the Waypoint registry and uses self-hosted Newsreader/Manrope.
 
 ## Production integration
@@ -70,21 +71,17 @@ controller clock, paused at the labeled times.
 
 Validation runs: [full Linux verification](https://github.com/FastMartini/portfolio/actions/runs/42776914782)
 and [three-browser opening/transition and baseline verification](https://github.com/FastMartini/portfolio/actions/runs/42776866582).
-The hand/cover revision passed the focused local opening/transition suite: 96
-tests, plus typecheck and lint. CI reruns on the revised artwork commit.
+The current revision is checked with the focused opening/transition suite,
+typecheck and lint. CI reruns on the updated PR.
 
-## Hand and cover revision
+## Map-only revision
 
-The hands now show the palm side, four distinct curled fingers without the old
-stub clipping path, rounded thumb pads and palm creases. Wrist, sleeve, grip
-placement and motion timing stay the same. The cover keeps its existing title,
-mountain illustration, copper accents and layout, replacing only the solid green
-band with parchment and adding straight paper-fold scores. Existing hinge and
-half-fold creases are more visible during unfolding.
+The hands are removed from the shared overlay, artwork generator, styles,
+motion generator and transition controller. The map unfolds by itself in both
+sequences. Map artwork, all twelve WebPs, map motion keyframes, camera movement,
+and the greeting handoff remain unchanged by this revision.
 
-Validation compares the generated inside-map and legend SVG against the prior
-commit and hashes all ten non-cover sprites: all are unchanged. Only
-`cover-wide.webp` and `cover-tall.webp` are regenerated. The printed cover labels
-use dark ink for readability on the new pale background.
-
-![Previous and revised palm-side grip](hand-revision.png)
+The prior green-band removal and crease enhancement are retained. The cover
+keeps its title, mountain illustration, copper accents and layout. Cover-only
+edits can use `npm run splash:rasterize -- --covers-only` to preserve the ten
+other sprites.

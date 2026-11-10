@@ -1,6 +1,6 @@
 // Deterministic artwork for the map opening: the printed inside of the trail
 // map (contours + route kept to the perimeter, blank centre), its cover and
-// legend panels, and the two hands. Pure string builders; no DOM.
+// legend panels. Pure string builders; no DOM.
 
 
 const PINE = "#173f35", INK = "#1f2621", COPPER = "#b5653b";
@@ -194,34 +194,4 @@ function legend(variant, waypoints) {
   };
 }
 
-// ------------------------------------------------------------------ hands
-// Palm-side view, cupped beneath the paper. Keep the grip pad at (70, 34)
-// and the existing wrist/sleeve geometry so the authored map motion stays put.
-// Four individually articulated fingers remain unclipped; palm creases and
-// rounded thumb pads make the upward-facing grip readable at phone sizes.
-function hand(mirror) {
-  const finger = (n, d, ox, joint) => `<g class="h-f h-f${n}" style="transform-origin:${ox}px 102px"><path class="h-skin" d="${d}"/><path class="h-shade" d="${joint}"/></g>`;
-  const body = `
-<ellipse cx="112" cy="98" rx="58" ry="20" class="h-cast"/>
-<path class="h-skin" d="M100 198 C106 232 120 266 140 304 L196 304 C178 262 166 224 160 188 Z"/>
-<path class="h-sleeve" d="M126 292 C150 280 190 276 214 284 L236 372 L146 372 Z"/>
-<path class="h-cuff" d="M126 292 C150 280 190 276 214 284 L218 300 C194 293 156 296 131 308 Z"/>
-<g class="h-palm">
-<path class="h-skin" d="M78 120 C76 98 84 80 102 74 C120 67 150 72 165 85 C183 101 184 125 177 149 C171 172 165 192 157 201 C141 214 112 215 98 201 C84 181 79 150 78 120 Z"/>
-${finger(1, "M94 108 L86 55 C83 41 86 30 94 28 C103 25 109 33 111 46 L121 102 Q108 114 94 108 Z", 106, "M90 60 Q99 56 111 59 M94 83 Q104 79 116 82")}
-${finger(2, "M119 101 L111 39 C109 21 113 11 123 10 C133 9 138 20 139 35 L143 101 Q132 110 119 101 Z", 130, "M113 46 Q125 42 140 45 M116 72 Q128 68 142 71")}
-${finger(3, "M143 104 L138 46 C137 31 141 21 150 21 C160 21 165 31 165 45 L167 108 Q155 116 143 104 Z", 153, "M140 54 Q152 50 165 54 M142 79 Q154 75 166 79")}
-${finger(4, "M165 115 L162 67 C162 53 165 45 173 45 C182 45 187 54 186 67 L182 125 Q171 129 165 115 Z", 174, "M163 75 Q173 72 186 76 M165 96 Q174 93 184 97")}
-<path class="h-shade2" d="M98 201 C111 211 139 214 157 201 C169 184 176 162 177 145 C165 167 149 188 128 197 C115 202 105 203 98 201 Z"/>
-<path class="h-pad" d="M88 121 C98 107 116 115 122 133 C127 149 116 172 103 179 C92 166 85 141 88 121 Z"/>
-<path class="h-shade" d="M94 109 C114 122 143 121 166 107 M96 130 C118 146 142 135 161 148 M91 118 C112 130 121 151 107 177 M120 187 Q138 192 152 184"/>
-<g class="h-thumb">
-<path class="h-skin h-thumb-skin" d="M103 147 C84 144 70 128 65 108 C62 95 60 81 53 67 C47 55 49 42 59 35 C69 27 83 29 89 39 C94 48 88 57 80 64 C75 69 78 80 85 89 C96 102 108 108 115 122 C120 133 115 143 103 147 Z"/>
-<path class="h-pad" d="M59 43 C64 35 76 34 82 41 C87 48 79 57 71 60 C63 57 57 50 59 43 Z"/>
-<path class="h-shade" d="M63 74 Q72 71 80 76 M74 105 C79 120 90 130 103 132"/>
-</g>
-</g>`;
-  return `<svg viewBox="0 0 240 372" class="splash-hand-art" aria-hidden="true" focusable="false">${mirror ? `<g transform="translate(240 0) scale(-1 1)">${body}</g>` : body}</svg>`;
-}
-
-export { insidePrint, cover, legend, hand, PINE, INK, COPPER };
+export { insidePrint, cover, legend, PINE, INK, COPPER };

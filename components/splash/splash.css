@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Map opening: a folded trail map is picked up, flicked open and pulled apart,
+   Map opening: a folded trail map lifts from the table and unfolds,
    the camera pushes into its blank centre, "Howdy, I'm Diego:" inks onto the
    paper, and the paper becomes the Trailhead's reading surface.
 
@@ -7,12 +7,11 @@
    uses absolute times on that timeline, so seeking any animation's
    currentTime to t shows frame t.
 
-     0–330      hands enter and grip the folded packet
+     0–330      folded map rests on the table
      250–620    lift + small ruffle
      380–945    the top half flicks open (resistance, release, overshoot)
      820–1480   gatefold doors pulled apart, left then right
      1240–1800  ripple, smoothing press, sheet settles
-     1520–1960  hands let go and leave
      1550–2350  camera pushes into the blank centre (JS frames it on the heading)
      2180–2340  screen-space paper takes over; world layer removed at 2350
      2300–3440  greeting inks in, word by word, in final layout
@@ -30,7 +29,6 @@ html[data-splash="active"] .splash { display: block; }
 .splash {
   --w: min(28vw, 47vh);
   --ph: calc(var(--w) * 0.7);
-  --hand-w: calc(var(--w) * 0.46);
   --rig-top: 46%;
   --zoom-fallback: 5.4;
   --paper: #fffbed;
@@ -49,7 +47,7 @@ html[data-splash="active"] .splash { display: block; }
 }
 /* Portrait phones: a taller sheet, the same three panes and two folds. */
 @media (max-aspect-ratio: 4/5) {
-  .splash { --w: min(43vw, 30vh); --ph: calc(var(--w) * 1.25); --hand-w: calc(var(--w) * 0.5); --rig-top: 43%; --zoom-fallback: 3.4; --print: var(--print-tall); }
+  .splash { --w: min(43vw, 30vh); --ph: calc(var(--w) * 1.25); --rig-top: 43%; --zoom-fallback: 3.4; --print: var(--print-tall); }
 }
 html[data-splash] .splash.splash--skipped, html .splash.splash--finished { animation: none; display: none; }
 /* The overlay never fades as a whole: by 4.4 s nothing in it is visible, so it
@@ -177,15 +175,6 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
   height: 140%; left: 0; opacity: 0; position: absolute; top: -20%; width: calc(var(--w) * 0.55);
 }
 
-/* ---------- Hands ---------- */
-.splash-hand { left: 0; position: absolute; top: 0; width: var(--hand-w); }
-.splash-hand--r { animation: splash-hand-r-wide 4400ms linear both; margin: calc(var(--hand-w) * -0.1417) 0 0 calc(var(--hand-w) * -0.2917); transform-origin: 29.17% 9.14%; }
-.splash-hand--l { animation: splash-hand-l-wide 4400ms linear both; margin: calc(var(--hand-w) * -0.1417) 0 0 calc(var(--hand-w) * -0.7083); transform-origin: 70.83% 9.14%; }
-@media (max-aspect-ratio: 4/5) {
-  .splash-hand--r { animation-name: splash-hand-r-tall; }
-  .splash-hand--l { animation-name: splash-hand-l-tall; }
-}
-
 /* ---------- Screen-space paper and the greeting ----------
    Two decorative copies of the greeting, never both visible against different
    grounds: .--paper (dark ink, on the paper) and .--page (the theme's heading
@@ -250,20 +239,6 @@ html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
 .splash-pane-cover { background: var(--paper); display: none; height: 100%; left: calc(var(--w) * 0.5 - 1px); position: absolute; top: 0; translate: 0 0 0.4px; width: calc(var(--w) + 2px); }
 .splash--climb .splash-pane-cover { display: block; }
 
-/* ---------- Hand articulation (SVG user units; same keyframes for the mirrored left hand) ---------- */
-.splash-hand .h-palm { transform-origin: 130px 205px; }
-.splash-hand .h-thumb { transform-origin: 92px 146px; }
-.splash-hand--l .h-palm { animation: splash-palm-l 4400ms linear both; }
-.splash-hand--r .h-palm { animation: splash-palm-r 4400ms linear both; }
-.splash-hand--l .h-thumb { animation: splash-thumb-l 4400ms linear both; }
-.splash-hand--r .h-thumb { animation: splash-thumb-r 4400ms linear both; }
-.splash-hand--l .h-cast { animation: splash-cast-hand-l 4400ms linear both; }
-.splash-hand--r .h-cast { animation: splash-cast-hand-r 4400ms linear both; }
-.splash-hand--l .h-f1 { animation: splash-finger-l-1 4400ms linear both; } .splash-hand--l .h-f2 { animation: splash-finger-l-2 4400ms linear both; }
-.splash-hand--l .h-f3 { animation: splash-finger-l-3 4400ms linear both; } .splash-hand--l .h-f4 { animation: splash-finger-l-4 4400ms linear both; }
-.splash-hand--r .h-f1 { animation: splash-finger-r-1 4400ms linear both; } .splash-hand--r .h-f2 { animation: splash-finger-r-2 4400ms linear both; }
-.splash-hand--r .h-f3 { animation: splash-finger-r-3 4400ms linear both; } .splash-hand--r .h-f4 { animation: splash-finger-r-4 4400ms linear both; }
-
 .splash-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .splash svg text { font-family: var(--font-newsreader), Georgia, serif; }
 .splash .contours .c { fill: none; stroke: rgba(23,63,53,.24); stroke-width: 1; }
@@ -290,14 +265,6 @@ html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
 .splash .cv-title { fill: #173f35; font-style: italic; }
 .splash .cv-ridge { fill: none; stroke: #173f35; stroke-width: 2.4; stroke-linejoin: round; } .splash .cv-ridge.thin { stroke-width: 1.2; opacity: .6; }
 .splash .cv-route { fill: none; stroke: #b5653b; stroke-width: 2.2; stroke-dasharray: 2 6; stroke-linecap: round; }
-.splash-hand-art { display: block; overflow: visible; width: 100%; height: auto; }
-.splash .h-skin { fill: #d9a67d; } .splash .h-thumb { fill: #dcab83; }
-.splash .h-shade { fill: none; stroke: #b8835c; stroke-width: 2.2; stroke-linecap: round; opacity: .55; }
-.splash .h-shade2 { fill: #c48f67; opacity: .55; }
-.splash .h-pad { fill: #ecc9aa; fill-opacity: .5; }
-.splash .h-sleeve { fill: #4a4136; } .splash .h-cuff { fill: #5d5246; }
-.splash .h-cast { fill: rgba(16,30,24,.28); filter: blur(9px); }
-
 /* ---------- Reduced motion ----------
    No unfolding, ruffling or zoom. The greeting sits still on a surface of the
    page's own colour, at the real heading's position; the rest of the

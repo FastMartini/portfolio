@@ -10,6 +10,17 @@ async function seekTransition(page: Page, time: number) {
   }, time);
 }
 
+async function startPausedTransition(page: Page) {
+  // Freeze in the activation task: a slow first paint can cross the 380ms
+  // switch, and seeking backwards cannot undo a cue that has already fired.
+  await page.getByRole("button", { name: "Climb view", exact: true }).evaluate((button: HTMLButtonElement) => {
+    button.focus(); button.click();
+    const controller = Reflect.get(document.querySelector(".splash--climb")!, Symbol.for("portfolio.splash"));
+    controller.holdFailsafe();
+    controller.animations.forEach((animation: Animation) => { animation.pause(); animation.currentTime = 0; });
+  });
+}
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("splash-seen", "1"));
 });
@@ -21,16 +32,9 @@ for (const theme of ["light", "dark"] as const) {
       await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
       await page.goto("./");
       await expect(page.locator(".climb-list")).toBeVisible();
-      const toggle = page.getByRole("button", { name: "Climb view", exact: true });
-      // Freeze in the same task as activation. WebKit's first paint can take
-      // longer than 380ms; seeking backwards cannot undo an already-fired cue.
-      await toggle.evaluate((button: HTMLButtonElement) => {
-        button.focus(); button.click();
-        const controller = Reflect.get(document.querySelector(".splash--climb")!, Symbol.for("portfolio.splash"));
-        controller.holdFailsafe();
-        controller.animations.forEach((a: Animation) => { a.pause(); a.currentTime = 0; });
-      });
+      await startPausedTransition(page);
       await expect(page.locator(".splash--climb")).toBeVisible();
+      await expect(page.locator(".splash--climb .splash-hand")).toHaveCount(0);
       await seekTransition(page, 370);
       await expect(page.locator(".climb-list")).toBeVisible();
       await seekTransition(page, 400);
@@ -57,8 +61,9 @@ for (const input of ["Escape", "pointer", "wheel", "touch", "resize", "motion"] 
     const page = await context.newPage();
     await page.addInitScript(() => sessionStorage.setItem("splash-seen", "1"));
     await page.goto("./");
-    await page.getByRole("button", { name: "Climb view", exact: true }).click();
+    await startPausedTransition(page);
     await seekTransition(page, 200);
+    await expect(page.locator(".climb-list")).toBeVisible();
     if (input === "Escape") await page.keyboard.press("Escape");
     else if (input === "pointer") await page.mouse.click(10, 200);
     else if (input === "wheel") await page.mouse.wheel(0, 1);
