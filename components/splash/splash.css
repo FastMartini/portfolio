@@ -115,7 +115,7 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
   box-shadow: inset 0 0 0 0.5px rgba(80, 66, 40, 0.16);
   inset: 0; overflow: hidden; position: absolute;
 }
-/* Contours, route and symbols are pre-rendered (src/raster.py): one sprite per aspect,
+/* Contours, route and symbols are pre-rendered (scripts/rasterize-splash-print.mjs): one sprite per aspect,
    sliced per face. Only the lettering stays live SVG. */
 .splash-face--front { background-image: var(--print); background-repeat: no-repeat; background-size: calc(var(--w) * 2) calc(var(--ph) * 2); }
 .splash-door--l .splash-face--front { background-position: 0 0; }

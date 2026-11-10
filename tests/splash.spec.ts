@@ -171,11 +171,31 @@ for (const viewport of [
   { width: 844, height: 390 }, { width: 768, height: 1024 },
   { width: 1024, height: 768 }, { width: 1440, height: 900 },
 ]) {
-  test(`map opens and greeting matches the real heading at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  test(`map opens and greeting matches the real heading at ${viewport.width}x${viewport.height}`, async ({ page, browserName }) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto("./");
+    await seekIntro(page, 600);
+    const cover = (await page.locator(".splash-row--top .splash-pane .splash-face--back").boundingBox())!;
+    const paneWidth = await page.locator(".splash-probe").evaluate((el) => (el as HTMLElement).offsetWidth);
+    expect(cover.width).toBeGreaterThan(paneWidth * 1.15);
     await seekIntro(page, 1250);
+    // WebKit's snapshotRect capture flattens 3D even in a minimal perspective
+    // demo. Use Chromium for face paint and all engines for projected geometry.
+    if (browserName === "chromium") {
+      const face = (await page.locator(".splash-row--top .splash-door--l .splash-face--front").boundingBox())!;
+      const sample = await page.screenshot({ clip: { x: face.x + face.width / 2 - 4, y: face.y + face.height / 3 - 4, width: 8, height: 8 } });
+      const brightness = await page.evaluate(async (data) => {
+        const image = new Image(); image.src = `data:image/png;base64,${data}`; await image.decode();
+        const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
+        const ctx = canvas.getContext("2d")!; ctx.drawImage(image, 0, 0);
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let sum = 0;
+        for (let i = 0; i < pixels.length; i += 4) sum += (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+        return sum / (pixels.length / 4);
+      }, sample.toString("base64"));
+      expect(brightness).toBeGreaterThan(210);
+    }
     for (const side of ["l", "r"]) {
       const hand = await page.locator(`.splash-hand--${side}`).boundingBox();
       expect(hand!.x).toBeLessThan(viewport.width);

@@ -34,12 +34,40 @@ input dismissal, session/deep-link gates, no JavaScript, failed hydration,
 blocked storage, stalled clocks, missing APIs, partial animation failure,
 late heading layout, focus, and rapid reversal.
 
-Chromium and WebKit passed the first 90 opening/transition cases locally.
-Firefox's local binary cannot start ("Could not find profile folder"); Linux CI
-runs the same checks in all three browsers. Broader regression and current CI
-results are recorded on the PR.
+The full local Chromium/WebKit suite passed 499 tests (two unsupported native
+audio cases skipped). Linux CI passed the opening/transition and visual checks
+in all three browsers, including Firefox. Firefox's local binary cannot start
+("Could not find profile folder"). Current CI results are recorded on the PR.
+
+### WebKit capture limitation
+
+The macOS Playwright WebKit screenshot path flattens 3D layers: a standalone
+600×600 CSS perspective demo reproduces the same affine-looking output while
+its projected DOM rectangles match Chromium. This is consistent with the
+[WebKit snapshot limitation](https://bugs.webkit.org/show_bug.cgi?id=68276) and
+[Playwright’s software snapshot path](https://github.com/microsoft/playwright/issues/42885).
+The authored nested transforms and native back-face culling are preserved; no
+production CSS workaround is added to compensate for screenshots. Chromium
+checks front-face paint; all engines check projected fold geometry, timing,
+heading pixels, input and cleanup. An on-screen Safari inspection could not be
+captured because Computer Use access to the Playwright app was not enabled.
 
 `npm run splash:rasterize` was also executed successfully: twelve shape-only
 WebPs were generated (444,898 bytes using Chromium's WebP encoder). The PR keeps
 the supplied twelve WebPs (415 KB), whose Pillow encoding differs slightly.
 Regeneration changes the encoding, not the authored map geometry.
+
+## Review frames
+
+The Chromium captures below use the production typography and the actual
+controller clock, paused at the labeled times.
+
+![Map opening into List View](opening-desktop.png)
+
+![List-to-Climb transition](climb-transition.png)
+
+Validation runs: [full Linux verification](https://github.com/FastMartini/portfolio/actions/runs/42776914782)
+and [three-browser opening/transition and baseline verification](https://github.com/FastMartini/portfolio/actions/runs/42776866582).
+The final focused local run passed 96 tests. The last commit adds validation,
+review images and Trailhead baselines; application behavior matches the fully
+verified implementation commit.
