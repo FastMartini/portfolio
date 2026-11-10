@@ -2,14 +2,16 @@ import { TrailheadPhoto } from "../trailhead-photo";
 import { contactLinks } from "../../content/contact";
 import { PortfolioLink } from "../portfolio-link";
 import { ResumeLink } from "../resume-link";
+import { trailheadIntro } from "../../content/trailhead";
 
 export function StopCards() {
   return (
     <div className="climb-cards" data-theme-root="">
       <article className="climb-card" data-card="0" inert aria-hidden="true">
         <p className="climb-card-place">Trailhead</p>
-        <h1>Software engineer building intelligent, data-driven products.</h1>
-        <p>From research and systems to polished user experiences, I follow ideas all the way from first question to thoughtful product.</p>
+        <h1>{trailheadIntro.heading}</h1>
+        <p className="trailhead-lead">{trailheadIntro.lead}</p>
+        <p>{trailheadIntro.body}</p>
         <p className="climb-card-hint">Scroll to start climbing. Each Waypoint on the trail is a project you can open.</p>
         <div className="climb-card-actions">
           <ResumeLink />
@@ -38,6 +40,7 @@ export function StopCards() {
           {contactLinks.map((link) => (
             <li key={link.label}><PortfolioLink href={link.href}><span>{link.label}</span><small>{link.detail}</small></PortfolioLink></li>
           ))}
+          <li><ResumeLink className=""><span>Resume</span><small>PDF résumé</small></ResumeLink></li>
         </ul>
       </article>
     </div>

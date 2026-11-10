@@ -111,6 +111,7 @@
 .climb-card .climb-card-place { color: var(--r-accent); font-family: var(--font-newsreader), serif; font-size: 1.05rem; font-style: italic; margin-bottom: 0.75rem; }
 .climb-card h1, .climb-card h2 { font-size: clamp(2rem, 3.4vw, 3.25rem); letter-spacing: -0.035em; line-height: 1; margin: 0 0 1rem; max-width: none; }
 .climb-card p { color: var(--r-muted); line-height: 1.7; margin: 0 0 0.9rem; }
+.climb-card .trailhead-lead { color: var(--r-ink); font-size: 1.1rem; line-height: 1.5; }
 .climb-card .climb-card-lead { color: var(--r-ink); font-family: var(--font-newsreader), serif; font-size: 1.2rem; line-height: 1.45; }
 .climb-card-hint { border-left: 2px solid var(--copper); font-size: 0.9rem; padding-left: 0.8rem; }
 .climb-card-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.25rem 0 1rem; }

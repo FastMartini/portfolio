@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const routes = [
-  { path: "", image: "portfolio", heading: "Software engineer building intelligent, data-driven products.", title: "Diego Martinez — Software Engineer", description: "Software engineer building intelligent, data-driven products—from research and systems to polished user experiences." },
+  { path: "", image: "portfolio", heading: "Howdy, I'm Diego 👋", title: "Diego Martinez — Software Engineer", description: "Software engineer building intelligent, data-driven products—from research and systems to polished user experiences." },
   { path: "work/momentumx/", image: "momentumx", heading: "MomentumX", title: "MomentumX — Tokenized U.S. Equity Trading Demo", description: "A ShellHacks 2026 team project pairing a momentum scanner and React interface with Solana devnet trading." },
   { path: "work/veritas/", image: "veritas", heading: "Veritas", title: "Veritas — Political-Leaning Analysis Extension", description: "A capstone Chrome extension for examining source, language, and framing signals in political news." },
   { path: "work/membership-inference-attack/", image: "membership-inference-attack", heading: "Membership Inference Attack Study", title: "Membership Inference Attack Study — Classical ML Privacy Research", description: "A controlled membership-inference experiment using TF-IDF and logistic regression on IMDB reviews." },

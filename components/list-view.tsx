@@ -7,6 +7,7 @@ import { TrailheadPhoto } from "./trailhead-photo";
 import { contactLinks } from "../content/contact";
 import { PortfolioLink } from "./portfolio-link";
 import { ResumeLink } from "./resume-link";
+import { trailheadIntro } from "../content/trailhead";
 
 function ArrowIcon() {
   return (
@@ -49,14 +50,14 @@ export function ListView() {
       <section className="trailhead" id="trailhead" aria-labelledby="trailhead-title">
         <div className="trailhead-copy">
           <p className="eyebrow">
-            <span aria-hidden="true" /> Software engineer · Building with intention
+            <span aria-hidden="true" /> Trailhead
           </p>
           <h1 id="trailhead-title">
-            Software engineer building intelligent, data-driven products.
+            {trailheadIntro.heading}
           </h1>
+          <p className="trailhead-lead">{trailheadIntro.lead}</p>
           <p className="trailhead-intro">
-            From research and systems to polished user experiences, I follow ideas
-            all the way from first question to thoughtful product.
+            {trailheadIntro.body}
           </p>
           <div className="trailhead-actions">
             <a className="button button-primary" href="#momentumx">
@@ -186,6 +187,12 @@ export function ListView() {
               <ArrowIcon />
             </PortfolioLink>
           ))}
+          <ResumeLink className="">
+            <span className="contact-number">0{contactLinks.length + 1}</span>
+            <span className="contact-label">Resume</span>
+            <span className="contact-detail">PDF résumé</span>
+            <ArrowIcon />
+          </ResumeLink>
         </div>
       </section>
       </div>

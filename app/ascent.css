@@ -21,6 +21,7 @@
 }
 .journey-ridge { bottom: 0; height: 38rem; left: 0; pointer-events: none; position: absolute; width: 100%; z-index: -1; }
 .journey-ridge--summit { height: auto; }
+.mountain-journey .about .journey-ridge { height: auto; }
 .mountain-journey .summit { min-height: max(90svh, calc(100vw * 700 / 1440)); }
 .ridge-distance { fill: var(--pine); opacity: 0.035; }
 .ridge-near { fill: var(--pine); opacity: 0.05; }
