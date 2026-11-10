@@ -1,8 +1,15 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-// Reduced-motion visitors now start in List View. Scene-specific tests opt in
-// through the real toggle; no fixture bypasses the production preference policy.
+// Every visitor starts in List View. Scene tests use the real toggle and then
+// dismiss its decorative transition with input; sequence tests exercise timing.
+export async function enterClimb(page: Page) {
+  await page.getByRole("button", { name: "Climb view", exact: true }).click();
+  await expect(page.locator("#climb")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".splash--climb")).toHaveCount(0);
+}
+
 export async function openClimb(page: Page, theme?: "light" | "dark") {
   if (theme) await page.addInitScript((value) => localStorage.setItem("portfolio-theme", value), theme);
   await page.addInitScript(() => {
@@ -11,10 +18,7 @@ export async function openClimb(page: Page, theme?: "light" | "dark") {
     }
   });
   await page.goto("./");
-  if (await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)) {
-    await page.getByRole("button", { name: "Climb view", exact: true }).click();
-  }
-  await expect(page.locator("#climb")).toBeVisible();
+  await enterClimb(page);
 }
 
 export async function scrollToClimbStop(page: Page, index: number) {

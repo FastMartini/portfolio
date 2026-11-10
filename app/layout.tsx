@@ -10,6 +10,7 @@ import "./globals.css";
 import "./theme.css";
 import "../components/theme/theme.css";
 import "../components/splash/splash.css";
+import "../components/splash/motion.generated.css";
 
 const newsreader = Newsreader({
   subsets: ["latin"],

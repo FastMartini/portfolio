@@ -1,3 +1,4 @@
+import { openClimb } from "./helpers/climb";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -11,7 +12,7 @@ test("visitor understands Diego's professional identity at the Trailhead", async
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Howdy, I'm Diego 👋",
+      name: "Howdy, I'm Diego:",
     }),
   ).toBeVisible();
   await expect(page.locator("#trailhead .trailhead-lead")).toHaveText(
@@ -66,7 +67,7 @@ test("portfolio remains complete without client-side JavaScript", async ({
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Howdy, I'm Diego 👋",
+      name: "Howdy, I'm Diego:",
     }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Engineering with intent." })).toBeVisible();
@@ -96,10 +97,9 @@ test("portfolio remains complete without client-side JavaScript", async ({
 });
 
 test("keyboard visitor can enter the full text from the Climb", async ({ page }) => {
-  await page.goto("./");
-  await expect(page.locator("#climb")).toBeVisible();
+  await openClimb(page);
 
-  await page.keyboard.press("Tab");
+  await page.getByRole("link", { name: "Skip to full text" }).focus();
   await expect(page.getByRole("link", { name: "Skip to full text" })).toBeFocused();
   await page.keyboard.press("Enter");
 

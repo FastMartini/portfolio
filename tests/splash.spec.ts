@@ -3,8 +3,11 @@ import type { Page } from "@playwright/test";
 
 async function seekIntro(page: Page, time: number) {
   await page.evaluate(() => document.fonts.ready);
-  await page.locator(".splash").evaluate((element, time) => {
-    for (const animation of element.getAnimations({ subtree: true })) {
+  await page.waitForFunction(() => Boolean(Reflect.get(document.querySelector(".splash")!, Symbol.for("portfolio.splash"))));
+  await page.locator("body > .splash").evaluate((element, time) => {
+    const controller = Reflect.get(element, Symbol.for("portfolio.splash"));
+    controller?.holdFailsafe();
+    for (const animation of [...element.getAnimations({ subtree: true }).filter((a) => a instanceof CSSAnimation), ...controller.animations]) {
       animation.pause();
       animation.currentTime = time;
     }
@@ -55,8 +58,8 @@ test("the full intro exits naturally without console or hydration errors", async
   await page.goto("./");
   const splash = page.locator(".splash");
   await expect(splash).toBeVisible();
-  await expect(splash.locator(".splash-name-line")).toHaveText(["Diego", "Martinez"]);
-  await expect(splash.locator(".splash-role")).toHaveText("Software engineer");
+  await expect(splash.locator(".splash-greeting--paper")).toHaveText("Howdy, I\'m Diego:");
+  await expect(splash.locator(".splash-hand")).toHaveCount(2);
   await expect(splash.locator(".wordmark-mark")).toHaveCount(0);
   await expect(splash).toBeHidden({ timeout: 5000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -77,8 +80,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       if (input === "pointer") {
         await page.getByRole("navigation", { name: "Primary navigation" })
           .getByRole("link", { name: "Work", exact: true }).click();
-        if (reducedMotion === "reduce") await expect(page).toHaveURL(/#work$/);
-        else await expect(page.locator("#climb")).toHaveAttribute("data-stop", "2");
+        await expect(page).toHaveURL(/#work$/);
       } else if (input === "wheel") {
         const before = await page.evaluate(() => scrollY);
         await page.mouse.wheel(0, 400);
@@ -93,14 +95,14 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
   }
 }
 
-test("reduced motion uses a still card and an opacity-only exit", async ({ page }) => {
+test("reduced motion uses a still greeting and opacity-only page formation", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
   const splash = page.locator(".splash");
   await expect(splash).toBeVisible();
-  await expect(splash.locator(".splash-climber")).toBeHidden();
+  await expect(splash.locator(".splash-world")).toBeHidden();
   await expect(splash).toHaveCSS("transform", "none");
-  for (const selector of [".splash-route-mask", ".splash-glyph", ".splash-flag-pole", ".splash-flag-cloth", ".splash-flag-flutter"]) {
+  for (const selector of [".splash-word"]) {
     for (const element of await splash.locator(selector).all()) await expect(element).toHaveCSS("animation-name", "none");
   }
   await expect(splash).toBeHidden({ timeout: 3000 });
@@ -165,33 +167,107 @@ test("blocked session storage cannot break the intro, skipping or deep links", a
 });
 
 for (const viewport of [
-  { width: 320, height: 568 },
-  { width: 390, height: 844 },
-  { width: 844, height: 390 },
-  { width: 768, height: 1024 },
-  { width: 1024, height: 768 },
-  { width: 1440, height: 900 },
+  { width: 320, height: 568 }, { width: 390, height: 844 },
+  { width: 844, height: 390 }, { width: 768, height: 1024 },
+  { width: 1024, height: 768 }, { width: 1440, height: 900 },
 ]) {
-  test(`name, flag and summit stay visible without letter jitter at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  test(`map opens and greeting matches the real heading at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto("./");
-    await seekIntro(page, 1200);
-    const initialPositions = await page.locator(".splash-char").evaluateAll((letters) =>
-      letters.map((letter) => letter.getBoundingClientRect().left));
-    await seekIntro(page, 2700);
-    expect(await page.locator(".splash-char").evaluateAll((letters) =>
-      letters.map((letter) => letter.getBoundingClientRect().left))).toEqual(initialPositions);
-    for (const selector of [".splash-name", ".splash-flag-cloth", ".splash-flag-pole", ".splash-summit-ring"]) {
-      const box = await page.locator(selector).boundingBox();
-      expect(box).not.toBeNull();
-      expect(box!.x).toBeGreaterThanOrEqual(0);
-      expect(box!.y).toBeGreaterThanOrEqual(0);
-      expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
-      expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
+    await seekIntro(page, 1250);
+    for (const side of ["l", "r"]) {
+      const hand = await page.locator(`.splash-hand--${side}`).boundingBox();
+      expect(hand!.x).toBeLessThan(viewport.width);
+      expect(hand!.x + hand!.width).toBeGreaterThan(0);
     }
+    await seekIntro(page, 3000);
+    const heading = await page.locator("#trailhead-title").boundingBox();
+    for (const copy of ["paper", "page"]) {
+      const greeting = page.locator(`.splash-greeting--${copy}`);
+      expect(await greeting.boundingBox()).toEqual(heading);
+      expect(await greeting.evaluate((el) => getComputedStyle(el).fontFamily)).toContain("Newsreader");
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await seekIntro(page, 4401);
+    await expect(page.locator(".splash")).toBeHidden();
+    await expect(page.locator(".climb-list")).toBeVisible();
+    await expect(page.locator("#climb")).toBeHidden();
   });
 }
+
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [390, 1440]) {
+    test(`${theme} greeting swaps once without a pixel jump at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
+      await page.goto("./");
+      await seekIntro(page, 3955);
+      await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "0");
+      await expect(page.locator(".splash-greeting--page")).toHaveCSS("visibility", "visible");
+      const clip = (await page.locator("#trailhead-title").boundingBox())!;
+      const before = await page.screenshot({ clip });
+      await seekIntro(page, 3965);
+      await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
+      await expect(page.locator(".splash-greeting--page")).toHaveCSS("visibility", "hidden");
+      const after = await page.screenshot({ clip });
+      const difference = await page.evaluate(async ({ before, after }) => {
+        async function pixels(data: string) {
+          const image = new Image(); image.src = `data:image/png;base64,${data}`; await image.decode();
+          const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
+          const ctx = canvas.getContext("2d")!; ctx.drawImage(image, 0, 0);
+          return ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        }
+        const a = await pixels(before), b = await pixels(after);
+        return a.reduce((max, value, i) => Math.max(max, Math.abs(value - b[i])), 0);
+      }, { before: before.toString("base64"), after: after.toString("base64") });
+      expect(difference).toBeLessThanOrEqual(1);
+    });
+  }
+}
+
+for (const input of ["resize", "motion"] as const) {
+  test(`${input} change dismisses the opening and restores all page animation styles`, async ({ page }) => {
+    await page.goto("./");
+    await seekIntro(page, 1200);
+    if (input === "resize") await page.setViewportSize({ width: 900, height: 700 });
+    else await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(page.locator(".splash")).toBeHidden();
+    await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
+    await expect(page.locator(".site-header")).toHaveCSS("opacity", "1");
+  });
+}
+
+test("the controller waits for late Trailhead layout before measuring the greeting", async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = HTMLElement.prototype.getClientRects;
+    let firstMeasurement = 0;
+    HTMLElement.prototype.getClientRects = function () {
+      if (this.id === "trailhead-title") {
+        firstMeasurement ||= performance.now();
+        if (performance.now() - firstMeasurement < 600) return document.createRange().getClientRects();
+      }
+      return original.call(this);
+    };
+  });
+  await page.goto("./");
+  await expect(page.locator(".splash-greeting--page")).toHaveAttribute("data-aligned", "");
+  await seekIntro(page, 3000);
+  expect(await page.locator(".splash-greeting--page").boundingBox()).toEqual(await page.locator("#trailhead-title").boundingBox());
+});
+
+test("missing animation APIs leave List View available without uncaught errors", async ({ page }) => {
+  await page.addInitScript(() => { Reflect.set(Element.prototype, "getAnimations", undefined); });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await expect(page.locator(".splash")).toBeHidden();
+  await expect(page.locator("#list-view")).toBeVisible();
+  await page.getByRole("link", { name: "Contact me" }).click();
+  await expect(page).toHaveURL(/#summit$/);
+  expect(errors).toEqual([]);
+});
+
 
 test("without JavaScript the homepage and keyboard focus are immediately unobscured", async ({ browser, browserName, baseURL }) => {
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false, reducedMotion: "no-preference" });

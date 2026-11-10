@@ -2,7 +2,7 @@
 
 An Editorial Alpine portfolio presenting Diego Martinez's work as a Mountain Journey. The application is a statically exported Next.js site for GitHub Pages.
 
-The homepage defaults to the illustrated Climb after client enhancement: ordinary scrolling follows a switchback trail through ten stops, with altitude weather, six hand-drawn Landmarks, projected Waypoint markers, and a bottom-to-top Trail Rail. Both visible Landmarks and markers support keyboard activation; offscreen controls leave the tab order. The Waypoint Panel is a nonmodal desktop side panel or mobile bottom sheet, keeping the header's List View toggle usable. Escape/Close restores the opening stop when necessary and returns focus to the originating marker. Three published MDX Case Studies open inside the panel with a Summary action; their components and content slots are keyed by canonical Waypoint slug.
+The homepage opens in the complete List View. The header’s Climb view toggle unfolds the same map into the illustrated Climb, where ordinary scrolling follows a switchback trail through ten stops, with altitude weather, six hand-drawn Landmarks, projected Waypoint markers, and a bottom-to-top Trail Rail. Both visible Landmarks and markers support keyboard activation; offscreen controls leave the tab order. The Waypoint Panel is a nonmodal desktop side panel or mobile bottom sheet, keeping the header's List View toggle usable. Escape/Close restores the opening stop when necessary and returns focus to the originating marker. Three published MDX Case Studies open inside the panel with a Summary action; their components and content slots are keyed by canonical Waypoint slug.
 
 The complete server-rendered List View is visible without JavaScript and remains reachable through the view toggle or any hash targeting its content. Case Studies such as `#case-veritas` open with CSS `:target` even without script; standalone `/work/*/` routes remain available. Waypoint metadata comes from `content/waypoints.ts`, and Case Study prose stays in `app/work/*/page.mdx`.
 
@@ -10,13 +10,35 @@ The large deterministic mountain SVG is built once from fixed seeds. Native scro
 
 ## Appearance
 
-The approved theme design adds warm parchment reading surfaces and moonlit Climb lighting. All four Climb cards use cream surfaces in Light mode. A shared controller supports continuous reversal, mid-transition view switches, pre-paint restoration, and a short color-only reduced-motion fade. The pine splash remains unchanged.
+The approved theme design adds warm parchment reading surfaces and moonlit Climb lighting. All four Climb cards use cream surfaces in Light mode. A shared controller supports continuous reversal, mid-transition view switches, pre-paint restoration, and a short color-only reduced-motion fade. The map opening uses its own fixed paper palette and hands off to the selected reading palette.
 
 Palette values live in `components/theme/tokens.json`; run `npm run theme:generate` after changing them. UI roots own both settled and animated tokens so the mountain does not inherit frame-by-frame interface colors. See [the implementation and validation notes](docs/handoff/theme-validation.md) and [ADR 0005](docs/adr/0005-scope-theme-palettes-to-ui-roots.md).
 
+## Map opening
+
+The first eligible visit plays the supplied 4.4-second folded-map opening into
+List View. Its greeting aligns to the real Trailhead heading and swaps to it at
+3960 ms without moving or painting two copies. The 2.6-second List-to-Climb
+transition switches views under paper at 380 ms; the mountain translates into
+place without scaling. Leaving Climb stays immediate.
+
+Pointer, key, wheel, touch, resize, and enabling reduced motion dismiss the
+active sequence. Reduced motion uses a still 1.4-second opening and a 320 ms
+opacity-only Climb entrance. Deep links, repeat session visits, and no-JavaScript
+visits bypass the opening. CSS still removes an eligible opening if hydration
+fails; script failures restore the finished page.
+
+The artwork and motion source live in `scripts/splash/`. Run
+`npm run splash:generate` to rebuild lettering and sampled motion CSS, or
+`npm run splash:rasterize` (Playwright Chromium required) to rebuild the twelve
+shape-only WebPs. The committed WebPs and grain are the supplied v2 assets;
+lettering remains live SVG with the site's self-hosted fonts. All asset paths
+respect `NEXT_PUBLIC_BASE_PATH`. See the [handoff](docs/handoff/map-opening-v2/HANDOFF.md)
+and [integration notes](docs/handoff/map-opening-v2/validation.md).
+
 ## Adaptive and fail-safe Climb
 
-Reduced-motion visitors start in List View. Enabling that preference while reading the Climb reveals the corresponding Waypoint or Case Study with keyboard focus; relaxing it never automatically returns to Climb. The navigation toggle still permits an explicit opt-in with paused SMIL, no snow, and instant camera updates.
+All visitors start in List View. Enabling that preference while reading the Climb reveals the corresponding Waypoint or Case Study with keyboard focus; relaxing it never automatically returns to Climb. The navigation toggle still permits an explicit opt-in with paused SMIL, no snow, and instant camera updates.
 
 `components/climb/quality.ts` owns required-feature detection and monotonic quality downgrades. Screens at most 600px wide, save-data requests, and available hints of at most 2 GB memory or 2 logical cores pause ambient SVG animation and omit snow without replacing the approved artwork or closing the Waypoint Panel. Missing or privacy-blocked hints do not prevent enhancement. Full-quality snow is capped at 2 million bitmap pixels, never above one pixel per CSS pixel; missing/throwing/lost canvas contexts stop only snow.
 
