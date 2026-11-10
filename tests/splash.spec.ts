@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 
 async function seekIntro(page: Page, time: number) {
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForFunction(() => Boolean(Reflect.get(document.querySelector(".splash")!, Symbol.for("portfolio.splash"))));
+  await page.waitForFunction(() => Reflect.get(document.querySelector(".splash")!, Symbol.for("portfolio.splash"))?.ready);
   await page.locator("body > .splash").evaluate((element, time) => {
     const controller = Reflect.get(element, Symbol.for("portfolio.splash"));
     controller?.holdFailsafe();
@@ -21,7 +21,7 @@ async function tabToLink(page: Page, browserName: string) {
 
 test("repeat visits skip the intro even when the first visit reloads before it finishes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".splash")).toBeVisible();
   await page.reload();
   await expect(page.locator(".splash")).toHaveCSS("display", "none");
@@ -37,17 +37,15 @@ for (const destination of ["./#work", "./#case-veritas", "./work/veritas/"]) {
   });
 }
 
-test("reduced-motion keyboard input stops the intro without trapping focus", async ({ page, browserName }) => {
+test("reduced motion shows the homepage directly without trapping keyboard focus", async ({ page, browserName }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
   const splash = page.locator(".splash");
-  await expect(splash).toBeVisible();
-  await seekIntro(page, 1200);
+  await expect(splash).toBeHidden();
   await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeVisible();
   await tabToLink(page, browserName);
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
-  await expect(splash).toHaveCSS("animation-name", "none", { timeout: 750 });
-  await expect(splash).toBeHidden({ timeout: 750 });
+  await expect(splash).toBeHidden();
 });
 
 test("the full intro exits naturally without console or hydration errors", async ({ page }) => {
@@ -55,7 +53,7 @@ test("the full intro exits naturally without console or hydration errors", async
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
   const splash = page.locator(".splash");
   await expect(splash).toBeVisible();
   await expect(splash.locator(".splash-greeting--paper")).toHaveText("Howdy, I\'m Diego:");
@@ -66,12 +64,12 @@ test("the full intro exits naturally without console or hydration errors", async
   expect(errors).toEqual([]);
 });
 
-for (const reducedMotion of ["no-preference", "reduce"] as const) {
+for (const reducedMotion of ["no-preference"] as const) {
   for (const input of ["pointer", "wheel", "touch"] as const) {
     test(`${input} input dismisses the ${reducedMotion} intro without blocking the page`, async ({ browser, baseURL }) => {
       const context = await browser.newContext({ baseURL, reducedMotion, hasTouch: true });
       const page = await context.newPage();
-      await page.goto("./");
+      await page.goto("./", { waitUntil: "domcontentloaded" });
       const splash = page.locator(".splash");
       await expect(splash).toBeVisible();
       // Input must interrupt an active intro, even if navigation setup is slow.
@@ -95,23 +93,18 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
   }
 }
 
-test("reduced motion uses a still greeting and opacity-only page formation", async ({ page }) => {
+test("reduced motion bypasses every opening effect before hydration", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
-  const splash = page.locator(".splash");
-  await expect(splash).toBeVisible();
-  await expect(splash.locator(".splash-world")).toBeHidden();
-  await expect(splash).toHaveCSS("transform", "none");
-  for (const selector of [".splash-word"]) {
-    for (const element of await splash.locator(selector).all()) await expect(element).toHaveCSS("animation-name", "none");
-  }
-  await expect(splash).toBeHidden({ timeout: 3000 });
-  await expect(splash).toHaveCSS("transform", "none");
+  await page.route("**/_next/static/**/*.js", (route) => route.abort());
+  await page.goto("./", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".splash")).toHaveCSS("display", "none");
+  await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
+  expect(await page.locator(".splash").evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
 });
 
 test("input dismisses the intro even when paint-driven transitions cannot advance", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
   const splash = page.locator(".splash");
   await expect(splash).toBeVisible();
   await seekIntro(page, 1200);
@@ -135,10 +128,10 @@ test("input dismisses the intro even when paint-driven transitions cannot advanc
 });
 
 test("the failsafe dismisses the intro if its CSS animation cannot complete", async ({ page }) => {
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
   await page.addStyleTag({ content: ".splash { animation: none !important; }" });
   await expect(page.locator(".splash")).toBeVisible();
-  await expect(page.locator(".splash")).toBeHidden({ timeout: 6000 });
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 8000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
@@ -151,7 +144,7 @@ test("blocked session storage cannot break the intro, skipping or deep links", a
   });
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".splash")).toBeVisible();
   await seekIntro(page, 1200);
   await expect(page.locator(".climb-view-toggle")).toBeVisible();
@@ -171,8 +164,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     test.skip(browserName === "webkit", "WebKit snapshots flatten 3D layers; projected geometry is covered separately.");
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto("./");
-    for (const time of [0, 350, 450, 535]) {
+    await page.goto("./", { waitUntil: "domcontentloaded" });
+    for (const time of [0, 275, 350, 419]) {
       await seekIntro(page, time);
       const clip = (await page.locator(".splash-row--top .splash-pane .splash-face--back").boundingBox())!;
       const actual = await page.screenshot({ clip });
@@ -196,7 +189,16 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
           const i = (y * b.width + x) * 4;
           // Erode the mask by two pixels to exclude antialiased paper edges.
           if ([-2, 0, 2].every((dy) => [-2, 0, 2].every((dx) => paper(i + (dy * b.width + dx) * 4))) &&
-            [0, 1, 2].some((channel) => Math.abs(a.data[i + channel] - b.data[i + channel]) > 30)) count++;
+            [0, 1, 2].some((channel) => Math.abs(a.data[i + channel] - b.data[i + channel]) > 30)) {
+            // Hiding the lower layers can re-rasterize the cover's own glyphs.
+            // Allow a two-pixel matching neighborhood, while new inside print
+            // in a blank cover area must still fail (the original 177° bug).
+            const sameCoverInk = [-2, -1, 0, 1, 2].some((dy) => [-2, -1, 0, 1, 2].some((dx) => {
+              const j = i + (dy * b.width + dx) * 4;
+              return [0, 1, 2].every((channel) => Math.abs(a.data[i + channel] - b.data[j + channel]) <= 30);
+            }));
+            if (!sameCoverInk) count++;
+          }
         }
         return count;
       }, { actual: actual.toString("base64"), isolated: isolated.toString("base64") });
@@ -210,11 +212,11 @@ for (const viewport of [
   { width: 844, height: 390 }, { width: 768, height: 1024 },
   { width: 1024, height: 768 }, { width: 1440, height: 900 },
 ]) {
-  test(`map opens and greeting matches the real heading at ${viewport.width}x${viewport.height}`, async ({ page, browserName }) => {
+  test(`map opens and real heading reveals without a replacement at ${viewport.width}x${viewport.height}`, async ({ page, browserName }) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto("./");
-    await seekIntro(page, 600);
+    await page.goto("./", { waitUntil: "domcontentloaded" });
+    await seekIntro(page, 470);
     const cover = (await page.locator(".splash-row--top .splash-pane .splash-face--back").boundingBox())!;
     const paneWidth = await page.locator(".splash-probe").evaluate((el) => (el as HTMLElement).offsetWidth);
     expect(cover.width).toBeGreaterThan(paneWidth * 1.15);
@@ -236,15 +238,13 @@ for (const viewport of [
       expect(brightness).toBeGreaterThan(210);
     }
     await expect(page.locator(".splash-hand")).toHaveCount(0);
-    await seekIntro(page, 3000);
-    const heading = await page.locator("#trailhead-title").boundingBox();
-    for (const copy of ["paper", "page"]) {
-      const greeting = page.locator(`.splash-greeting--${copy}`);
-      expect(await greeting.boundingBox()).toEqual(heading);
-      expect(await greeting.evaluate((el) => getComputedStyle(el).fontFamily)).toContain("Newsreader");
-    }
+    await seekIntro(page, 3400);
+    await expect(page.locator("#trailhead-title")).toBeVisible();
+    await expect(page.locator(".splash-greeting--paper")).toBeHidden();
+    await expect(page.locator(".splash-greeting--page")).toBeHidden();
+    expect(await page.locator("#trailhead-title").evaluate((el) => getComputedStyle(el).fontFamily)).toContain("Newsreader");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await seekIntro(page, 4401);
+    await seekIntro(page, 3801);
     await expect(page.locator(".splash")).toBeHidden();
     await expect(page.locator(".climb-list")).toBeVisible();
     await expect(page.locator("#climb")).toBeHidden();
@@ -253,16 +253,16 @@ for (const viewport of [
 
 for (const theme of ["light", "dark"] as const) {
   for (const width of [390, 1440]) {
-    test(`${theme} greeting swaps once without a pixel jump at ${width}px`, async ({ page }) => {
+    test(`${theme} headline stays painted through overlay cleanup at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
-      await page.goto("./");
-      await seekIntro(page, 3955);
-      await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "0");
-      await expect(page.locator(".splash-greeting--page")).toHaveCSS("visibility", "visible");
+      await page.goto("./", { waitUntil: "domcontentloaded" });
+      await seekIntro(page, 3795);
+      await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
+      await expect(page.locator(".splash-greeting--page")).toBeHidden();
       const clip = (await page.locator("#trailhead-title").boundingBox())!;
       const before = await page.screenshot({ clip });
-      await seekIntro(page, 3965);
+      await seekIntro(page, 3805);
       await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
       await expect(page.locator(".splash-greeting--page")).toHaveCSS("visibility", "hidden");
       const after = await page.screenshot({ clip });
@@ -283,7 +283,7 @@ for (const theme of ["light", "dark"] as const) {
 
 for (const input of ["resize", "motion"] as const) {
   test(`${input} change dismisses the opening and restores all page animation styles`, async ({ page }) => {
-    await page.goto("./");
+    await page.goto("./", { waitUntil: "domcontentloaded" });
     await seekIntro(page, 1200);
     if (input === "resize") await page.setViewportSize({ width: 900, height: 700 });
     else await page.emulateMedia({ reducedMotion: "reduce" });
@@ -293,7 +293,7 @@ for (const input of ["resize", "motion"] as const) {
   });
 }
 
-test("the controller waits for late Trailhead layout before measuring the greeting", async ({ page }) => {
+test("the controller waits for late Trailhead layout before framing the map", async ({ page }) => {
   await page.addInitScript(() => {
     const original = HTMLElement.prototype.getClientRects;
     let firstMeasurement = 0;
@@ -305,29 +305,41 @@ test("the controller waits for late Trailhead layout before measuring the greeti
       return original.call(this);
     };
   });
-  await page.goto("./");
-  await expect(page.locator(".splash-greeting--page")).toHaveAttribute("data-aligned", "");
-  await seekIntro(page, 3000);
-  expect(await page.locator(".splash-greeting--page").boundingBox()).toEqual(await page.locator("#trailhead-title").boundingBox());
+  await page.goto("./", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".splash")).toHaveAttribute("data-zoom", /"S"/);
+  await seekIntro(page, 3400);
+  await expect(page.locator("#trailhead-title")).toBeVisible();
 });
 
-test("missing animation APIs leave List View available without uncaught errors", async ({ page }) => {
-  await page.addInitScript(() => { Reflect.set(Element.prototype, "getAnimations", undefined); });
-  const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
-  await expect(page.locator(".splash")).toBeHidden();
-  await expect(page.locator("#list-view")).toBeVisible();
-  await page.getByRole("link", { name: "Contact me" }).click();
-  await expect(page).toHaveURL(/#summit$/);
-  expect(errors).toEqual([]);
-});
+for (const failure of ["getAnimations", "animate"] as const) {
+  test(`${failure} failure leaves List View available without uncaught errors`, async ({ page }) => {
+    await page.addInitScript((failure) => {
+      if (failure === "getAnimations") Reflect.set(Element.prototype, "getAnimations", undefined);
+      else {
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (frames, timing) {
+          if (this.classList.contains("site-header")) throw new Error("Simulated page animation failure");
+          return animate.call(this, frames, timing);
+        };
+      }
+    }, failure);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("./", { waitUntil: "domcontentloaded" });
+    await expect(page.locator(".splash")).toBeHidden();
+    await expect(page.locator("#list-view")).toBeVisible();
+    await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
+    await page.getByRole("link", { name: "Contact me" }).click();
+    await expect(page).toHaveURL(/#summit$/);
+    expect(errors).toEqual([]);
+  });
+}
 
 
 test("without JavaScript the homepage and keyboard focus are immediately unobscured", async ({ browser, browserName, baseURL }) => {
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false, reducedMotion: "no-preference" });
   const page = await context.newPage();
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
   const splash = page.locator("body > .splash");
   await expect(splash).toHaveCSS("display", "none");
   await expect(splash).toHaveAttribute("aria-hidden", "true");
@@ -368,9 +380,86 @@ for (const destination of ["./#case-veritas", "./work/veritas/"]) {
 test("an eligible intro still exits in CSS when client bundles cannot hydrate", async ({ page }) => {
   await page.route("**/_next/static/**/*.js", (route) => route.abort());
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".splash")).toBeVisible();
   await expect(page.locator(".splash")).toBeHidden({ timeout: 5000 });
   await page.getByRole("link", { name: "View selected work" }).click();
   await expect(page).toHaveURL(/#momentumx$/);
 });
+
+for (const width of [390, 1440]) {
+  test(`fully opened map holds for 650ms before expansion at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("./", { waitUntil: "domcontentloaded" });
+    const pose = () => page.locator(".splash").evaluate((el) => Object.fromEntries(
+      ["camera", "rig", "map", "row--top", "door--l", "door--r"].map((part) =>
+        [part, Array.from(new DOMMatrix(getComputedStyle(el.querySelector(`.splash-${part}`)!).transform).toFloat64Array())])));
+    await seekIntro(page, 1450);
+    const opened = await pose();
+    expect(opened.camera).toEqual([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    await seekIntro(page, 2100);
+    const held = await pose();
+    // CSS percentage-to-time conversion can leave sub-millionth-pixel residue.
+    for (const part of Object.keys(opened)) held[part].forEach((value, i) => expect(value).toBeCloseTo(opened[part][i], 5));
+    await seekIntro(page, 2400);
+    expect((await pose()).camera).not.toEqual(opened.camera);
+    // The paper is opaque and matches the actual page before the map is removed.
+    await seekIntro(page, 3040);
+    await expect(page.locator(".splash-sheet")).toHaveCSS("opacity", "1");
+    expect(await page.locator(".splash-sheet").evaluate((el) => getComputedStyle(el).backgroundColor))
+      .toBe(await page.locator("body").evaluate((el) => getComputedStyle(el).backgroundColor));
+    await seekIntro(page, 3051);
+    await expect(page.locator(".splash-world")).toBeHidden();
+    expect(Number(await page.locator(".splash-sheet").evaluate((el) => getComputedStyle(el).opacity))).toBeGreaterThan(0.99);
+    expect(Number(await page.locator("#trailhead-title").evaluate((el) => getComputedStyle(el).opacity))).toBeLessThan(0.01);
+    await seekIntro(page, 3130);
+    expect(Number(await page.locator("#trailhead-title").evaluate((el) => getComputedStyle(el).opacity))).toBeGreaterThan(0);
+    await expect(page.locator("#trailhead .trailhead-lead")).toHaveCSS("opacity", "0");
+    await expect(page.locator("#trailhead .trailhead-portrait")).toHaveCSS("opacity", "0");
+  });
+}
+
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [390, 1440]) {
+    test(`${theme} cold load at ${width}px has one continuous map-to-hero sequence with delayed assets`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript((theme) => {
+        localStorage.setItem("portfolio-theme", theme);
+        const samples: { t: number; heading: number; paper: number; world: string }[] = [];
+        const starts: string[] = [];
+        Reflect.set(window, "introProbe", { samples, starts });
+        document.addEventListener("animationstart", (event) => {
+          if ((event.target as Element).classList?.contains("splash")) starts.push(event.animationName);
+        }, true);
+        const sample = () => {
+          const el = document.querySelector("body > .splash");
+          const heading = document.getElementById("trailhead-title");
+          const clock = el?.getAnimations().find((a) => a instanceof CSSAnimation && a.animationName === "splash-exit");
+          if (el && heading && clock?.currentTime != null) samples.push({
+            t: Number(clock.currentTime), heading: Number(getComputedStyle(heading).opacity),
+            paper: Number(getComputedStyle(el.querySelector(".splash-sheet")!).opacity),
+            world: getComputedStyle(el.querySelector(".splash-world")!).visibility,
+          });
+          if (samples.length < 900) requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      }, theme);
+      await page.route("**/*.woff2", async (route) => { await new Promise((resolve) => setTimeout(resolve, 2200)); await route.continue(); });
+      await page.route("**/_next/static/**/*.js", async (route) => { await new Promise((resolve) => setTimeout(resolve, 700)); await route.continue(); });
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      await page.goto("./", { waitUntil: "domcontentloaded" });
+      await expect(page.locator(".splash")).toBeHidden({ timeout: 10000 });
+      await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
+      const probe = await page.evaluate(() => Reflect.get(window, "introProbe") as {
+        starts: string[]; samples: { t: number; heading: number; paper: number; world: string }[];
+      });
+      expect(probe.starts).toEqual(["splash-exit"]);
+      const hero = probe.samples.filter((s) => s.t >= 3050);
+      expect(hero.length).toBeGreaterThan(5);
+      for (let i = 1; i < hero.length; i++) expect(hero[i].heading + 0.001).toBeGreaterThanOrEqual(hero[i - 1].heading);
+      expect(probe.samples.filter((s) => s.t < 3050 && s.world === "hidden" && s.paper < 0.999)).toEqual([]);
+      expect(errors).toEqual([]);
+    });
+  }
+}

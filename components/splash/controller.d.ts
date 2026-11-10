@@ -4,6 +4,7 @@ export interface SplashController {
   holdFailsafe(): void;
   readonly animations: Animation[];
   readonly reduced: boolean;
+  readonly ready?: boolean;
   tick?(): void;
 }
 export function startSplash(element: HTMLElement): SplashController | null;

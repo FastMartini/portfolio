@@ -1,10 +1,12 @@
 // Generates the map-handling keyframes. Every curve is authored as a function
-// of absolute time on one 4.4 s timeline, sampled, then simplified so the CSS
+// of absolute time on one shared timeline, sampled, then simplified so the CSS
 // stays small. All lengths are multiples of --w (centre pane width) or --ph
 // (row height), so the same keyframes serve every viewport size.
 
 
-const TOTAL = 4400;
+import { readFileSync } from "node:fs";
+const OPEN = JSON.parse(readFileSync(new URL("../../components/splash/timing.json", import.meta.url), "utf8"));
+const TOTAL = OPEN.end;
 const DEG = Math.PI / 180;
 
 function bezier(x1, y1, x2, y2) {
@@ -44,25 +46,28 @@ function track(points) {
 }
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+// Preserve the authored fold curves, fitting their final settle into 1.45 s.
+const foldTrack = (points) => track(points.map(([t, value, ease]) => [t * OPEN.unfold / 1850, value, ease]));
+
 // ------------------------------------------------------------------ curves
 const T = {
-  rigS: track([[0, 0.985], [250, 0.985], [430, 1.045, "out"], [1350, 1.045], [1560, 0.993], [1760, 1]]),
-  rigY: track([[0, 0.035], [250, 0.035], [430, -0.012, "out"], [1350, -0.012], [1720, 0]]),
-  rigR: track([[0, -5.5], [300, -5.5], [352, -3.5], [410, -6.1], [468, -3.9], [535, -4.9], [620, -4.4], [1300, -1.1], [1720, 0]]),
-  rigX: track([[0, 0], [300, 0], [352, 0.008], [410, -0.01], [468, 0.006], [535, -0.002], [620, 0]]),
-  mapY: track([[0, -0.5], [470, -0.5], [900, 0]]),                       // × --ph
-  ripX: track([[0, 0], [1240, 0], [1380, 1.5], [1520, -0.75], [1660, 0.25], [1790, 0]]),
-  ripY: track([[0, 0], [1260, 0], [1400, -1.1], [1540, 0.55], [1680, -0.15], [1800, 0]]),
-  top: track([[0, -177], [380, -177], [450, -167, "give"], [535, -161, "linear"], [805, 4, "snap"], [875, -1.6], [945, 0]]),
+  rigS: foldTrack([[0, 0.985], [250, 0.985], [430, 1.045, "out"], [1350, 1.045], [1560, 0.993], [1760, 1]]),
+  rigY: foldTrack([[0, 0.035], [250, 0.035], [430, -0.012, "out"], [1350, -0.012], [1720, 0]]),
+  rigR: foldTrack([[0, -5.5], [300, -5.5], [352, -3.5], [410, -6.1], [468, -3.9], [535, -4.9], [620, -4.4], [1300, -1.1], [1720, 0]]),
+  rigX: foldTrack([[0, 0], [300, 0], [352, 0.008], [410, -0.01], [468, 0.006], [535, -0.002], [620, 0]]),
+  mapY: foldTrack([[0, -0.5], [470, -0.5], [900, 0]]),                       // × --ph
+  ripX: foldTrack([[0, 0], [1240, 0], [1380, 1.5], [1520, -0.75], [1660, 0.25], [1790, 0]]),
+  ripY: foldTrack([[0, 0], [1260, 0], [1400, -1.1], [1540, 0.55], [1680, -0.15], [1800, 0]]),
+  top: foldTrack([[0, -177], [380, -177], [450, -167, "give"], [535, -161, "linear"], [805, 4, "snap"], [875, -1.6], [945, 0]]),
   // Fully closed panels lie flat beneath the cover. A 177° resting angle
   // raises their free corners through it, exposing the inside print.
-  doorL: track([[0, 180], [820, 180], [888, 165, "give"], [962, 160, "linear"], [1215, -4, "snap"], [1325, 1.3], [1425, 0]]),
-  doorR: track([[0, 180], [905, 180], [962, 168, "give"], [1012, 165, "linear"], [1272, -3.2, "snap"], [1382, 1], [1482, 0]]),
-  creaseRow: track([[0, 0], [880, 0], [960, 0.6], [1400, 0.38], [1900, 0.16], [2150, 0]]),
-  creaseHinge: track([[0, 0], [1180, 0], [1330, 0.5], [1800, 0.3], [2150, 0]]),
-  sheen: track([[0, 0], [1240, 0], [1330, 1], [1650, 1], [1760, 0]]),
-  sheenX: track([[0, -1.2], [1240, -1.2], [1760, 2.4, "inout"]]),
-  faceGrain: track([[0, 1], [1700, 1], [2150, 0]]),
+  doorL: foldTrack([[0, 180], [820, 180], [888, 165, "give"], [962, 160, "linear"], [1215, -4, "snap"], [1325, 1.3], [1425, 0]]),
+  doorR: foldTrack([[0, 180], [905, 180], [962, 168, "give"], [1012, 165, "linear"], [1272, -3.2, "snap"], [1382, 1], [1482, 0]]),
+  creaseRow: track([[0, 0], [690, 0], [750, 0.6], [1100, 0.38], [OPEN.unfold, 0.16], [OPEN.zoom[0], 0.16], [2700, 0]]),
+  creaseHinge: track([[0, 0], [925, 0], [1040, 0.5], [OPEN.unfold, 0.3], [OPEN.zoom[0], 0.3], [2700, 0]]),
+  sheen: foldTrack([[0, 0], [1240, 0], [1330, 1], [1650, 1], [1760, 0]]),
+  sheenX: foldTrack([[0, -1.2], [1240, -1.2], [1760, 2.4, "inout"]]),
+  faceGrain: track([[0, 1], [OPEN.zoom[0], 1], [2700, 0]]),
 };
 
 const LIGHT = (() => { const v = [-0.45, -0.55, 0.7]; const n = Math.hypot(...v); return v.map((c) => c / n); })();
@@ -97,9 +102,10 @@ function simplify(samples, tol) {
 }
 function keyframes(name, fn, tol, format, step = 1000 / 120, end = 2400) {
   const samples = [];
-  for (let t = 0; t <= end + 1e-6; t += step) samples.push({ t, v: fn(t) });
+  for (let t = 0; t < end - 1e-6; t += step) samples.push({ t, v: fn(t) });
+  samples.push({ t: end, v: fn(end) });
   const kept = simplify(samples, tol);
-  const pct = (t) => `${(t / TOTAL * 100).toFixed(3).replace(/\.?0+$/, "")}%`;
+  const pct = (t) => `${(Math.floor(t / TOTAL * 1e8) / 1e6).toFixed(6).replace(/\.?0+$/, "")}%`;
   const body = kept.map((s) => `${pct(s.t)}{${format(s.v)}}`).join("");
   return `@keyframes ${name}{${body}100%{${format(kept[kept.length - 1].v)}}}\n`;
 }
@@ -109,15 +115,26 @@ const wlen = (k) => `calc(var(--w) * ${f3(k)})`;
 const plen = (k) => `calc(var(--ph) * ${f3(k)})`;
 
 function build() {
-  let css = "/* Generated by scripts/splash/motion.mjs — do not edit by hand. Times are on one 4400 ms timeline. */\n";
+  let css = `/* Generated by scripts/splash/motion.mjs — do not edit by hand. One ${TOTAL} ms timeline. */\n`;
+  const pct = (t) => `${(t / TOTAL * 100).toFixed(4)}%`;
+  const zoomEnd = OPEN.zoom[0] + OPEN.zoom[1];
+  const paperEnd = OPEN.paper[0] + OPEN.paper[1];
+  const fadeEnd = OPEN.paperFade[0] + OPEN.paperFade[1];
+  css += `.splash{--splash-duration:${TOTAL}ms}\n`;
+  css += `@keyframes splash-world-off{0%,${pct(zoomEnd - 1)}{opacity:1;visibility:visible}${pct(zoomEnd)},100%{opacity:0;visibility:hidden}}\n`;
+  css += `@keyframes splash-zoom-fallback{0%,${pct(OPEN.zoom[0])}{animation-timing-function:cubic-bezier(.6,0,.16,1);transform:scale(1)}${pct(zoomEnd)},100%{transform:scale(var(--zoom-fallback))}}\n`;
+  // One paper effect owns opacity and colour. It is fully opaque before the
+  // world disappears, then matches the actual page before revealing its text.
+  css += `@keyframes splash-sheet{0%,${pct(OPEN.paper[0])}{opacity:0;background-color:var(--paper)}${pct(paperEnd)}{opacity:1;background-color:var(--splash-page-bg)}${pct(OPEN.paperFade[0])}{opacity:1;background-color:var(--splash-page-bg)}${pct(fadeEnd)},100%{opacity:0;background-color:var(--splash-page-bg)}}\n`;
+  css += `@keyframes splash-sheet-grain{0%,${pct(OPEN.paper[0])}{opacity:1}${pct(paperEnd)},100%{opacity:0}}\n`;
 
   css += keyframes("splash-rig", (t) => [T.rigX(t), T.rigY(t), T.rigR(t), T.rigS(t)], [0.002, 0.002, 0.08, 0.002],
-    ([x, y, r, s]) => `transform:translate(${wlen(x)},${wlen(y)}) rotate(${f2(r)}deg) scale(${f3(s)})`, 1000 / 120, 1800);
+    ([x, y, r, s]) => `transform:translate(${wlen(x)},${wlen(y)}) rotate(${f2(r)}deg) scale(${f3(s)})`, 1000 / 120, OPEN.unfold);
   css += keyframes("splash-map", (t) => [T.mapY(t), T.ripX(t), T.ripY(t)], [0.002, 0.05, 0.05],
-    ([y, rx, ry]) => `transform:translateY(${plen(y)}) rotateX(${f2(rx)}deg) rotateY(${f2(ry)}deg)`, 1000 / 120, 1850);
-  css += keyframes("splash-top", (t) => [T.top(t)], [0.25], ([a]) => `transform:rotateX(${f2(a)}deg)`, 1000 / 240, 1000);
-  css += keyframes("splash-door-l", (t) => [T.doorL(t)], [0.25], ([a]) => `transform:rotateY(${f2(a)}deg)`, 1000 / 240, 1500);
-  css += keyframes("splash-door-r", (t) => [T.doorR(t)], [0.25], ([a]) => `transform:rotateY(${f2(-a)}deg)`, 1000 / 240, 1550);
+    ([y, rx, ry]) => `transform:translateY(${plen(y)}) rotateX(${f2(rx)}deg) rotateY(${f2(ry)}deg)`, 1000 / 120, OPEN.unfold);
+  css += keyframes("splash-top", (t) => [T.top(t)], [0.25], ([a]) => `transform:rotateX(${f2(a)}deg)`, 1000 / 240, OPEN.unfold);
+  css += keyframes("splash-door-l", (t) => [T.doorL(t)], [0.25], ([a]) => `transform:rotateY(${f2(a)}deg)`, 1000 / 240, OPEN.unfold);
+  css += keyframes("splash-door-r", (t) => [T.doorR(t)], [0.25], ([a]) => `transform:rotateY(${f2(-a)}deg)`, 1000 / 240, OPEN.unfold);
 
   // Face shading follows each face's normal (top row composes its flip).
   const faces = {
@@ -132,16 +149,16 @@ function build() {
     "r-top-front": (t) => shade(rotX(rotY([0, 0, 1], -T.doorR(t) * DEG), T.top(t) * DEG)),
     "r-top-back": (t) => shade(rotX(rotY([0, 0, -1], -T.doorR(t) * DEG), T.top(t) * DEG)),
   };
-  for (const [name, fn] of Object.entries(faces)) css += keyframes(`splash-shade-${name}`, (t) => [fn(t)], [0.012], ([o]) => `opacity:${f3(o)}`, 1000 / 120, 1600);
+  for (const [name, fn] of Object.entries(faces)) css += keyframes(`splash-shade-${name}`, (t) => [fn(t)], [0.012], ([o]) => `opacity:${f3(o)}`, 1000 / 120, OPEN.unfold);
 
   // Cast shadows: the lifting top row onto the bottom row, the left door onto the centre pane.
   css += keyframes("splash-cast-top", (t) => { const a = -T.top(t) * DEG; const k = Math.max(0, Math.sin(a)); return [0.42 * k * (T.top(t) < -172 ? (177 + T.top(t)) / 5 : 1), 0.18 + 0.55 * k]; },
-    [0.012, 0.01], ([o, s]) => `opacity:${f3(o)};transform:scaleY(${f3(s)})`, 1000 / 120, 1000);
+    [0.012, 0.01], ([o, s]) => `opacity:${f3(o)};transform:scaleY(${f3(s)})`, 1000 / 120, OPEN.unfold);
   css += keyframes("splash-cast-door", (t) => { const a = T.doorL(t); const k = Math.max(0, Math.sin(a * DEG)) * (a > 170 ? (180 - a) / 10 : 1); return [0.4 * k, 0.12 + 0.5 * k]; },
-    [0.012, 0.01], ([o, s]) => `opacity:${f3(o)};transform:scaleX(${f3(s)})`, 1000 / 120, 1450);
-  css += keyframes("splash-crease-row", (t) => [T.creaseRow(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2200);
-  css += keyframes("splash-crease-hinge", (t) => [T.creaseHinge(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2200);
-  css += keyframes("splash-sheen", (t) => [T.sheen(t), T.sheenX(t)], [0.01, 0.01], ([o, x]) => `opacity:${f3(o)};transform:translateX(${wlen(x)}) skewX(-18deg)`, 1000 / 60, 1800);
+    [0.012, 0.01], ([o, s]) => `opacity:${f3(o)};transform:scaleX(${f3(s)})`, 1000 / 120, OPEN.unfold);
+  css += keyframes("splash-crease-row", (t) => [T.creaseRow(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2750);
+  css += keyframes("splash-crease-hinge", (t) => [T.creaseHinge(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2750);
+  css += keyframes("splash-sheen", (t) => [T.sheen(t), T.sheenX(t)], [0.01, 0.01], ([o, x]) => `opacity:${f3(o)};transform:translateX(${wlen(x)}) skewX(-18deg)`, 1000 / 60, OPEN.unfold);
 
   // The table shadow follows the visible footprint of the sheet.
   const footprint = (t) => {
@@ -154,12 +171,12 @@ function build() {
   for (const [name, soft] of [["splash-shadow-soft", true], ["splash-shadow-contact", false]]) {
     css += keyframes(name, (t) => { const f = footprint(t), l = lift(t); return [f.sx, f.dx + (soft ? 0.035 * l : 0.006), f.sy, f.dy, soft ? 0.2 + 0.3 * l : 0.55 * (1 - l) + 0.08, soft ? 0.06 * l : 0.012]; },
       [0.004, 0.003, 0.004, 0.004, 0.01, 0.003],
-      ([sx, dx, sy, dy, o, oy]) => `opacity:${f3(o)};transform:translate(${wlen(dx)},calc(var(--ph) * ${f3(dy * 2)} / 2 + var(--w) * ${f3(oy)})) scale(${f3(sx)},${f3(sy)})`, 1000 / 120, 1800);
+      ([sx, dx, sy, dy, o, oy]) => `opacity:${f3(o)};transform:translate(${wlen(dx)},calc(var(--ph) * ${f3(dy * 2)} / 2 + var(--w) * ${f3(oy)})) scale(${f3(sx)},${f3(sy)})`, 1000 / 120, OPEN.unfold);
   }
 
   // Paper grain on the map faces fades out while the camera pushes in, so the
   // screen-space paper (fine grain) never meets a 4x-magnified grain.
-  css += keyframes("splash-face-grain", (t) => [T.faceGrain(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2200);
+  css += keyframes("splash-face-grain", (t) => [T.faceGrain(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2750);
 
   return css;
 }

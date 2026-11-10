@@ -1,28 +1,9 @@
-/* Map opening + Climb View transition — the JavaScript half.
- *
- * CSS alone plays the map handling and removes the opening overlay. This
- * controller adds what needs measurement or input:
- *   opening   frames the camera push on the real heading, lays the decorative
- *             greeting exactly over the List View <h1>, hands the paper off to
- *             the dark (or light) page, swaps the decorative heading for the
- *             real <h1> in a single frame, and forms the page around it;
- *   climb     on "Climb view": the page becomes paper, the camera pulls back
- *             to the unfolded map, the view tilts up off the map
- *             to the mountain, and the Waypoints arrive.
- * Both dismiss on pointer, key, wheel, touch or resize. Every animation they
- * create is cancelled on finish or dismissal, which restores the page.
- *
- * Stability rules (from the flicker review):
- *   - one visible copy of the heading at a time; swaps happen on one shared clock;
- *   - no filters on text; the ink mask is dropped on the last frame;
- *   - only opacity/translate on page layers; the mountain is never scaled;
- *   - geometry is measured again once webfonts settle, while nothing depends on it yet.
+/* CSS owns the map and paper on one shared clock. The opening reveals the
+ * actual Trailhead heading once; decorative type is reserved for Climb View.
+ * Both transitions release every page animation on completion or dismissal.
  */
 
-
-
-const OPEN = { zoom: [1550, 800], handoff: [3420, 480], fade: [3420, 340], swap: 3960, end: 4400 };
-const OPEN_REDUCED = { swap: 1190, end: 1400 };
+import OPEN from "./timing.json";
 const CLIMB = { cover: 380, pull: [380, 870], tilt: [1150, 1000], end: 2600 };
 const CONTROLLER = Symbol.for("portfolio.splash");
 const EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"];
@@ -137,98 +118,103 @@ function lifecycle(el, options, onEnd) {
 // ---------------------------------------------------------------- opening
 function start(el, options = {}) {
   const doc = el.ownerDocument, win = doc.defaultView, root = doc.documentElement;
-  if (root.dataset.splash !== "active") return null;
-  el.classList.remove("splash--skipped", "splash--finished");
   const reduced = root.dataset.motion === "reduce" || win.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const T = reduced ? OPEN_REDUCED : OPEN;
-  const clock = el.getAnimations().find((a) => a.animationName === "splash-exit" || a.animationName === "splash-rm-exit");
+  // Disposed React effects may reconnect, but completed/dismissed intros never replay.
+  if (root.dataset.splash !== "active" || reduced || el.matches(".splash--skipped,.splash--finished")) return null;
+  const css = el.getAnimations({ subtree: true }).filter((a) => a instanceof CSSAnimation);
+  const clock = css.find((a) => a.animationName === "splash-exit");
+  if (Number(clock?.currentTime) >= OPEN.end) return null;
   const began = win.performance.now();
-  const elapsed = () => (clock && clock.currentTime != null ? Number(clock.currentTime) : win.performance.now() - began);
-  const cancelCss = (target, name) => target && target.getAnimations().forEach((a) => { if (a.animationName === name) a.cancel(); });
+  const elapsed = () => clock?.currentTime != null ? Number(clock.currentTime) : win.performance.now() - began;
+  let frame = 0, readyTimer = 0, held = false, ready = false, waiting = false, assetsReady = false, timedOut = false;
+  let heading, section;
 
-  const paper = el.querySelector(".splash-greeting--paper"), page = el.querySelector(".splash-greeting--page");
-  const sheet = el.querySelector(".splash-sheet"), camera = el.querySelector(".splash-camera");
-  let heading, section, usable = false;
-  let layoutFrame = 0;
-
-  const life = lifecycle(el, options, (skipped) => {
+  const life = lifecycle(el, options, (skipped, disposed) => {
+    if (disposed) return;
     el.classList.add(skipped ? "splash--skipped" : "splash--finished");
     if (options.remember !== false) { try { win.sessionStorage.setItem("splash-seen", "1"); } catch {} }
   });
-  const { add } = life;
-  life.cleanup(() => win.cancelAnimationFrame(layoutFrame));
-  let zoomAnim = null;
+  life.cleanup(() => {
+    win.cancelAnimationFrame(frame);
+    win.clearTimeout(readyTimer);
+    // Strict Mode's setup/cleanup/setup must not restart or strand the CSS clock.
+    if (held) css.forEach((a) => { if (a.playState === "paused") a.play(); });
+  });
 
-  function layout() {
-    copyType(paper, heading);
-    copyType(page, heading);
-    if (reduced || elapsed() > OPEN.zoom[0] - 50) return;
-    const g = paper.getBoundingClientRect();
-    const f = framing(el, { x: g.left + g.width / 2, y: g.top + g.height / 2 });
-    if (!f) return;
-    cancelCss(camera, "splash-zoom-fallback");
-    camera.style.transformOrigin = `${f.F.x}px ${f.F.y}px`;
-    zoomAnim?.cancel();
-    zoomAnim = add(camera, scaleFrames(1, f.S, pushEase), { delay: OPEN.zoom[0], duration: OPEN.zoom[1], fill: "both" });
-    el.dataset.zoom = JSON.stringify({ S: +f.S.toFixed(3), P: f.P, H: f.H, F: f.F });
+  function prepare() {
+    if (!life.active) return;
+    ready = true;
+    win.clearTimeout(readyTimer);
+    const t = elapsed();
+    // Late hydration must not rewind a visible hero or start a second reveal.
+    if (t >= OPEN.hero[0]) return;
+    const camera = el.querySelector(".splash-camera");
+    const rect = heading.getBoundingClientRect();
+    const f = t < OPEN.zoom[0] ? framing(el, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }) : null;
+    if (f) {
+      camera.getAnimations().forEach((a) => { if (a.animationName === "splash-zoom-fallback") a.cancel(); });
+      camera.style.transformOrigin = `${f.F.x}px ${f.F.y}px`;
+      life.add(camera, scaleFrames(1, f.S, pushEase), { delay: OPEN.zoom[0], duration: OPEN.zoom[1], fill: "both" });
+      el.dataset.zoom = JSON.stringify({ S: +f.S.toFixed(3), P: f.P, H: f.H, F: f.F });
+    }
+    // Resolve the page surface before exposing it. There is no heading clone,
+    // mask swap, or second opacity animation fighting the sheet's CSS effect.
+    el.style.setProperty("--splash-page-bg", getComputedStyle(doc.body).backgroundColor);
+    const rise = (target, delay, duration, distance = 6) => life.add(target,
+      [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
+      { delay, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
+    life.add(heading, [{ opacity: 0 }, { opacity: 1 }], { delay: OPEN.hero[0], duration: 420, easing: "ease-out" });
+    rise(doc.querySelector(".site-header"), 3150, 450, -8);
+    rise(section.querySelector(".eyebrow"), 3180, 420);
+    rise(section.querySelector(".trailhead-lead"), 3240, 480);
+    rise(section.querySelector(".trailhead-intro"), 3300, 460);
+    rise(section.querySelector(".trailhead-actions"), 3360, 440);
+    rise(section.querySelector(".trailhead-portrait"), 3420, 380, 12);
+    rise(section.querySelector(".scroll-cue"), 3400, 400);
+
+    // Resume the entire sequence from the held frame, sharing one origin.
+    life.t0 = Number(doc.timeline.currentTime) - t;
+    if (held) {
+      css.forEach((a) => { if (a.playState === "paused") { a.play(); a.startTime = life.t0; } });
+      held = false;
+    }
+    life.created.forEach((a) => { a.startTime = life.t0; });
   }
 
   function enhance() {
-    if (!life.active) return;
+    if (!life.active || ready) return;
+    const t = elapsed();
     heading = doc.getElementById("trailhead-title");
     section = heading?.closest(".trailhead");
-    usable = Boolean(section && heading.getClientRects().length && elapsed() < (reduced ? T.swap : 2250));
-    if (!usable) {
-      // Streamed content and hydration can arrive after the overlay's first paint.
-      if (elapsed() < 1400 && win.performance.now() - began < 1400) layoutFrame = win.requestAnimationFrame(enhance);
+    const laidOut = Boolean(section && heading.getClientRects().length);
+    if (laidOut && !waiting) {
+      waiting = true;
+      const portrait = section.querySelector("img");
+      // Readiness is bounded. A slow font/image holds the settled map rather
+      // than exposing an unfinished page; a failed request cannot trap visitors.
+      Promise.allSettled([doc.fonts?.ready, portrait?.decode?.()]).then(() => { assetsReady = true; });
+    }
+    if (laidOut && (assetsReady || timedOut)) {
+      try { prepare(); } catch { life.skip(); }
       return;
     }
-    layout();
-    cancelCss(sheet, "splash-sheet-fallback");
-    // Webfonts may settle after first paint; nothing depends on the geometry until the push begins.
-    doc.fonts?.ready.then(() => { if (life.active && elapsed() < OPEN.zoom[0] - 50) layout(); else if (life.active && elapsed() < 2250) { copyType(paper, heading); copyType(page, heading); } });
-
-    // One heading at a time: the real <h1> is hidden until the frame the page copy disappears.
-    add(heading, [{ opacity: 0 }, { opacity: 0 }], { duration: T.swap, fill: "none" });
-    add(page, [{ visibility: "visible" }, { visibility: "visible" }], { delay: reduced ? 0 : 3000, duration: T.swap - (reduced ? 0 : 3000), fill: "none" });
-
-    const theme = root.dataset.theme === "light" ? "light" : "dark";
-    if (!reduced) {
-      if (theme === "light") {
-        add(sheet, [{ opacity: 1 }, { opacity: 0 }], { delay: OPEN.fade[0], duration: OPEN.fade[1], easing: "ease-in-out", fill: "forwards" });
-      } else {
-        // Dusk passes over the paper, left to right; only a narrow band is ever between states.
-        const vw = win.innerWidth, M = vw * 3.2, image = "linear-gradient(100deg, transparent 0 46%, #000 54% 100%)";
-        const at = (x) => ({ maskImage: image, webkitMaskImage: image, maskSize: `${M}px 100%`, webkitMaskSize: `${M}px 100%`,
-          maskRepeat: "no-repeat", webkitMaskRepeat: "no-repeat", maskPosition: `${x}px 0`, webkitMaskPosition: `${x}px 0` });
-        add(sheet, [at(-0.2 * vw - M / 2), at(1.2 * vw - M / 2)], { delay: OPEN.handoff[0], duration: OPEN.handoff[1], easing: "cubic-bezier(0.45, 0, 0.4, 1)", fill: "forwards" });
-      }
-      const rise = (target, delay, duration, distance = 6) => add(target, [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
-        { delay, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-      add(doc.querySelector(".site-header"), [{ opacity: 0, translate: "0 -8px" }, { opacity: 1, translate: "0 0" }], { delay: 3500, duration: 500, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-      rise(section.querySelector(".trailhead-portrait"), 3560, 620, 16);
-      rise(section.querySelector(".eyebrow"), 3700, 420);
-      rise(section.querySelector(".trailhead-lead"), 3760, 440);
-      rise(section.querySelector(".trailhead-intro"), 3820, 440);
-      rise(section.querySelector(".trailhead-actions"), 3880, 440);
-      rise(section.querySelector(".scroll-cue"), 3960, 420);
-    } else {
-      [doc.querySelector(".site-header"), section.querySelector(".eyebrow"), section.querySelector(".trailhead-lead"),
-        section.querySelector(".trailhead-intro"), section.querySelector(".trailhead-actions"),
-        section.querySelector(".trailhead-portrait"), section.querySelector(".scroll-cue")]
-        .forEach((target, i) => add(target, [{ opacity: 0 }, { opacity: 1 }], { delay: 520 + i * 60, duration: 480, easing: "ease-out" }));
+    if (timedOut) { life.skip(); return; }
+    if (!held && clock && t >= OPEN.unfold && t < OPEN.hero[0]) {
+      css.forEach((a) => { a.pause(); a.currentTime = t; });
+      held = true;
     }
+    frame = win.requestAnimationFrame(enhance);
   }
-
-  // Align script animations with the overlay's own CSS clock.
-  const sync = () => { if (!life.active || !clock || clock.startTime == null) return; life.t0 = clock.startTime; life.created.forEach((a) => { a.startTime = life.t0; }); };
-  if (clock) { if (clock.startTime != null) sync(); else clock.ready.then(sync).catch(() => {}); }
+  readyTimer = win.setTimeout(() => { timedOut = true; }, OPEN.readyTimeout);
   enhance();
-  const onEnd = (event) => { if (event.target === el) life.finish(false); };
+  const onEnd = (event) => { if (event.target === el && event.animationName === "splash-exit") life.finish(false); };
   el.addEventListener("animationend", onEnd);
   life.cleanup(() => el.removeEventListener("animationend", onEnd));
-  life.arm(reduced ? 2400 : 5000);
-  return el[CONTROLLER] = { skip: life.skip, dispose: life.dispose, holdFailsafe: life.holdFailsafe, animations: life.created, get aligned() { return usable; }, reduced };
+  life.arm(OPEN.failsafe);
+  return el[CONTROLLER] = {
+    skip: life.skip, dispose: life.dispose, holdFailsafe: life.holdFailsafe,
+    animations: life.created, get ready() { return ready; }, get aligned() { return Boolean(el.dataset.zoom); }, reduced: false,
+  };
 }
 
 // ------------------------------------------------- List View → Climb View
@@ -261,7 +247,7 @@ function transitionToClimb(el, switchView, options = {}) {
     const n = a.animationName;
     if (/^splash-(exit|sheet|zoom-fallback)/.test(n)) { a.cancel(); continue; }
     a.pause();
-    a.currentTime = /^splash-(face-grain|crease|sheen)/.test(n) ? 2200 : /^splash-world-off/.test(n) ? 0 : 1850;
+    a.currentTime = /^splash-(face-grain|crease|sheen)/.test(n) ? 2800 : /^splash-world-off/.test(n) ? 0 : 1850;
   }
   const life = lifecycle(el, options, (_skipped, disposed) => { if (!disposed) doSwitch(); el.remove(); });
   life.cleanup(() => frozen.forEach((animation) => animation.cancel()));

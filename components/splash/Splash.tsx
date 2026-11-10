@@ -14,7 +14,7 @@ export function Splash() {
   useEffect(() => {
     if (!ref.current) return;
     const controller = startSplash(ref.current);
-    return () => controller?.skip();
+    return () => controller?.dispose();
   }, []);
   return <div className="splash" aria-hidden="true" ref={ref}
     style={splashStyle as CSSProperties} dangerouslySetInnerHTML={{ __html: markup }} />;

@@ -16,17 +16,22 @@ Palette values live in `components/theme/tokens.json`; run `npm run theme:genera
 
 ## Map opening
 
-The first eligible visit plays a 4.4-second map-only opening into List View: the
-paper unfolds by itself, with no hands. Its greeting aligns to the real Trailhead heading and swaps to it at
-3960 ms without moving or painting two copies. The 2.6-second List-to-Climb
-transition switches views under paper at 380 ms; the mountain translates into
-place without scaling. Leaving Climb stays immediate.
+The first eligible visit unfolds the map over 1.45 seconds, holds it fully open
+for 650 ms, expands over 950 ms, and reveals the Trailhead over 750 ms. The
+headline appears first and remains the real heading throughout; supporting
+copy, buttons and portrait follow with a subtle stagger. One paper effect
+covers the map until it matches the selected homepage background. The map
+artwork and parchment cover retain their existing design, without hands.
 
+The 2.6-second List-to-Climb transition switches views under paper at 380 ms;
+the mountain translates into place without scaling. Leaving Climb stays immediate.
 Pointer, key, wheel, touch, resize, and enabling reduced motion dismiss the
-active sequence. Reduced motion uses a still 1.4-second opening and a 320 ms
-opacity-only Climb entrance. Deep links, repeat session visits, and no-JavaScript
-visits bypass the opening. CSS still removes an eligible opening if hydration
-fails; script failures restore the finished page.
+active sequence. Reduced motion shows the homepage directly and retains a
+320 ms opacity-only Climb entrance. Deep links, repeat session visits, and
+no-JavaScript visits bypass the opening. On cold loads, delayed fonts and the
+portrait can briefly extend the settled-map hold (bounded by a three-second
+readiness budget). CSS still exits if hydration fails; script failures restore
+the finished page. Shared timings live in `components/splash/timing.json`.
 
 The artwork and motion source live in `scripts/splash/`. Run
 `npm run splash:generate` to rebuild lettering and sampled motion CSS, or

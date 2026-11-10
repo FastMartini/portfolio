@@ -1,30 +1,10 @@
-/* ==========================================================================
-   Map opening: a folded trail map lifts from the table and unfolds,
-   the camera pushes into its blank centre, "Howdy, I'm Diego:" inks onto the
-   paper, and the paper becomes the Trailhead's reading surface.
-
-   One 4400 ms timeline. Every CSS animation below starts at first paint and
-   uses absolute times on that timeline, so seeking any animation's
-   currentTime to t shows frame t.
-
-     0–330      folded map rests on the table
-     250–620    lift + small ruffle
-     380–945    the top half flicks open (resistance, release, overshoot)
-     820–1480   gatefold doors pulled apart, left then right
-     1240–1800  ripple, smoothing press, sheet settles
-     1550–2350  camera pushes into the blank centre (JS frames it on the heading)
-     2180–2340  screen-space paper takes over; world layer removed at 2350
-     2300–3440  greeting inks in, word by word, in final layout
-     3420–3900  paper hands off to List View (dusk wipe / light fade)
-     3960       decorative greeting hands off to the real heading
-     3500–4380  header, portrait and Trailhead copy form (JS)
-     4400       overlay exits in CSS, even without hydration
-
-   Without JavaScript enhancement the zoom is centred, the greeting sits
-   centred on the paper, and the paper fades away over the finished page.
-   ========================================================================== */
+/* The map settles by 1450 ms, holds for 650 ms, expands for 950 ms,
+   then reveals the real Trailhead over 750 ms. Absolute times are shared
+   by the generated CSS and controller through timing.json. CSS also exits
+   safely when client bundles cannot hydrate. */
 
 html[data-splash="active"] .splash { display: block; }
+html[data-theme="light"] .splash { --splash-page-bg: #f3eedd; }
 
 .splash {
   --w: min(28vw, 47vh);
@@ -33,9 +13,10 @@ html[data-splash="active"] .splash { display: block; }
   --zoom-fallback: 5.4;
   --paper: #fffbed;
   --paper-back: #f6efda;
+  --splash-page-bg: #1a211d;
 
   --print: var(--print-wide);
-  animation: splash-exit 4400ms linear both;
+  animation: splash-exit var(--splash-duration) linear both;
   contain: strict;
   display: none;
   inset: 0;
@@ -50,17 +31,14 @@ html[data-splash="active"] .splash { display: block; }
   .splash { --w: min(43vw, 30vh); --ph: calc(var(--w) * 1.25); --rig-top: 43%; --zoom-fallback: 3.4; --print: var(--print-tall); }
 }
 html[data-splash] .splash.splash--skipped, html .splash.splash--finished { animation: none; display: none; }
-/* The overlay never fades as a whole: by 4.4 s nothing in it is visible, so it
-   is simply removed. (A fade here would show the decorative greeting and the
-   real heading at once.) */
+/* The sheet is already transparent when the root exits. */
 @keyframes splash-exit { 0%, 99.99% { visibility: visible; } 100% { visibility: hidden; } }
 
 /* Climb View transition reuses this overlay under the header; JS drives it. */
 html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 
 /* ---------- World: table, camera, rig ---------- */
-.splash-world { animation: splash-world-off 4400ms linear both; inset: 0; position: absolute; }
-@keyframes splash-world-off { 0%, 53.4% { opacity: 1; visibility: visible; } 53.42%, 100% { opacity: 0; visibility: hidden; } }
+.splash-world { animation: splash-world-off var(--splash-duration) linear both; inset: 0; position: absolute; }
 .splash-table {
   background:
     radial-gradient(ellipse 70% 60% at 50% 44%, rgba(255, 251, 237, 0.06), transparent 70%),
@@ -71,15 +49,11 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 }
 .splash-table::after { background: var(--grain); background-size: 192px; content: ""; inset: 0; opacity: 0.55; position: absolute; }
 .splash-camera {
-  animation: splash-zoom-fallback 4400ms linear both;
+  animation: splash-zoom-fallback var(--splash-duration) linear both;
   inset: 0; position: absolute; transform-origin: 50% var(--rig-top);
 }
-@keyframes splash-zoom-fallback {
-  0%, 35.227% { animation-timing-function: cubic-bezier(0.6, 0, 0.16, 1); transform: scale(1); }
-  53.409%, 100% { transform: scale(var(--zoom-fallback)); }
-}
 .splash-rig {
-  animation: splash-rig 4400ms linear both;
+  animation: splash-rig var(--splash-duration) linear both;
   height: 0; left: 50%; perspective: calc(var(--w) * 3.2); position: absolute; top: var(--rig-top); width: 0;
 }
 .splash-probe { height: var(--ph); position: absolute; visibility: hidden; width: var(--w); }
@@ -89,23 +63,23 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
   background: #04140f; border-radius: 3px;
   height: calc(var(--ph) * 2); left: calc(var(--w) * -1); position: absolute; top: calc(var(--ph) * -1); width: calc(var(--w) * 2);
 }
-.splash-shadow--soft { animation: splash-shadow-soft 4400ms linear both; filter: blur(calc(var(--w) * 0.07)); }
-.splash-shadow--contact { animation: splash-shadow-contact 4400ms linear both; filter: blur(calc(var(--w) * 0.014)); }
+.splash-shadow--soft { animation: splash-shadow-soft var(--splash-duration) linear both; filter: blur(calc(var(--w) * 0.07)); }
+.splash-shadow--contact { animation: splash-shadow-contact var(--splash-duration) linear both; filter: blur(calc(var(--w) * 0.014)); }
 
 /* ---------- The sheet: two rows; each row = left door | centre pane | right door ---------- */
 .splash-map {
-  animation: splash-map 4400ms linear both;
+  animation: splash-map var(--splash-duration) linear both;
   height: calc(var(--ph) * 2); left: calc(var(--w) * -1); position: absolute; top: calc(var(--ph) * -1);
   transform-style: preserve-3d; width: calc(var(--w) * 2);
 }
 .splash-row { height: var(--ph); left: 0; position: absolute; transform-style: preserve-3d; width: 100%; }
-.splash-row--top { animation: splash-top 4400ms linear both; top: 0; transform-origin: 50% 100%; }
+.splash-row--top { animation: splash-top var(--splash-duration) linear both; top: 0; transform-origin: 50% 100%; }
 .splash-row--bottom { top: var(--ph); }
 .splash-pane, .splash-door { height: 100%; position: absolute; top: 0; transform-style: preserve-3d; }
 .splash-pane { left: calc(var(--w) * 0.5); width: var(--w); }
 .splash-door { width: calc(var(--w) * 0.5); }
-.splash-door--l { animation: splash-door-l 4400ms linear both; left: 0; transform-origin: 100% 50%; }
-.splash-door--r { animation: splash-door-r 4400ms linear both; left: calc(var(--w) * 1.5); transform-origin: 0 50%; }
+.splash-door--l { animation: splash-door-l var(--splash-duration) linear both; left: 0; transform-origin: 100% 50%; }
+.splash-door--r { animation: splash-door-r var(--splash-duration) linear both; left: calc(var(--w) * 1.5); transform-origin: 0 50%; }
 
 .splash-face {
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
@@ -124,7 +98,7 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 .splash-row--bottom .splash-door--r .splash-face--front { background-position: calc(var(--w) * -1.5) calc(var(--ph) * -1); }
 .splash-face--back { background-image: var(--art); background-size: 100% 100%; }
 @media (max-aspect-ratio: 4/5) { .splash-face--back { background-image: var(--art-t); } }
-.splash-face::before { animation: splash-face-grain 4400ms linear both; background: var(--grain); background-size: 192px; content: ""; inset: 0; position: absolute; }
+.splash-face::before { animation: splash-face-grain var(--splash-duration) linear both; background: var(--grain); background-size: 192px; content: ""; inset: 0; position: absolute; }
 .splash-pane .splash-face--front { transform: translateZ(-1px); }
 .splash-pane .splash-face--back { background-color: var(--paper-back); transform: rotateX(180deg) translateZ(1px); }
 .splash-door .splash-face--back { background-color: var(--paper-back); transform: rotateY(180deg); }
@@ -134,22 +108,22 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 
 /* Lighting: each face darkens as it turns from the light (top-left). */
 .splash-shade { background: #13241d; inset: 0; opacity: 0; position: absolute; }
-.splash-row--top .splash-pane .splash-face--front .splash-shade { animation: splash-shade-c-top-front 4400ms linear both; }
-.splash-row--top .splash-pane .splash-face--back .splash-shade { animation: splash-shade-c-top-back 4400ms linear both; }
-.splash-row--bottom .splash-door--l .splash-face--front .splash-shade { animation: splash-shade-l-bot-front 4400ms linear both; }
-.splash-row--bottom .splash-door--l .splash-face--back .splash-shade { animation: splash-shade-l-bot-back 4400ms linear both; }
-.splash-row--bottom .splash-door--r .splash-face--front .splash-shade { animation: splash-shade-r-bot-front 4400ms linear both; }
-.splash-row--bottom .splash-door--r .splash-face--back .splash-shade { animation: splash-shade-r-bot-back 4400ms linear both; }
-.splash-row--top .splash-door--l .splash-face--front .splash-shade { animation: splash-shade-l-top-front 4400ms linear both; }
-.splash-row--top .splash-door--l .splash-face--back .splash-shade { animation: splash-shade-l-top-back 4400ms linear both; }
-.splash-row--top .splash-door--r .splash-face--front .splash-shade { animation: splash-shade-r-top-front 4400ms linear both; }
-.splash-row--top .splash-door--r .splash-face--back .splash-shade { animation: splash-shade-r-top-back 4400ms linear both; }
+.splash-row--top .splash-pane .splash-face--front .splash-shade { animation: splash-shade-c-top-front var(--splash-duration) linear both; }
+.splash-row--top .splash-pane .splash-face--back .splash-shade { animation: splash-shade-c-top-back var(--splash-duration) linear both; }
+.splash-row--bottom .splash-door--l .splash-face--front .splash-shade { animation: splash-shade-l-bot-front var(--splash-duration) linear both; }
+.splash-row--bottom .splash-door--l .splash-face--back .splash-shade { animation: splash-shade-l-bot-back var(--splash-duration) linear both; }
+.splash-row--bottom .splash-door--r .splash-face--front .splash-shade { animation: splash-shade-r-bot-front var(--splash-duration) linear both; }
+.splash-row--bottom .splash-door--r .splash-face--back .splash-shade { animation: splash-shade-r-bot-back var(--splash-duration) linear both; }
+.splash-row--top .splash-door--l .splash-face--front .splash-shade { animation: splash-shade-l-top-front var(--splash-duration) linear both; }
+.splash-row--top .splash-door--l .splash-face--back .splash-shade { animation: splash-shade-l-top-back var(--splash-duration) linear both; }
+.splash-row--top .splash-door--r .splash-face--front .splash-shade { animation: splash-shade-r-top-front var(--splash-duration) linear both; }
+.splash-row--top .splash-door--r .splash-face--back .splash-shade { animation: splash-shade-r-top-back var(--splash-duration) linear both; }
 
 /* Creases: a valley along the half fold and at each door hinge; they relax as the paper flattens. */
 .splash-crease { inset: 0; opacity: 0; position: absolute; }
-.splash-row--bottom .splash-crease--row { animation: splash-crease-row 4400ms linear both; background: linear-gradient(to bottom, rgba(36, 30, 18, 0.5) 0 1px, rgba(255, 255, 255, 0.65) 1px 2px, rgba(36, 30, 18, 0.12) 3px, rgba(36, 30, 18, 0) 9%); }
-.splash-row--top .splash-crease--row { animation: splash-crease-row 4400ms linear both; background: linear-gradient(to top, rgba(36, 30, 18, 0.42) 0 1px, rgba(255, 255, 255, 0.65) 1px 2px, rgba(255, 255, 255, 0.35) 1.2%, rgba(255, 255, 255, 0) 6%); }
-.splash-crease--hinge { animation: splash-crease-hinge 4400ms linear both; }
+.splash-row--bottom .splash-crease--row { animation: splash-crease-row var(--splash-duration) linear both; background: linear-gradient(to bottom, rgba(36, 30, 18, 0.5) 0 1px, rgba(255, 255, 255, 0.65) 1px 2px, rgba(36, 30, 18, 0.12) 3px, rgba(36, 30, 18, 0) 9%); }
+.splash-row--top .splash-crease--row { animation: splash-crease-row var(--splash-duration) linear both; background: linear-gradient(to top, rgba(36, 30, 18, 0.42) 0 1px, rgba(255, 255, 255, 0.65) 1px 2px, rgba(255, 255, 255, 0.35) 1.2%, rgba(255, 255, 255, 0) 6%); }
+.splash-crease--hinge { animation: splash-crease-hinge var(--splash-duration) linear both; }
 .splash-pane .splash-crease--hinge { background: linear-gradient(to right, rgba(36, 30, 18, 0.5) 0 1px, rgba(255, 255, 255, 0.6) 1px 2px, rgba(36, 30, 18, 0) 7%, rgba(36, 30, 18, 0) 93%, rgba(36, 30, 18, 0.36)); }
 .splash-door--l .splash-crease--hinge { background: linear-gradient(to left, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 10%); }
 .splash-door--r .splash-crease--hinge { background: linear-gradient(to right, rgba(36, 30, 18, 0.16), rgba(36, 30, 18, 0) 12%); }
@@ -157,12 +131,12 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 /* Cast shadows inside the sheet. */
 .splash-cast { pointer-events: none; position: absolute; }
 .splash-cast--top { /* lifting top half onto the lower half */
-  animation: splash-cast-top 4400ms linear both;
+  animation: splash-cast-top var(--splash-duration) linear both;
   background: linear-gradient(to bottom, rgba(10, 24, 18, 0.9), rgba(10, 24, 18, 0));
   height: 100%; left: calc(var(--w) * 0.5); opacity: 0; top: 0; transform-origin: 50% 0; translate: 0 0 0.5px; width: var(--w);
 }
 .splash-cast--door { /* left door onto the centre pane */
-  animation: splash-cast-door 4400ms linear both;
+  animation: splash-cast-door var(--splash-duration) linear both;
   background: linear-gradient(to right, rgba(10, 24, 18, 0.85), rgba(10, 24, 18, 0));
   height: 100%; left: calc(var(--w) * 0.5); opacity: 0; top: 0; transform-origin: 0 50%; translate: 0 0 -0.5px; width: calc(var(--w) * 0.5);
 }
@@ -170,25 +144,20 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 /* One restrained ripple of light across the settling sheet. */
 .splash-sheen { height: 100%; left: 0; overflow: hidden; position: absolute; top: 0; translate: 0 0 2px; width: 100%; }
 .splash-sheen i {
-  animation: splash-sheen 4400ms linear both;
+  animation: splash-sheen var(--splash-duration) linear both;
   background: linear-gradient(90deg, rgba(20, 30, 24, 0), rgba(20, 30, 24, 0.07) 30%, rgba(255, 255, 255, 0.3) 62%, rgba(255, 255, 255, 0));
   height: 140%; left: 0; opacity: 0; position: absolute; top: -20%; width: calc(var(--w) * 0.55);
 }
 
-/* ---------- Screen-space paper and the greeting ----------
-   Two decorative copies of the greeting, never both visible against different
-   grounds: .--paper (dark ink, on the paper) and .--page (the theme's heading
-   colour, under the paper). The real <h1> is hidden until one frame where the
-   .--page copy hides and the <h1> shows (JS, same clock). Neither copy uses a
-   filter, so its glyphs are rasterised like the <h1>'s. */
+/* Screen-space paper covers the map before the world exits. Only the real
+   heading appears during the intro; the decorative copies serve Climb View. */
 .splash-sheet {
-  animation: splash-sheet-in 4400ms linear both, splash-sheet-fallback 4400ms linear both;
+  animation: splash-sheet var(--splash-duration) linear both;
   background: var(--paper);
   inset: 0; position: absolute;
 }
-.splash-sheet::before { background: var(--grain); background-size: 192px; content: ""; inset: 0; position: absolute; }
-@keyframes splash-sheet-in { 0%, 49.55% { opacity: 0; } 53.18%, 100% { opacity: 1; } }
-@keyframes splash-sheet-fallback { 0%, 49.55% { opacity: 0; } 53.18%, 81.8% { opacity: 1; } 95.4%, 100% { opacity: 0; } }
+.splash-sheet::before { animation: splash-sheet-grain var(--splash-duration) linear both; background: var(--grain); background-size: 192px; content: ""; inset: 0; position: absolute; }
+.splash:not(.splash--climb) .splash-greeting { display: none; }
 
 .splash-greeting {
   color: #1f2621;
@@ -208,29 +177,7 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 .splash-greeting[data-aligned] { max-width: none; transform: none; }
 .splash-greeting--page { color: #ece6d2; visibility: hidden; }
 html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
-.splash-word {
-  animation: splash-ink 860ms cubic-bezier(0.3, 0.1, 0.25, 1) both;
-  -webkit-mask-image: linear-gradient(90deg, #000 0 42%, rgba(0, 0, 0, 0.45) 50%, transparent 58% 100%);
-  mask-image: linear-gradient(90deg, #000 0 42%, rgba(0, 0, 0, 0.45) 50%, transparent 58% 100%);
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  -webkit-mask-size: 270% 100%; mask-size: 270% 100%;
-  display: inline-block;
-}
-.splash-greeting--page .splash-word { animation: none; -webkit-mask-image: none; mask-image: none; }
-.splash-word:nth-child(1) { animation-delay: 2300ms; }
-.splash-word:nth-child(2) { animation-delay: 2440ms; }
-.splash-word:nth-child(3) { animation-delay: 2580ms; }
-/* Ink: a soft-edged mask sweeps through each word while it darkens from a wet
-   green-grey and its halo soaks in. No blur filter; the mask is dropped on the
-   last frame so the settled glyphs paint exactly like the heading. */
-@keyframes splash-ink {
-  0% { color: #5b7a6d; opacity: 0; -webkit-mask-position: 100% 0; mask-position: 100% 0; text-shadow: 0 0 0.22em rgba(31, 38, 33, 0.38); }
-  45% { opacity: 0.85; }
-  80% { color: #1f2621; text-shadow: 0 0 0.05em rgba(31, 38, 33, 0.16); }
-  99.9% { -webkit-mask-image: linear-gradient(90deg, #000 0 42%, rgba(0, 0, 0, 0.45) 50%, transparent 58% 100%); mask-image: linear-gradient(90deg, #000 0 42%, rgba(0, 0, 0, 0.45) 50%, transparent 58% 100%);
-    -webkit-mask-position: 0 0; mask-position: 0 0; }
-  100% { color: #1f2621; opacity: 1; -webkit-mask-image: none; mask-image: none; text-shadow: none; }
-}
+.splash-word { display: inline-block; }
 
 /* A copy of the greeting printed on the centre pane, used when the Climb
    transition pulls back from the page to the map (JS positions it). */
@@ -265,26 +212,9 @@ html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
 .splash .cv-title { fill: #173f35; font-style: italic; }
 .splash .cv-ridge { fill: none; stroke: #173f35; stroke-width: 2.4; stroke-linejoin: round; } .splash .cv-ridge.thin { stroke-width: 1.2; opacity: .6; }
 .splash .cv-route { fill: none; stroke: #b5653b; stroke-width: 2.2; stroke-dasharray: 2 6; stroke-linecap: round; }
-/* ---------- Reduced motion ----------
-   No unfolding, ruffling or zoom. The greeting sits still on a surface of the
-   page's own colour, at the real heading's position; the rest of the
-   Trailhead fades in around it (opacity only, driven by JS) and the surface
-   fades away. ~1.4 s. Destination is the List View, as on the live site. */
-html { --splash-rm-bg: #1a211d; --splash-rm-ink: #ece6d2; }
-html[data-theme="light"] { --splash-rm-bg: #f3eedd; --splash-rm-ink: #1f2621; }
-@keyframes splash-rm-exit { 0%, 99.99% { visibility: visible; } 100% { visibility: hidden; } }
-@keyframes splash-rm-sheet { 0%, 50% { opacity: 1; } 85%, 100% { opacity: 0; } }
+/* Reduced motion bypasses the opening before paint, including saved settings.
+   The separate Climb View transition retains its short opacity-only treatment. */
 @media (prefers-reduced-motion: reduce) {
-.splash:not(.splash--skipped) { animation: splash-rm-exit 1400ms linear both; }
-.splash-world { display: none; }
-.splash-sheet { animation: splash-rm-sheet 1400ms linear both; background: var(--splash-rm-bg); }
-.splash-word { animation: none; -webkit-mask-image: none; mask-image: none; }
-.splash-greeting { color: var(--splash-rm-ink); }
-.splash-sheet::before { display: none; }
+  html[data-splash] .splash:not(.splash--climb) { animation: none; display: none; }
 }
-html[data-motion="reduce"] .splash:not(.splash--skipped) { animation: splash-rm-exit 1400ms linear both; }
-html[data-motion="reduce"] .splash-world { display: none; }
-html[data-motion="reduce"] .splash-sheet { animation: splash-rm-sheet 1400ms linear both; background: var(--splash-rm-bg); }
-html[data-motion="reduce"] .splash-word { animation: none; -webkit-mask-image: none; mask-image: none; }
-html[data-motion="reduce"] .splash-greeting { color: var(--splash-rm-ink); }
-html[data-motion="reduce"] .splash-sheet::before { display: none; }
+html[data-motion="reduce"] .splash:not(.splash--climb) { animation: none; display: none; }
