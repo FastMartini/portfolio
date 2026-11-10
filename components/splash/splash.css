@@ -149,10 +149,10 @@ html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 
 /* Creases: a valley along the half fold and at each door hinge; they relax as the paper flattens. */
 .splash-crease { inset: 0; opacity: 0; position: absolute; }
-.splash-row--bottom .splash-crease--row { animation: splash-crease-row 4400ms linear both; background: linear-gradient(to bottom, rgba(36, 30, 18, 0.26), rgba(36, 30, 18, 0) 9%); }
-.splash-row--top .splash-crease--row { animation: splash-crease-row 4400ms linear both; background: linear-gradient(to top, rgba(36, 30, 18, 0.14), rgba(255, 255, 255, 0.35) 1.2%, rgba(255, 255, 255, 0) 6%); }
+.splash-row--bottom .splash-crease--row { animation: splash-crease-row 4400ms linear both; background: linear-gradient(to bottom, rgba(36, 30, 18, 0.5) 0 1px, rgba(255, 255, 255, 0.65) 1px 2px, rgba(36, 30, 18, 0.12) 3px, rgba(36, 30, 18, 0) 9%); }
+.splash-row--top .splash-crease--row { animation: splash-crease-row 4400ms linear both; background: linear-gradient(to top, rgba(36, 30, 18, 0.42) 0 1px, rgba(255, 255, 255, 0.65) 1px 2px, rgba(255, 255, 255, 0.35) 1.2%, rgba(255, 255, 255, 0) 6%); }
 .splash-crease--hinge { animation: splash-crease-hinge 4400ms linear both; }
-.splash-pane .splash-crease--hinge { background: linear-gradient(to right, rgba(36, 30, 18, 0.2), rgba(36, 30, 18, 0) 7%, rgba(36, 30, 18, 0) 93%, rgba(36, 30, 18, 0.12)); }
+.splash-pane .splash-crease--hinge { background: linear-gradient(to right, rgba(36, 30, 18, 0.5) 0 1px, rgba(255, 255, 255, 0.6) 1px 2px, rgba(36, 30, 18, 0) 7%, rgba(36, 30, 18, 0) 93%, rgba(36, 30, 18, 0.36)); }
 .splash-door--l .splash-crease--hinge { background: linear-gradient(to left, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 10%); }
 .splash-door--r .splash-crease--hinge { background: linear-gradient(to right, rgba(36, 30, 18, 0.16), rgba(36, 30, 18, 0) 12%); }
 
@@ -286,7 +286,7 @@ html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
 .splash .titleblock .tb-sub { fill: #4a524b; }
 .splash .lg-t { fill: #1f2621; } .splash .lg-i { fill: #173f35; font-style: italic; }
 .splash .lg-n { fill: #b5653b; }
-.splash .cv-kicker { fill: #fffbed; } .splash .cv-foot { fill: #4a524b; }
+.splash .cv-kicker { fill: #1f2621; } .splash .cv-foot { fill: #4a524b; }
 .splash .cv-title { fill: #173f35; font-style: italic; }
 .splash .cv-ridge { fill: none; stroke: #173f35; stroke-width: 2.4; stroke-linejoin: round; } .splash .cv-ridge.thin { stroke-width: 1.2; opacity: .6; }
 .splash .cv-route { fill: none; stroke: #b5653b; stroke-width: 2.2; stroke-dasharray: 2 6; stroke-linecap: round; }
@@ -294,7 +294,7 @@ html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
 .splash .h-skin { fill: #d9a67d; } .splash .h-thumb { fill: #dcab83; }
 .splash .h-shade { fill: none; stroke: #b8835c; stroke-width: 2.2; stroke-linecap: round; opacity: .55; }
 .splash .h-shade2 { fill: #c48f67; opacity: .55; }
-.splash .h-nail { fill: #ecc9aa; }
+.splash .h-pad { fill: #ecc9aa; fill-opacity: .5; }
 .splash .h-sleeve { fill: #4a4136; } .splash .h-cuff { fill: #5d5246; }
 .splash .h-cast { fill: rgba(16,30,24,.28); filter: blur(9px); }
 

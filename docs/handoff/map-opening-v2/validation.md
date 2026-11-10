@@ -1,8 +1,9 @@
 # Map opening v2 integration
 
 Source: the supplied `HANDOFF.md` and `map-opening-prototype-v2.zip`.
-The supplied paper artwork, hand geometry, sampled motion and twelve WebPs are
-preserved. The greeting is shared with `content/trailhead.ts`; lettering is
+The supplied map print and sampled motion are preserved. Review feedback revises
+the hands to a palm-side grip and replaces the solid green cover band with
+parchment and fold creases; the remaining ten WebPs stay byte-for-byte unchanged. The greeting is shared with `content/trailhead.ts`; lettering is
 regenerated from the Waypoint registry and uses self-hosted Newsreader/Manrope.
 
 ## Production integration
@@ -53,8 +54,9 @@ heading pixels, input and cleanup. An on-screen Safari inspection could not be
 captured because Computer Use access to the Playwright app was not enabled.
 
 `npm run splash:rasterize` was also executed successfully: twelve shape-only
-WebPs were generated (444,898 bytes using Chromium's WebP encoder). The PR keeps
+WebPs were generated (444,898 bytes using Chromium's WebP encoder). The initial integration kept
 the supplied twelve WebPs (415 KB), whose Pillow encoding differs slightly.
+The subsequent cover revision regenerates only the two cover sprites.
 Regeneration changes the encoding, not the authored map geometry.
 
 ## Review frames
@@ -68,6 +70,21 @@ controller clock, paused at the labeled times.
 
 Validation runs: [full Linux verification](https://github.com/FastMartini/portfolio/actions/runs/42776914782)
 and [three-browser opening/transition and baseline verification](https://github.com/FastMartini/portfolio/actions/runs/42776866582).
-The final focused local run passed 96 tests. The last commit adds validation,
-review images and Trailhead baselines; application behavior matches the fully
-verified implementation commit.
+The hand/cover revision passed the focused local opening/transition suite: 96
+tests, plus typecheck and lint. CI reruns on the revised artwork commit.
+
+## Hand and cover revision
+
+The hands now show the palm side, four distinct curled fingers without the old
+stub clipping path, rounded thumb pads and palm creases. Wrist, sleeve, grip
+placement and motion timing stay the same. The cover keeps its existing title,
+mountain illustration, copper accents and layout, replacing only the solid green
+band with parchment and adding straight paper-fold scores. Existing hinge and
+half-fold creases are more visible during unfolding.
+
+Validation compares the generated inside-map and legend SVG against the prior
+commit and hashes all ten non-cover sprites: all are unchanged. Only
+`cover-wide.webp` and `cover-tall.webp` are regenerated. The printed cover labels
+use dark ink for readability on the new pale background.
+
+![Previous and revised palm-side grip](hand-revision.png)

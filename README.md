@@ -31,8 +31,10 @@ fails; script failures restore the finished page.
 The artwork and motion source live in `scripts/splash/`. Run
 `npm run splash:generate` to rebuild lettering and sampled motion CSS, or
 `npm run splash:rasterize` (Playwright Chromium required) to rebuild the twelve
-shape-only WebPs. The committed WebPs and grain are the supplied v2 assets;
-lettering remains live SVG with the site's self-hosted fonts. All asset paths
+shape-only WebPs. The committed WebPs and grain come from v2; the two cover sprites replace the
+green band with parchment and fold creases. Use
+`npm run splash:rasterize -- --covers-only` for cover-only edits so the other
+ten sprites stay byte-for-byte unchanged. Lettering remains live SVG with the site's self-hosted fonts. All asset paths
 respect `NEXT_PUBLIC_BASE_PATH`. See the [handoff](docs/handoff/map-opening-v2/HANDOFF.md)
 and [integration notes](docs/handoff/map-opening-v2/validation.md).
 

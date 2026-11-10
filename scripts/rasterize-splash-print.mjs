@@ -11,10 +11,13 @@ for (const variant of ["wide", "tall"]) for (const face of ["lg-lt", "lg-lb", "l
   sprites.push([`${face}-${variant}`, 250, variant === "wide" ? 350 : 625, variant === "wide" ? 1.8 : 1.2]);
 const destination = new URL("../public/splash/print/", import.meta.url);
 await mkdir(destination, { recursive: true });
+// A cover-only color/crease edit must not re-encode the unchanged map sprites.
+const coversOnly = process.argv.includes("--covers-only");
 const browser = await chromium.launch();
 try {
   const page = await browser.newPage();
   for (const [id, width, height, scale] of sprites) {
+    if (coversOnly && !id.startsWith("cover-")) continue;
     const data = await page.evaluate(async ({ id, width, height, scale, shapeDefs }) => {
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(width * scale)}" height="${Math.round(height * scale)}" viewBox="0 0 ${width} ${height}"><defs>${shapeDefs}</defs><use href="#${id}"/></svg>`;
       const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));

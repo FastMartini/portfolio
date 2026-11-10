@@ -159,7 +159,9 @@ function cover(variant) {
   const band = variant === "tall" ? 150 : 104;
   const cy = variant === "tall" ? 350 : 196, k = variant === "tall" ? 1.3 : 0.78;
   return `<g id="cover-${variant}">
-<rect width="${W}" height="${band}" fill="${PINE}"/>
+<rect width="${W}" height="${band}" fill="#f6efda"/>
+<path d="M250 8V${H - 8}M8 ${H / 2}H492" class="cv-fold"/>
+<path d="M251.5 8V${H - 8}M8 ${H / 2 + 1.5}H492" class="cv-fold-light"/>
 <path d="M28 ${band - 26}h40" stroke="${COPPER}" stroke-width="2"/>
 <text x="28" y="${band - 50}" class="cv-kicker" font-size="${r1(13 * k)}">TRAIL MAP · NO. 01</text>
 <text x="${W - 28}" y="${band - 50}" class="cv-kicker" font-size="${r1(13 * k)}" text-anchor="end">FOLD HERE ↓</text>
@@ -193,39 +195,33 @@ function legend(variant, waypoints) {
 }
 
 // ------------------------------------------------------------------ hands
-// Right hand seen from above, gripping a bottom paper edge with the thumb on
-// top. Grip (thumb pad) at (70, 34) in a 240 × 372 box. The left hand is the
-// same drawing mirrored inside its own SVG. Articulated groups, animated by
-// CSS in SVG user units (identical keyframes work for the mirrored hand):
-//   .h-palm   back of the hand, fingers and thumb; rolls about the wrist (130, 205)
-//   .h-thumb  thumb + nail; presses / lifts / slides about its base (92, 146)
-//   .h-f1–4   finger stubs; curl under the paper edge about the knuckles (y ≈ 86)
-//   .h-cast   the soft shadow the hand drops on the paper
+// Palm-side view, cupped beneath the paper. Keep the grip pad at (70, 34)
+// and the existing wrist/sleeve geometry so the authored map motion stays put.
+// Four individually articulated fingers remain unclipped; palm creases and
+// rounded thumb pads make the upward-facing grip readable at phone sizes.
 function hand(mirror) {
-  const side = mirror ? "l" : "r";
-  const finger = (n, d, ox) => `<g class="h-f h-f${n}" style="transform-origin:${ox}px 88px"><path class="h-skin" d="${d}"/></g>`;
+  const finger = (n, d, ox, joint) => `<g class="h-f h-f${n}" style="transform-origin:${ox}px 102px"><path class="h-skin" d="${d}"/><path class="h-shade" d="${joint}"/></g>`;
   const body = `
 <ellipse cx="112" cy="98" rx="58" ry="20" class="h-cast"/>
 <path class="h-skin" d="M100 198 C106 232 120 266 140 304 L196 304 C178 262 166 224 160 188 Z"/>
 <path class="h-sleeve" d="M126 292 C150 280 190 276 214 284 L236 372 L146 372 Z"/>
 <path class="h-cuff" d="M126 292 C150 280 190 276 214 284 L218 300 C194 293 156 296 131 308 Z"/>
 <g class="h-palm">
-<path class="h-skin" d="M78 116 C74 90 90 64 118 62 C146 60 166 78 170 106 C175 140 170 176 160 196 C142 214 110 216 98 200 C86 180 80 150 78 116 Z"/>
-<g clip-path="url(#h-under-${side})">
-${finger(1, "M88 74 C88 60 94 54 101 54 C109 54 113 60 113 72 L113 92 L88 92 Z", 100)}
-${finger(2, "M110 68 C110 54 116 48 124 48 C132 48 136 54 136 68 L136 90 L110 90 Z", 123)}
-${finger(3, "M133 70 C133 57 139 52 146 52 C153 52 157 58 157 70 L158 92 L133 92 Z", 146)}
-${finger(4, "M154 80 C154 69 159 64 165 64 C171 64 174 70 174 81 L172 102 L154 100 Z", 164)}
-</g>
-<path class="h-shade" d="M112 80 C111 98 112 120 117 150 M135 82 C136 102 138 122 141 148 M156 92 C158 108 160 124 160 140"/>
-<path class="h-shade2" d="M98 200 C110 214 142 214 160 196 C168 180 172 160 171 140 C164 168 150 190 128 198 C116 202 106 202 98 200 Z"/>
+<path class="h-skin" d="M78 120 C76 98 84 80 102 74 C120 67 150 72 165 85 C183 101 184 125 177 149 C171 172 165 192 157 201 C141 214 112 215 98 201 C84 181 79 150 78 120 Z"/>
+${finger(1, "M94 108 L86 55 C83 41 86 30 94 28 C103 25 109 33 111 46 L121 102 Q108 114 94 108 Z", 106, "M90 60 Q99 56 111 59 M94 83 Q104 79 116 82")}
+${finger(2, "M119 101 L111 39 C109 21 113 11 123 10 C133 9 138 20 139 35 L143 101 Q132 110 119 101 Z", 130, "M113 46 Q125 42 140 45 M116 72 Q128 68 142 71")}
+${finger(3, "M143 104 L138 46 C137 31 141 21 150 21 C160 21 165 31 165 45 L167 108 Q155 116 143 104 Z", 153, "M140 54 Q152 50 165 54 M142 79 Q154 75 166 79")}
+${finger(4, "M165 115 L162 67 C162 53 165 45 173 45 C182 45 187 54 186 67 L182 125 Q171 129 165 115 Z", 174, "M163 75 Q173 72 186 76 M165 96 Q174 93 184 97")}
+<path class="h-shade2" d="M98 201 C111 211 139 214 157 201 C169 184 176 162 177 145 C165 167 149 188 128 197 C115 202 105 203 98 201 Z"/>
+<path class="h-pad" d="M88 121 C98 107 116 115 122 133 C127 149 116 172 103 179 C92 166 85 141 88 121 Z"/>
+<path class="h-shade" d="M94 109 C114 122 143 121 166 107 M96 130 C118 146 142 135 161 148 M91 118 C112 130 121 151 107 177 M120 187 Q138 192 152 184"/>
 <g class="h-thumb">
-<path class="h-skin h-thumb-skin" d="M80 156 C66 132 57 100 55 68 C54 48 60 35 71 33 C82 31 88 42 88 58 C89 84 94 110 104 132 Z"/>
-<path class="h-nail" d="M63 46 C63 39 67 36 71 36 C76 36 79 40 79 46 C76 49 66 49 63 46 Z"/>
-<path class="h-shade" d="M82 150 C76 128 72 104 72 80"/>
+<path class="h-skin h-thumb-skin" d="M103 147 C84 144 70 128 65 108 C62 95 60 81 53 67 C47 55 49 42 59 35 C69 27 83 29 89 39 C94 48 88 57 80 64 C75 69 78 80 85 89 C96 102 108 108 115 122 C120 133 115 143 103 147 Z"/>
+<path class="h-pad" d="M59 43 C64 35 76 34 82 41 C87 48 79 57 71 60 C63 57 57 50 59 43 Z"/>
+<path class="h-shade" d="M63 74 Q72 71 80 76 M74 105 C79 120 90 130 103 132"/>
 </g>
 </g>`;
-  return `<svg viewBox="0 0 240 372" class="splash-hand-art" aria-hidden="true" focusable="false"><defs><clipPath id="h-under-${side}"><path d="M0 62 C60 58 180 58 240 62 V372 H0Z"/></clipPath></defs>${mirror ? `<g transform="translate(240 0) scale(-1 1)">${body}</g>` : body}</svg>`;
+  return `<svg viewBox="0 0 240 372" class="splash-hand-art" aria-hidden="true" focusable="false">${mirror ? `<g transform="translate(240 0) scale(-1 1)">${body}</g>` : body}</svg>`;
 }
 
 export { insidePrint, cover, legend, hand, PINE, INK, COPPER };
