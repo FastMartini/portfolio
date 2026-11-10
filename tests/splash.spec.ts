@@ -166,6 +166,45 @@ test("blocked session storage cannot break the intro, skipping or deep links", a
   expect(errors).toEqual([]);
 });
 
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  test(`folded cover stays opaque over the inside print at ${viewport.width}px`, async ({ page, browserName }) => {
+    test.skip(browserName === "webkit", "WebKit snapshots flatten 3D layers; projected geometry is covered separately.");
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("./");
+    for (const time of [0, 350, 450, 535]) {
+      await seekIntro(page, time);
+      const clip = (await page.locator(".splash-row--top .splash-pane .splash-face--back").boundingBox())!;
+      const actual = await page.screenshot({ clip });
+      // The cover must paint identically with or without the concealed panels.
+      // Restrict comparison to cream cover pixels so exposed paper outside its
+      // projected outline cannot count as bleed-through.
+      const hidden = await page.addStyleTag({ content: ".splash-row--bottom,.splash-row--top > .splash-door { visibility:hidden!important; }" });
+      const isolated = await page.screenshot({ clip });
+      await hidden.evaluate((element) => element.parentNode?.removeChild(element));
+      const leakingPixels = await page.evaluate(async ({ actual, isolated }) => {
+        async function pixels(data: string) {
+          const image = new Image(); image.src = `data:image/png;base64,${data}`; await image.decode();
+          const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
+          const ctx = canvas.getContext("2d")!; ctx.drawImage(image, 0, 0);
+          return ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+        const a = await pixels(actual), b = await pixels(isolated);
+        const paper = (i: number) => b.data[i] > 180 && b.data[i + 1] > 170 && b.data[i + 2] > 130;
+        let count = 0;
+        for (let y = 2; y < b.height - 2; y++) for (let x = 2; x < b.width - 2; x++) {
+          const i = (y * b.width + x) * 4;
+          // Erode the mask by two pixels to exclude antialiased paper edges.
+          if ([-2, 0, 2].every((dy) => [-2, 0, 2].every((dx) => paper(i + (dy * b.width + dx) * 4))) &&
+            [0, 1, 2].some((channel) => Math.abs(a.data[i + channel] - b.data[i + channel]) > 30)) count++;
+        }
+        return count;
+      }, { actual: actual.toString("base64"), isolated: isolated.toString("base64") });
+      expect(leakingPixels, `inside print showing through the cover at ${time}ms`).toBe(0);
+    }
+  });
+}
+
 for (const viewport of [
   { width: 320, height: 568 }, { width: 390, height: 844 },
   { width: 844, height: 390 }, { width: 768, height: 1024 },

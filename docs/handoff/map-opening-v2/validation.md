@@ -85,3 +85,23 @@ The prior green-band removal and crease enhancement are retained. The cover
 keeps its title, mountain illustration, copper accents and layout. Cover-only
 edits can use `npm run splash:rasterize -- --covers-only` to preserve the ten
 other sprites.
+
+## Folded-cover occlusion fix
+
+The gatefolds previously rested at 177°. Their raised corners physically
+intersected the cover, exposing inside legends and cutting through its mountain
+illustration. Both gatefolds now rest flat at 180° until their existing opening
+cues (820 ms and 905 ms). Their shadow ramp starts from the same closed angle.
+No printed artwork, raster assets, fold cue times or camera timing changes.
+
+The regression compares the folded cover with a reference capture of that same
+cover with its concealed panels hidden. It checks cream pixels away from
+antialiased edges at 0, 350, 450 and 535 ms on desktop and phone. The old version
+failed at 0 ms with 1,867 incorrect desktop pixels and 305 phone pixels; the fixed
+version reports zero at every sampled frame. WebKit's software 3D snapshots are
+excluded from this paint assertion; its geometry and lifecycle checks remain.
+
+![Folded cover before and after correcting panel intersections](cover-layering.png)
+
+After the fix, the focused opening/transition suite passed 98 tests, with the two
+WebKit 3D paint captures skipped as described above. Typecheck and lint passed.

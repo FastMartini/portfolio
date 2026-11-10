@@ -54,8 +54,10 @@ const T = {
   ripX: track([[0, 0], [1240, 0], [1380, 1.5], [1520, -0.75], [1660, 0.25], [1790, 0]]),
   ripY: track([[0, 0], [1260, 0], [1400, -1.1], [1540, 0.55], [1680, -0.15], [1800, 0]]),
   top: track([[0, -177], [380, -177], [450, -167, "give"], [535, -161, "linear"], [805, 4, "snap"], [875, -1.6], [945, 0]]),
-  doorL: track([[0, 177], [820, 177], [888, 165, "give"], [962, 160, "linear"], [1215, -4, "snap"], [1325, 1.3], [1425, 0]]),
-  doorR: track([[0, 177], [905, 177], [962, 168, "give"], [1012, 165, "linear"], [1272, -3.2, "snap"], [1382, 1], [1482, 0]]),
+  // Fully closed panels lie flat beneath the cover. A 177° resting angle
+  // raises their free corners through it, exposing the inside print.
+  doorL: track([[0, 180], [820, 180], [888, 165, "give"], [962, 160, "linear"], [1215, -4, "snap"], [1325, 1.3], [1425, 0]]),
+  doorR: track([[0, 180], [905, 180], [962, 168, "give"], [1012, 165, "linear"], [1272, -3.2, "snap"], [1382, 1], [1482, 0]]),
   creaseRow: track([[0, 0], [880, 0], [960, 0.6], [1400, 0.38], [1900, 0.16], [2150, 0]]),
   creaseHinge: track([[0, 0], [1180, 0], [1330, 0.5], [1800, 0.3], [2150, 0]]),
   sheen: track([[0, 0], [1240, 0], [1330, 1], [1650, 1], [1760, 0]]),
@@ -135,7 +137,7 @@ function build() {
   // Cast shadows: the lifting top row onto the bottom row, the left door onto the centre pane.
   css += keyframes("splash-cast-top", (t) => { const a = -T.top(t) * DEG; const k = Math.max(0, Math.sin(a)); return [0.42 * k * (T.top(t) < -172 ? (177 + T.top(t)) / 5 : 1), 0.18 + 0.55 * k]; },
     [0.012, 0.01], ([o, s]) => `opacity:${f3(o)};transform:scaleY(${f3(s)})`, 1000 / 120, 1000);
-  css += keyframes("splash-cast-door", (t) => { const a = T.doorL(t); const k = Math.max(0, Math.sin(a * DEG)) * (a > 170 ? (177 - a) / 7 : 1); return [0.4 * k, 0.12 + 0.5 * k]; },
+  css += keyframes("splash-cast-door", (t) => { const a = T.doorL(t); const k = Math.max(0, Math.sin(a * DEG)) * (a > 170 ? (180 - a) / 10 : 1); return [0.4 * k, 0.12 + 0.5 * k]; },
     [0.012, 0.01], ([o, s]) => `opacity:${f3(o)};transform:scaleX(${f3(s)})`, 1000 / 120, 1450);
   css += keyframes("splash-crease-row", (t) => [T.creaseRow(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2200);
   css += keyframes("splash-crease-hinge", (t) => [T.creaseHinge(t)], [0.01], ([o]) => `opacity:${f3(o)}`, 1000 / 60, 2200);
