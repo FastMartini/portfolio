@@ -12,15 +12,16 @@ regenerated from the Waypoint registry and uses self-hosted Newsreader/Manrope.
 - First visits land in List View; repeat sessions, deep links, standalone routes,
   no JavaScript, and blocked storage retain the previous gate behavior.
 - `components/splash/timing.json` is shared by the CSS generator and controller:
-  1450 ms unfold/settle, 650 ms full-open hold, 950 ms expansion, 750 ms reveal.
+  1800 ms drift, 250 ms settled pause, 1450 ms unfold, 550 ms full-open hold,
+  950 ms expansion, 750 ms reveal (5750 ms of motion in total).
 - The map's fold curves retain their resistance and soft overshoot, fitted to
   the new unfold interval. Artwork is unchanged. The camera stays still during
   the full-open hold; crease shading and grain remain visible.
 - One CSS paper effect replaces overlapping opacity effects. Paper is fully
-  opaque at 3030 ms, before the world hides at 3050 ms, and matches the actual
-  homepage backing color before fading. The root exits at 3800 ms.
+  opaque at 4980 ms, before the world hides at 5000 ms, and matches the actual
+  homepage backing color before fading. The root exits at 5750 ms.
 - Opening uses the actual heading from its first appearance. It fades in at
-  3050 ms, stays visible, and supporting content follows through 3800 ms.
+  5000 ms, stays visible, and supporting content follows through 5750 ms.
   Decorative type copies remain exclusively for the separate Climb transition.
 - Cold loads wait for heading layout, fonts, and portrait decode, with a bounded
   three-second readiness budget. A slow load holds the settled map on the same
@@ -40,7 +41,7 @@ regenerated from the Waypoint registry and uses self-hosted Newsreader/Manrope.
 ## Validation
 
 The focused acceptance tests cover desktop/mobile, both themes, a stationary
-650 ms full-open map, paper coverage across the world exit, headline-first
+550 ms full-open map, paper coverage across the world exit, headline-first
 stagger, unchanged headline pixels across overlay cleanup, and natural cold
 loads with delayed fonts/scripts. They also cover session/deep-link gates,
 reduced motion without hydration, input dismissal, no JavaScript, failed
@@ -112,7 +113,8 @@ retimes the same fold shapes.
 The regression compares the folded cover with a reference capture of that same
 cover with its concealed panels hidden. It checks cream pixels away from
 antialiased edges on desktop and phone. Original samples were at 0, 350, 450
-and 535 ms; the refined timeline uses corresponding 0, 275, 350 and 419 ms poses. The old version
+and 535 ms. The feather-entry revision samples the settled cover at 1800 and
+2050 ms, then corresponding early-fold poses at 2325 and 2469 ms. The old version
 failed at 0 ms with 1,867 incorrect desktop pixels and 305 phone pixels; the fixed
 version reports zero at every sampled frame. WebKit's software 3D snapshots are
 excluded from this paint assertion; its geometry and lifecycle checks remain.
@@ -126,8 +128,8 @@ WebKit 3D paint captures skipped as described above. Typecheck and lint passed.
 
 The original camera push began at 1550 ms, before the sheet finished settling
 around 1800 ms, and provided no full-open hold. A paused-frame repro showed
-camera scale 1 at 1450 ms and 4.31 at 2090 ms. The refined sequence stays at
-scale 1 with flat folds throughout 1450–2100 ms.
+camera scale 1 at 1450 ms and 4.31 at 2090 ms. The current feather-entry sequence stays at
+scale 1 with flat folds throughout 3500–4050 ms.
 
 The old handoff involved two decorative greetings and the real heading, plus
 two CSS paper-opacity effects and an additional scripted fade/mask. The paper
@@ -213,3 +215,59 @@ position is retained when visitors switch back.
 - Static-export builds, typecheck, lint and diff checks pass. The twelve map
   raster assets are unchanged. Desktop/mobile captures above show the final
   shadow treatment. Full Linux CI reruns on the updated PR.
+
+## Feather entry for the initial splash
+
+Only the initial opening gains a descent. A new parent transform carries the
+same folded paper, printed faces and crease geometry from above the viewport
+into the center over 1800 ms. Side-to-side sway and a small rotation ease to
+rest. The contact shadow gathers near the landing, rather than falling ahead
+of the paper. The folded map pauses for 250 ms before the authored fold curves
+begin their 1450 ms sequence. The full-open hold is 550 ms; the existing zoom,
+paper handoff and hero stagger follow without replacing the map DOM.
+
+| Initial opening phase | Time |
+| --- | --- |
+| Drift from above the top edge | 0–1800 ms |
+| Folded map rests in the center | 1800–2050 ms |
+| Unfold and settle along the existing creases | 2050–3500 ms |
+| Fully opened map holds | 3500–4050 ms |
+| Existing camera push | 4050–5000 ms |
+| Existing hero reveal | 5000–5750 ms |
+
+The prepaint gate decodes the current aspect ratio's cover, continuous map
+print, four panel-back textures and grain before the descent. It also waits
+for layout and the lettering fonts. During loading, all opening CSS clocks,
+including pseudo-elements, hold at zero with the paper above the viewport.
+A bounded eight-second load deadline or decode failure reveals the homepage
+instead of showing partial artwork. This bootstrap works without hydration;
+the CSS opening still exits independently once the print is ready. Reduced
+motion, deep links and repeat visits bypass the loading gate and opening.
+
+The controller aligns live CSS and measured effects to one start time after
+readiness. The background sprites, live lettering and cropped print positions
+stay attached to their original faces throughout flight, unfolding and zoom.
+All twelve production raster assets remain byte-for-byte unchanged.
+
+Both view transitions freeze the new entrance at its finished pose before
+playing, so their existing look-up/look-down timings remain unchanged. The
+new acceptance checks cover offscreen start, visible downward movement and
+sway, folded panels through the landing, centered rest, unchanged map node,
+delayed texture readiness, texture failure and the existing continuous handoff.
+
+### Feather-entry validation
+
+The focused Chromium/WebKit run passed 151 cases with two known WebKit 3D
+paint captures skipped. One rapid-reversal assertion missed the temporary
+forward overlay after Climb View had already appeared. Reusing the existing
+activation-task pause makes that inspection deterministic; both engine reruns
+pass. This verifies all 152 applicable opening/view-transition cases.
+
+Cold-load checks include delayed fonts/scripts and delayed map textures on
+desktop and mobile. They assert that the paper remains above the viewport while
+textures decode, then descends with its print ready; the same map node survives
+flight and unfolding. Landing, sway, folded-panel angles, centered pause,
+full-open hold and continuous hero cleanup pass. A texture failure reveals the
+homepage directly. Both view directions retain their original timing and
+interruption behavior. Production static exports, typecheck, lint and diff
+checks pass; full Linux CI reruns on the updated PR.

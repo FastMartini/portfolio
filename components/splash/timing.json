@@ -1,11 +1,26 @@
 {
-  "unfold": 1450,
-  "hold": 650,
-  "zoom": [2100, 950],
-  "paper": [2750, 280],
-  "paperFade": [3050, 180],
-  "hero": [3050, 750],
-  "end": 3800,
+  "descent": 1800,
+  "settle": 250,
+  "foldStart": 2050,
+  "unfold": 3500,
+  "hold": 550,
+  "zoom": [
+    4050,
+    950
+  ],
+  "paper": [
+    4700,
+    280
+  ],
+  "paperFade": [
+    5000,
+    180
+  ],
+  "hero": [
+    5000,
+    750
+  ],
+  "end": 5750,
   "readyTimeout": 3000,
-  "failsafe": 7500
+  "failsafe": 15000
 }

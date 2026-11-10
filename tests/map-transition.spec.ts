@@ -311,7 +311,7 @@ test("reversing the return and fragment navigation release the previous sequence
   await enterClimb(page);
   await startPausedReturn(page);
   await seekReturn(page, 1200);
-  await page.getByRole("button", { name: "Climb view", exact: true }).click();
+  await startPausedTransition(page);
   await expect(page.locator(".splash--list")).toHaveCount(0);
   await expect(page.locator(".splash--climb")).toHaveCount(1);
   await seekTransition(page, 2600);

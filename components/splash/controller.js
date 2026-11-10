@@ -149,7 +149,7 @@ function freezeOpenMap(el, textured = false) {
     const n = a.animationName;
     if (/^splash-(exit|sheet|zoom-fallback)/.test(n)) { a.cancel(); continue; }
     a.pause();
-    a.currentTime = /^splash-(face-grain|crease|sheen)/.test(n) ? (textured ? OPEN.unfold : 2800) : /^splash-world-off/.test(n) ? 0 : 1850;
+    a.currentTime = /^splash-(face-grain|crease|sheen)/.test(n) ? (textured ? OPEN.unfold : OPEN.paper[0]) : /^splash-world-off/.test(n) ? 0 : OPEN.unfold + 100;
   }
   return frozen;
 }
@@ -237,16 +237,22 @@ function start(el, options = {}) {
     revealHero(life, section, OPEN.hero[0]);
 
     // Resume the entire sequence from the held frame, sharing one origin.
-    life.t0 = Number(doc.timeline.currentTime) - t;
-    if (held) {
-      css.forEach((a) => { if (a.playState === "paused") { a.play(); a.startTime = life.t0; } });
-      held = false;
-    }
+    life.t0 = !held && clock?.startTime != null ? clock.startTime : Number(doc.timeline.currentTime) - t;
+    css.forEach((a) => {
+      // The prepaint texture gate may have just released a pending CSS clock.
+      // Resolve every live effect to one origin; canceled camera fallbacks stay canceled.
+      if (a.playState === "idle") return;
+      if (held && a.playState === "paused") a.play();
+      a.startTime = life.t0;
+    });
+    held = false;
     life.created.forEach((a) => { a.startTime = life.t0; });
   }
 
   function enhance() {
     if (!life.active || ready) return;
+    if (root.dataset.splash !== "active") { life.skip(); return; }
+    const printReady = root.dataset.splashArt !== "loading";
     const t = elapsed();
     heading = doc.getElementById("trailhead-title");
     section = heading?.closest(".trailhead");
@@ -258,11 +264,11 @@ function start(el, options = {}) {
       // than exposing an unfinished page; a failed request cannot trap visitors.
       Promise.allSettled([doc.fonts?.ready, portrait?.decode?.()]).then(() => { assetsReady = true; });
     }
-    if (laidOut && (assetsReady || timedOut)) {
+    if (laidOut && printReady && (assetsReady || timedOut)) {
       try { prepare(); } catch { life.skip(); }
       return;
     }
-    if (timedOut) { life.skip(); return; }
+    if (timedOut && printReady && !laidOut) { life.skip(); return; }
     if (!held && clock && t >= OPEN.unfold && t < OPEN.hero[0]) {
       css.forEach((a) => { a.pause(); a.currentTime = t; });
       held = true;

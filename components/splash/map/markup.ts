@@ -31,10 +31,10 @@ function rowMarkup(row: number) {
 export function splashMarkup(namespace: "opening" | "climb") {
   const greeting = trailheadIntro.heading.split(" ").map((word) => `<span class="splash-word">${escape(word)}</span>`).join(" ");
   const markup = `<svg class="splash-defs" aria-hidden="true" focusable="false" width="0" height="0"><defs>${printLettering}</defs></svg>
-  <div class="splash-world"><div class="splash-table"></div><div class="splash-camera"><div class="splash-rig">
+  <div class="splash-world"><div class="splash-table"></div><div class="splash-camera"><div class="splash-arrival"><div class="splash-rig">
     <i class="splash-probe"></i><i class="splash-shadow splash-shadow--soft"></i><i class="splash-shadow splash-shadow--contact"></i>
     <div class="splash-map">${rowMarkup(0)}${rowMarkup(1)}<div class="splash-sheen"><i></i></div><i class="splash-pane-cover"></i><p class="splash-pane-greeting"></p></div>
-  </div></div></div>
+  </div></div></div></div>
   <p class="splash-greeting splash-greeting--page">${escape(trailheadIntro.heading)}</p>
   <div class="splash-sheet"><p class="splash-greeting splash-greeting--paper">${greeting}</p></div>`;
   return markup.replace(/\bid="([^"]+)"/g, `id="${namespace}-$1"`)

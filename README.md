@@ -16,8 +16,10 @@ Palette values live in `components/theme/tokens.json`; run `npm run theme:genera
 
 ## Map opening
 
-The first eligible visit unfolds the map over 1.45 seconds, holds it fully open
-for 650 ms, expands over 950 ms, and reveals the Trailhead over 750 ms. The
+The first eligible visit starts with the folded map just above the viewport.
+It drifts down for 1.8 seconds with a gentle sway and rotation, rests for 250 ms,
+then unfolds over 1.45 seconds. The fully opened map holds for 550 ms before
+the existing 950 ms expansion and 750 ms Trailhead reveal. The
 headline appears first and remains the real heading throughout; supporting
 copy, buttons and portrait follow with a subtle stagger. One paper effect
 covers the map until it matches the selected homepage background. The map
@@ -34,8 +36,10 @@ active sequence. Reduced motion shows the homepage directly and retains a
 320 ms opacity-only Climb entrance. Deep links, repeat session visits, and
 no-JavaScript visits bypass the opening. On cold loads, delayed fonts and the
 portrait can briefly extend the settled-map hold (bounded by a three-second
-readiness budget). CSS still exits if hydration fails; script failures restore
-the finished page. Shared timings live in `components/splash/timing.json`.
+readiness budget). Before descent, a prepaint gate decodes the map textures and
+waits for lettering fonts, keeping the paper offscreen until its print is ready.
+A failed texture or eight-second loading deadline shows the homepage directly.
+CSS still exits if hydration fails; script failures restore the finished page. Shared timings live in `components/splash/timing.json`.
 
 The artwork and motion source live in `scripts/splash/`. Run
 `npm run splash:generate` to rebuild lettering and sampled motion CSS, or
