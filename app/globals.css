@@ -49,14 +49,14 @@ a:focus-visible { outline: 3px solid var(--copper); outline-offset: 5px; }
 
 .trailhead {
   display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(20rem, 0.9fr);
-  min-height: 100svh; overflow: hidden; padding: clamp(8rem, 15vh, 11rem) var(--page-padding) 3rem; position: relative;
+  column-gap: 2vw; min-height: 100svh; overflow: hidden; padding: clamp(8rem, 15vh, 11rem) var(--page-padding) 0; position: relative;
 }
 .trailhead::before {
   background-image: radial-gradient(rgba(23, 63, 53, 0.13) 0.7px, transparent 0.7px);
   background-size: 6px 6px; content: ""; inset: 0; mask-image: linear-gradient(to right, black, transparent 55%);
   opacity: 0.45; pointer-events: none; position: absolute;
 }
-.trailhead-copy { align-self: center; max-width: 60rem; position: relative; z-index: 2; }
+.trailhead-copy { align-self: center; max-width: 60rem; padding-bottom: 5rem; position: relative; z-index: 2; }
 .eyebrow, .section-kicker {
   align-items: center; color: var(--ink-label); display: flex; font-size: 0.67rem; font-weight: 700;
   gap: 0.75rem; letter-spacing: 0.14em; margin: 0 0 2rem; text-transform: uppercase;
@@ -84,8 +84,16 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 
 .trailhead-photo { aspect-ratio: 3 / 4; display: block; height: auto; object-fit: cover; object-position: center; width: 100%; }
 .trailhead-portrait {
-  align-self: center; margin: 0 0 0 4vw;
-  position: relative; width: calc(100% - 4vw);
+  align-self: stretch; margin: 0 calc(-1 * var(--page-padding)) 0 0;
+  min-height: clamp(36rem, 78svh, 58rem); position: relative;
+  /* The print-like edges dissolve into the reading surface; the right and
+     bottom edges belong to the page rather than a floating photo card. */
+  mask-image: linear-gradient(to right, transparent, #000 14%), linear-gradient(to bottom, transparent, #000 12%);
+  mask-composite: intersect;
+}
+.trailhead-portrait picture { display: block; height: 100%; }
+.trailhead-portrait .trailhead-photo {
+  aspect-ratio: auto; height: 100%; inset: 0; object-position: 50% 42%; position: absolute;
 }
 .scroll-cue { align-items: center; bottom: 2rem; display: flex; font-size: 0.62rem; font-weight: 700; gap: 0.7rem; left: var(--page-padding); letter-spacing: 0.12em; position: absolute; text-decoration: none; text-transform: uppercase; }
 
@@ -174,7 +182,11 @@ footer p { margin: 0; } footer a { text-decoration: none; }
   .site-header:not(.site-header--case-study) nav a:not(:last-child) { display: none; }
   .trailhead { grid-template-columns: 1fr; padding-bottom: 0; }
   .trailhead-copy { padding-bottom: 4rem; }
-  .trailhead-portrait { justify-self: center; margin: 0; max-width: 28rem; width: 100%; }
+  .trailhead-portrait {
+    aspect-ratio: 4 / 5; margin: 0 calc(-1 * var(--page-padding)); min-height: 0;
+    width: calc(100% + 2 * var(--page-padding));
+    mask-image: linear-gradient(to bottom, transparent, #000 12%);
+  }
   .scroll-cue { display: none; }
   .about-copy, .work-heading, .interlude-grid { grid-template-columns: 1fr; }
   .about { min-height: auto; padding-bottom: 8rem; }

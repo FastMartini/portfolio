@@ -9,7 +9,7 @@ export function TrailheadPhoto({ climb = false }: { climb?: boolean }) {
   // The picture source selects the download even before React hydrates.
   const sizes = climb
     ? "(max-width: 900px) 192px, min(384px, 28vw)"
-    : "(max-width: 900px) min(448px, calc(100vw - 40px)), 40vw";
+    : "(max-width: 900px) 100vw, 48vw";
   return <picture>
     <source type="image/webp" srcSet={portraitSources} sizes={sizes} />
     <Image className="trailhead-photo" src={`${basePath}/photos/dm-480.webp`}

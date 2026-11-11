@@ -154,21 +154,31 @@ function freezeOpenMap(el, textured = false) {
   return frozen;
 }
 
-// Reveal the actual heading once. Both opening and return use these same
-// offsets; the shared navigation stays available during view transitions.
+// Keep the real h1 in its final layout slot; only its visual position moves.
+// Both List View entry paths use this clock, including the centered reading hold.
 function revealHero(life, section, at, includeHeader = true) {
-  const doc = section.ownerDocument;
+  const doc = section.ownerDocument, win = doc.defaultView;
+  const heading = section.querySelector("#trailhead-title");
+  // Center the printed words, excluding the block's unused line width.
+  const words = doc.createRange(); words.selectNodeContents(heading);
+  const r = words.getBoundingClientRect();
+  const centered = `${win.innerWidth / 2 - r.left - r.width / 2}px ${win.innerHeight / 2 - r.top - r.height / 2}px`;
+  const ease = "cubic-bezier(0.4, 0, 0.2, 1)";
   const rise = (target, offset, duration, distance = 6) => life.add(target,
     [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
     { delay: at + offset, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-  life.add(section.querySelector("#trailhead-title"), [{ opacity: 0 }, { opacity: 1 }], { delay: at, duration: 420, easing: "ease-out" });
+  life.add(heading, [{ opacity: 0 }, { opacity: 1 }], { delay: at, duration: 280, easing: "ease-out", fill: "both" });
+  life.add(heading, [{ translate: centered }, { translate: "0 0" }],
+    { delay: at + 600, duration: 850, easing: ease, fill: "both" });
   if (includeHeader) rise(doc.querySelector(".site-header"), 100, 450, -8);
-  rise(section.querySelector(".eyebrow"), 130, 420);
-  rise(section.querySelector(".trailhead-lead"), 190, 480);
-  rise(section.querySelector(".trailhead-intro"), 250, 460);
-  rise(section.querySelector(".trailhead-actions"), 310, 440);
-  rise(section.querySelector(".trailhead-portrait"), 370, 380, 12);
-  rise(section.querySelector(".scroll-cue"), 350, 400);
+  rise(section.querySelector(".eyebrow"), 1180, 420);
+  rise(section.querySelector(".trailhead-lead"), 1220, 480);
+  rise(section.querySelector(".trailhead-intro"), 1280, 460);
+  rise(section.querySelector(".trailhead-actions"), 1340, 460);
+  // The stacked portrait follows the copy; on desktop it joins the leftward glide.
+  rise(section.querySelector(".trailhead-portrait"), win.innerWidth <= 900 ? 1360 : 680,
+    win.innerWidth <= 900 ? 440 : 1000, 20);
+  rise(section.querySelector(".scroll-cue"), 1400, 400);
 }
 
 // The same paper takeover as the generated opening CSS, shifted to a new
@@ -223,8 +233,7 @@ function start(el, options = {}) {
     // Late hydration must not rewind a visible hero or start a second reveal.
     if (t >= OPEN.hero[0]) return;
     const camera = el.querySelector(".splash-camera");
-    const rect = heading.getBoundingClientRect();
-    const f = t < OPEN.zoom[0] ? framing(el, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }) : null;
+    const f = t < OPEN.zoom[0] ? framing(el, { x: win.innerWidth / 2, y: win.innerHeight / 2 }) : null;
     if (f) {
       camera.getAnimations().forEach((a) => { if (a.animationName === "splash-zoom-fallback") a.cancel(); });
       camera.style.transformOrigin = `${f.F.x}px ${f.F.y}px`;
@@ -449,8 +458,7 @@ function transitionToList(el, switchView, options = {}) {
     const heading = doc.getElementById("trailhead-title");
     const section = heading?.closest(".trailhead");
     if (!section || !heading.getClientRects().length) { life.skip(); return; }
-    const r = heading.getBoundingClientRect();
-    const f = framing(el, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    const f = framing(el, { x: win.innerWidth / 2, y: win.innerHeight / 2 });
     const camera = el.querySelector(".splash-camera");
     if (f) {
       camera.style.transformOrigin = `${f.F.x}px ${f.F.y}px`;

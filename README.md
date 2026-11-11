@@ -19,16 +19,18 @@ Palette values live in `components/theme/tokens.json`; run `npm run theme:genera
 The first eligible visit starts with the folded map just above the viewport.
 It drifts down for 1.8 seconds with a gentle sway and rotation, rests for 250 ms,
 then unfolds over 1.45 seconds. The fully opened map holds for 550 ms before
-the existing 950 ms expansion and 750 ms Trailhead reveal. The
-headline appears first and remains the real heading throughout; supporting
-copy, buttons and portrait follow with a subtle stagger. One paper effect
+the existing 950 ms expansion and a 1.8-second Trailhead reveal. The real
+headline appears at the viewport center, holds briefly, then glides into its
+final position. On desktop the edge-to-edge portrait rises during the glide;
+supporting copy and buttons follow as the heading settles. Mobile reserves a
+stacked portrait below the copy. Soft photo edges blend into the page. One paper effect
 covers the map until it matches the selected homepage background. The map
 artwork and parchment cover retain their existing design, without hands.
 
 The 2.6-second List-to-Climb transition switches views under paper at 380 ms;
 the mountain translates into place without scaling. Returning to List View
 looks down at the already-open map over 900 ms, holds overhead for 500 ms,
-then reuses the 950 ms camera push and 750 ms hero reveal. The covered view
+then reuses the 950 ms camera push and the same 1.8-second hero reveal. The covered view
 switch lands at the List View Trailhead while preserving the previous Ascent
 position for the next Climb visit. Reduced motion returns directly.
 Pointer, key, wheel, touch, resize, and enabling reduced motion dismiss the

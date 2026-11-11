@@ -13,15 +13,16 @@ regenerated from the Waypoint registry and uses self-hosted Newsreader/Manrope.
   no JavaScript, and blocked storage retain the previous gate behavior.
 - `components/splash/timing.json` is shared by the CSS generator and controller:
   1800 ms drift, 250 ms settled pause, 1450 ms unfold, 550 ms full-open hold,
-  950 ms expansion, 750 ms reveal (5750 ms of motion in total).
+  950 ms expansion, 1800 ms reveal (6800 ms of motion in total).
 - The map's fold curves retain their resistance and soft overshoot, fitted to
   the new unfold interval. Artwork is unchanged. The camera stays still during
   the full-open hold; crease shading and grain remain visible.
 - One CSS paper effect replaces overlapping opacity effects. Paper is fully
   opaque at 4980 ms, before the world hides at 5000 ms, and matches the actual
-  homepage backing color before fading. The root exits at 5750 ms.
+  homepage backing color before fading. The root exits at 6800 ms.
 - Opening uses the actual heading from its first appearance. It fades in at
-  5000 ms, stays visible, and supporting content follows through 5750 ms.
+  5000 ms at the viewport center, stays visible during its glide, and supporting
+  content follows through 6800 ms.
   Decorative type copies remain exclusively for the separate Climb transition.
 - Cold loads wait for heading layout, fonts, and portrait decode, with a bounded
   three-second readiness budget. A slow load holds the settled map on the same
@@ -174,7 +175,7 @@ both gatefolds already flat; the whole sheet tilts into view without unfolding.
 | Hold | 900–1400 ms | Camera scale 1, map centered at 50%/50%, flat folds, visible grain/creases. |
 | Zoom | 1400–2350 ms | Same measured center-pane push/easing as the opening. |
 | Paper takeover | 2050–2330 ms | One opacity/color effect covers the map and matches the selected List View surface. |
-| Hero | 2350–3100 ms | Actual headline appears first; supporting copy, actions and portrait use the opening's existing stagger. |
+| Hero | 2350–4150 ms | Actual headline holds at center, glides into place, then supporting content arrives. |
 
 The green floor fully covers the viewport before the view changes at 900 ms.
 The List View scroll and native fragment target reset under that cover. The
@@ -233,7 +234,7 @@ paper handoff and hero stagger follow without replacing the map DOM.
 | Unfold and settle along the existing creases | 2050–3500 ms |
 | Fully opened map holds | 3500–4050 ms |
 | Existing camera push | 4050–5000 ms |
-| Existing hero reveal | 5000–5750 ms |
+| Centered greeting and shared hero reveal | 5000–6800 ms |
 
 The prepaint gate decodes the current aspect ratio's cover, continuous map
 print, four panel-back textures and grain before the descent. It also waits
@@ -271,3 +272,54 @@ full-open hold and continuous hero cleanup pass. A texture failure reveals the
 homepage directly. Both view directions retain their original timing and
 interruption behavior. Production static exports, typecheck, lint and diff
 checks pass; full Linux CI reruns on the updated PR.
+
+
+## Centered greeting and integrated portrait
+
+Both entry paths call the same hero reveal, with these offsets from the end
+of the paper zoom (5000 ms for the opening, 2350 ms for Climb-to-List):
+
+| Phase | Relative time |
+| --- | --- |
+| Real heading fades in at the center | 0–280 ms |
+| Fully readable centered hold | 280–600 ms |
+| Same heading glides into its layout position | 600–1450 ms |
+| Desktop portrait fades and rises 20 px during the glide | 680–1680 ms |
+| Eyebrow, lead, intro, actions and scroll cue stagger in | 1180–1800 ms |
+| Mobile portrait follows the intro copy | 1360–1800 ms |
+
+The heading is never cloned or reparented. A text range measures the visible
+words, excluding unused block width, so the greeting looks centered even
+when it wraps. Only its visual translation changes; the final copy and image
+slots are present from the first layout. Opacity reaches one before the hold
+and stays there through glide and effect cleanup. The paper handoff retains
+its original opaque-before-world-exit coverage and selected reading palette.
+
+The desktop portrait stretches to the hero's right and bottom edges instead
+of sitting inside an inset crop. Its top and left mask edges dissolve into the
+page background. On mobile it fills a reserved 4:5 frame below the copy,
+with a soft top edge. The responsive source sizes match the expanded frame;
+the same 3:4 original files and Climb portrait are unchanged. The face stays
+inside the cover crop at tested widths from 320 to 1920 px.
+
+Reduced-motion initial visits and Climb returns show the final server-rendered
+layout immediately. Dismissal, resize, reduced-motion changes, reversal and
+navigation cancel both heading effects and every reveal so content remains
+usable in its final position.
+
+Updated opening and return contact sheets show both entry paths. Full final
+layouts are in `hero-desktop.png` and `hero-mobile.png`.
+
+### Greeting validation
+
+- Opening/view-transition/portrait suite: 160 passed in Chromium and WebKit;
+  two known macOS WebKit software 3D face-paint captures remain skipped.
+- Additional reduced-motion initial/return checks at desktop/mobile sizes,
+  reserved portrait and face crop at six widths (320–1920 px), updated local
+  hero snapshots, and the existing WCAG AA scan: 17 passed.
+- Both entry paths assert centered visible words and a readable hold, the same
+  h1 throughout, full opacity during motion, the desktop portrait overlapping
+  the glide, delayed copy, mobile stacking, unchanged reserved layout geometry,
+  final position and animation cleanup. Existing cold-load checks delay fonts,
+  textures and client scripts and sample heading opacity through the handoff.
+- Production static-export builds, typecheck, lint and diff checks pass.

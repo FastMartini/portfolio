@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import opening from "../components/splash/timing.json";
+import { expectGreetingGlide } from "./helpers/hero-reveal";
 import type { Page } from "@playwright/test";
 
 async function seekTransition(page: Page, time: number) {
@@ -204,7 +206,8 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator("#trailhead .trailhead-portrait")).toHaveCSS("opacity", "0");
       await expect(page.locator(".site-header")).toHaveCSS("opacity", "1");
       await expect(page.locator(".site-header")).toHaveCSS("z-index", "60");
-      await seekReturn(page, 3100);
+      await expectGreetingGlide(page, (time) => seekReturn(page, 2350 + time));
+      await seekReturn(page, 2350 + opening.hero[1]);
       await expect(overlay).toHaveCount(0);
       await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
       expect(await page.locator("#trailhead-title").evaluate((el) => el.getAnimations().length)).toBe(0);
@@ -333,7 +336,22 @@ test("returning with a Waypoint Panel open clears a prior Case Study target and 
   await expect(page.getByRole("dialog")).toBeHidden();
   await expect(page).toHaveURL(/#list-view$/);
   expect(await page.locator("#trailhead-title").evaluate((el) => el.getClientRects().length)).toBeGreaterThan(0);
-  await seekReturn(page, 3100);
+  await seekReturn(page, 2350 + opening.hero[1]);
   await expect(page.locator("#trailhead-title")).toBeInViewport();
   await expect(page.locator(".inline-case:target")).toHaveCount(0);
 });
+
+for (const width of [390, 1440]) {
+  test(`reduced-motion return shows the final hero immediately at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("./");
+    await page.getByRole("button", { name: "Climb view", exact: true }).click();
+    await expect(page.locator("#climb")).toBeVisible();
+    await page.getByRole("button", { name: "List view", exact: true }).click();
+    await expect(page.locator(".splash--list")).toHaveCount(0);
+    await expect(page.locator("#trailhead-title")).toHaveCSS("translate", "none");
+    await expect(page.locator("#trailhead .trailhead-portrait")).toHaveCSS("opacity", "1");
+    expect(await page.locator("#trailhead").evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+  });
+}

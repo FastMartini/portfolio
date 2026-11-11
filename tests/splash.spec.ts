@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import opening from "../components/splash/timing.json";
 import type { Page } from "@playwright/test";
+import { expectGreetingGlide } from "./helpers/hero-reveal";
 
 async function seekIntro(page: Page, time: number) {
   await page.evaluate(() => document.fonts.ready);
@@ -245,6 +246,7 @@ for (const viewport of [
     await expect(page.locator(".splash-greeting--page")).toBeHidden();
     expect(await page.locator("#trailhead-title").evaluate((el) => getComputedStyle(el).fontFamily)).toContain("Newsreader");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expectGreetingGlide(page, (time) => seekIntro(page, opening.hero[0] + time));
     await seekIntro(page, opening.end + 1);
     await expect(page.locator(".splash")).toBeHidden();
     await expect(page.locator(".climb-list")).toBeVisible();
@@ -542,3 +544,15 @@ test("a missing paper texture reveals the homepage without a partial map", async
   await expect(page.locator(".splash")).toBeHidden();
   await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
 });
+
+for (const width of [390, 1440]) {
+  test(`reduced-motion initial hero is already settled at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("./");
+    await expect(page.locator(".splash")).toBeHidden();
+    await expect(page.locator("#trailhead-title")).toHaveCSS("translate", "none");
+    await expect(page.locator("#trailhead .trailhead-portrait")).toHaveCSS("opacity", "1");
+    expect(await page.locator("#trailhead").evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+  });
+}

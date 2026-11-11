@@ -94,3 +94,31 @@ test("Climb shows Diego to the right of Trailhead and fades the photo with its i
   await expect(portrait).toBeInViewport();
   await expect(portrait.locator("xpath=ancestor::figure")).toHaveCSS("opacity", "1");
 });
+
+for (const width of [320, 390, 768, 1024, 1440, 1920]) {
+  test(`integrated List View portrait reserves its frame and keeps Diego's face visible at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("./#trailhead");
+    const photo = page.locator("#trailhead .trailhead-photo");
+    await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    const frame = await photo.evaluate((img: HTMLImageElement) => {
+      const r = img.getBoundingClientRect(), scale = Math.max(r.width / img.naturalWidth, r.height / img.naturalHeight);
+      const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+      // The source face, including hair: x=24–76%, y=28–72%. Check it
+      // against the actual cover crop rather than assuming every ratio fits.
+      return { width: r.width, height: r.height, right: r.right,
+        faceLeft: w * 0.24 - (w - r.width) * 0.5,
+        faceRight: w * 0.76 - (w - r.width) * 0.5,
+        faceTop: h * 0.28 - (h - r.height) * 0.42,
+        faceBottom: h * 0.72 - (h - r.height) * 0.42,
+        reserved: img.closest("figure")!.offsetHeight };
+    });
+    expect(frame.faceLeft).toBeGreaterThan(0);
+    expect(frame.faceRight).toBeLessThan(frame.width);
+    expect(frame.faceTop).toBeGreaterThan(0);
+    expect(frame.faceBottom).toBeLessThan(frame.height);
+    expect(Math.abs(frame.reserved - frame.height)).toBeLessThan(1);
+    expect(frame.right).toBeCloseTo(width, 0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
