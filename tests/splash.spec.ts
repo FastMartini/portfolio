@@ -195,9 +195,12 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
             // Hiding the lower layers can re-rasterize the cover's own glyphs.
             // Allow a two-pixel matching neighborhood, while new inside print
             // in a blank cover area must still fail (the original 177° bug).
+            // Linux's cover glyph antialiasing reaches a 31-level difference
+            // from its nearest reference pixel; keep this allowance local to ink.
             const sameCoverInk = [-2, -1, 0, 1, 2].some((dy) => [-2, -1, 0, 1, 2].some((dx) => {
               const j = i + (dy * b.width + dx) * 4;
-              return [0, 1, 2].every((channel) => Math.abs(a.data[i + channel] - b.data[j + channel]) <= 30);
+              const tolerance = paper(j) ? 30 : 32;
+              return [0, 1, 2].every((channel) => Math.abs(a.data[i + channel] - b.data[j + channel]) <= tolerance);
             }));
             if (!sameCoverInk) count++;
           }

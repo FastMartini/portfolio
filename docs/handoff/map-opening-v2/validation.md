@@ -323,3 +323,14 @@ layouts are in `hero-desktop.png` and `hero-mobile.png`.
   final position and animation cleanup. Existing cold-load checks delay fonts,
   textures and client scripts and sample heading opacity through the handoff.
 - Production static-export builds, typecheck, lint and diff checks pass.
+
+Linux Chromium hero baselines were captured on Ubuntu 24.04 from the same
+source and visually inspected before updating the two committed references.
+The targeted Linux capture also reproduced the older cover-check failure:
+one antialiased pixel in the cover's own “01” lettering differed by 31 color
+levels from its nearest reference neighbor. Replaying those exact captured
+images reports one mismatch with the old 30-level ink tolerance and zero
+with 32. The blank-paper comparison remains at 30, the two-pixel neighborhood
+and zero-leak assertion remain intact, and restoring the original 177° fold
+still produces 1803 leaking pixels in the negative control. Map artwork and
+production rendering are unchanged by this test correction.
