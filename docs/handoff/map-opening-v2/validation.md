@@ -334,3 +334,10 @@ with 32. The blank-paper comparison remains at 30, the two-pixel neighborhood
 and zero-leak assertion remain intact, and restoring the original 177° fold
 still produces 1803 leaking pixels in the negative control. Map artwork and
 production rendering are unchanged by this test correction.
+
+The final targeted [Ubuntu 24.04 Chromium run](https://github.com/FastMartini/portfolio/actions/runs/43113256845)
+passes all 24 checks: both entry paths, centered greeting/hold/glide, desktop
+and stacked layouts, reduced motion, six face crops, both refreshed hero
+baselines and both cover-opacity comparisons. The temporary capture workflow
+is outside the PR; the repository's full verification/deployment workflow is
+unchanged. Full cross-browser CI continues separately on PR #34.
