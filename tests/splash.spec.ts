@@ -73,7 +73,9 @@ test.describe("Retina paper seams", () => {
       await page.setViewportSize({ width, height: 827 });
       await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
       await page.goto("./");
-      for (const time of [opening.unfold + 250, opening.zoom[0] + opening.zoom[1] - 1]) {
+      // Inspect the printed paper before its intentional blend into a Dark page.
+      // The covered handoff itself is checked against the selected page palette.
+      for (const time of [opening.unfold + 250, opening.paper[0] - 1]) {
         await seekIntro(page, time);
         await expectSolidPaperSeams(page, page.locator("body > .splash .splash-map"));
       }

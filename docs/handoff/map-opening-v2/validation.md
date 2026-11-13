@@ -425,3 +425,8 @@ Dark preferences intentionally continue to restore before paint.
 The six default List View visual references now depict Light. Tests that
 specifically exercise Dark select it explicitly, and Waypoint Panel/embedded
 Case Study accessibility is checked in both themes.
+
+The targeted [Ubuntu 24.04 baseline run](https://github.com/FastMartini/portfolio/actions/runs/43401107506)
+passes all six default List View captures. Only those six Linux references are
+imported from its artifact; the workflow adjustment lives on a temporary
+verification branch and does not change the PR's workflow.
