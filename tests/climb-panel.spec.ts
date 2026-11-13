@@ -4,10 +4,10 @@ import type { Page } from "@playwright/test";
 import { openClimb, scrollToClimbStop as stop } from "./helpers/climb";
 import { waypoints } from "../content/waypoints";
 
-async function expectAccessiblePanel(page: Page) {
+async function expectAccessiblePanel(page: Page, theme: "light" | "dark") {
   // The nonmodal panel leaves the mountain usable. Climb/List View tests audit
   // that background separately; these repeated scans target the reading surface.
-  const textColor = "rgb(236, 230, 210)";
+  const textColor = theme === "light" ? "rgb(31, 38, 33)" : "rgb(236, 230, 210)";
   // WebKit can update the panel background before its inherited text colors.
   for (const text of await page.locator("#panel-title, .climb-panel .waypoint-story h3, .climb-panel .waypoint-summary, .climb-panel .waypoint-purpose, .climb-panel .waypoint-attribution dd").all())
     await expect(text).toHaveCSS("color", textColor);
@@ -194,29 +194,29 @@ test("visible markers tab in Waypoint order; offscreen markers are not tab stops
   await expect(landmark).not.toHaveClass(/is-hot/);
 });
 
-for (const width of [390, 1440]) {
+for (const theme of ["light", "dark"] as const) for (const width of [390, 1440]) {
   for (const waypoint of waypoints.slice(0, 3)) {
-    test(`${waypoint.name} panel and embedded MDX Case Study are accessible at ${width}px`, async ({ page }) => {
+    test(`${theme} ${waypoint.name} panel and embedded MDX Case Study are accessible at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ reducedMotion: "reduce" });
-      await openClimb(page);
+      await openClimb(page, theme);
       await expect(page.locator("#climb")).toBeVisible();
       await stop(page, waypoint.order + 1);
       await page.locator(`[data-marker="${waypoint.order + 1}"]`).click();
       const panel = page.getByRole("dialog");
       await expect(panel).toBeInViewport();
-      await expectAccessiblePanel(page);
+      await expectAccessiblePanel(page, theme);
       await panel.getByRole("link", { name: "Read case study" }).click();
       await expect(panel.locator("#panel-title")).toHaveText(waypoint.name + " · Case Study");
       await expect(panel.getByRole("heading", { name: "Key decisions", exact: true })).toBeVisible();
-      await expectAccessiblePanel(page);
+      await expectAccessiblePanel(page, theme);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
       await panel.getByRole("button", { name: "Summary" }).click();
       await expect(panel.locator("#panel-title")).toHaveText(waypoint.name);
       await page.emulateMedia({ colorScheme: "dark" });
-      await expectAccessiblePanel(page);
+      await expectAccessiblePanel(page, theme);
       await panel.getByRole("link", { name: "Read case study" }).click();
-      await expectAccessiblePanel(page);
+      await expectAccessiblePanel(page, theme);
       await page.emulateMedia({ colorScheme: "light" });
       await panel.getByRole("button", { name: "Close panel" }).click();
     });

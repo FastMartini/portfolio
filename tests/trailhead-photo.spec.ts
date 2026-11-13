@@ -22,7 +22,17 @@ test(`List View downloads a small responsive portrait at ${profile.width}px, ${p
   expect((await response!.body()).byteLength).toBeLessThan(profile.budget);
   expect(selected.src).toContain("/portfolio/photos/");
   expect(selected.srcset).toContain("480w");
-  expect(selected.src).toContain(`/photos/dm-${profile.selectedWidth}.webp`);
+  expect(selected.src).toContain(`/photos/dm-cutout-${profile.selectedWidth}.webp`);
+  const alpha = await portrait.evaluate((img: HTMLImageElement) => {
+    const canvas = document.createElement("canvas"); canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+    const context = canvas.getContext("2d")!; context.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const sample = (x: number, y: number) => context.getImageData(Math.floor(x * (canvas.width - 1)), Math.floor(y * (canvas.height - 1)), 1, 1).data[3];
+    return { topLeft: sample(0, 0), topRight: sample(1, 0), face: sample(0.5, 0.55), body: sample(0.5, 0.9) };
+  });
+  expect(alpha.topLeft).toBe(0);
+  expect(alpha.topRight).toBe(0);
+  expect(alpha.face).toBeGreaterThanOrEqual(250);
+  expect(alpha.body).toBeGreaterThanOrEqual(250);
   await expect(portrait).toHaveAttribute("width", "480");
   await expect(portrait).toHaveAttribute("height", "640");
   await context.close();
@@ -33,7 +43,7 @@ test("List View introduces Diego with his photo instead of Field note 01, withou
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto("./");
-  const trailhead = page.getByRole("region", { name: "Howdy, I'm Diego 👋" });
+  const trailhead = page.getByRole("region", { name: "Howdy, I'm Diego:" });
   const portrait = trailhead.getByRole("img", { name: "Diego Martinez" });
   await expect(portrait).toBeVisible();
   await expect.poll(() => portrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
@@ -94,3 +104,31 @@ test("Climb shows Diego to the right of Trailhead and fades the photo with its i
   await expect(portrait).toBeInViewport();
   await expect(portrait.locator("xpath=ancestor::figure")).toHaveCSS("opacity", "1");
 });
+
+for (const width of [320, 390, 768, 1024, 1440, 1920]) {
+  test(`integrated List View portrait reserves its frame and keeps Diego's face visible at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("./#trailhead");
+    const photo = page.locator("#trailhead .trailhead-photo");
+    await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    const frame = await photo.evaluate((img: HTMLImageElement) => {
+      const r = img.getBoundingClientRect(), scale = Math.max(r.width / img.naturalWidth, r.height / img.naturalHeight);
+      const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+      // The source face, including hair: x=24–76%, y=28–72%. Check it
+      // against the actual cover crop rather than assuming every ratio fits.
+      return { width: r.width, height: r.height, right: r.right,
+        faceLeft: w * 0.24 - (w - r.width) * 0.5,
+        faceRight: w * 0.76 - (w - r.width) * 0.5,
+        faceTop: h * 0.28 - (h - r.height) * 0.42,
+        faceBottom: h * 0.72 - (h - r.height) * 0.42,
+        reserved: img.closest("figure")!.offsetHeight };
+    });
+    expect(frame.faceLeft).toBeGreaterThan(0);
+    expect(frame.faceRight).toBeLessThan(frame.width);
+    expect(frame.faceTop).toBeGreaterThan(0);
+    expect(frame.faceBottom).toBeLessThan(frame.height);
+    expect(Math.abs(frame.reserved - frame.height)).toBeLessThan(1);
+    expect(frame.right).toBeCloseTo(width, 0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}

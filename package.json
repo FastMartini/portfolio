@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "test:e2e": "playwright test",
-    "theme:generate": "node scripts/generate-theme-css.mjs"
+    "theme:generate": "node scripts/generate-theme-css.mjs",
+    "splash:generate": "node scripts/generate-splash-motion.mjs && node scripts/generate-splash-print.mjs",
+    "splash:rasterize": "node scripts/rasterize-splash-print.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",

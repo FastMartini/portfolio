@@ -46,7 +46,7 @@ test("all ten stops show their card or Waypoint marker and update the bottom-to-
   await openClimb(page, "light");
   const root = page.locator("#climb");
   await expect(root).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego 👋");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego:");
   await expect(page.locator('[data-card="0"] .trailhead-lead')).toHaveText("Software engineer, problem solver, and lifelong learner passionate about building technology that makes an impact.");
   await expect(page.locator(".climb-stage")).toHaveCSS("position", "sticky");
   const rail = page.getByRole("navigation", { name: "Trail stops" });
@@ -156,7 +156,7 @@ for (const width of [390, 1440]) {
     test(`${journeyStops[index].label} card keeps its dark-green appearance at ${width}px with either browser preference`, async ({ page }) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
-      await openClimb(page);
+      await openClimb(page, "dark");
       await expect(page.locator("#climb")).toBeVisible();
       await scrollToStop(page, index);
       const card = page.locator(`[data-card="${index}"]`);
@@ -192,7 +192,7 @@ for (const width of [390, 1440]) {
   test(`dark List View is accessible at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "dark" });
-    await openClimb(page);
+    await openClimb(page, "dark");
     await expect(page.locator("#climb")).toBeVisible();
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await expect(page.locator(".climb-list")).toHaveCSS("background-color", "rgb(26, 33, 29)");

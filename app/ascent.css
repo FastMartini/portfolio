@@ -11,7 +11,7 @@
 .site-header:not(.site-header--case-study) nav { align-items: center; }
 .site-header .climb-view-toggle { letter-spacing: normal; min-width: 6.8rem; position: static; text-transform: none; }
 .mountain-journey :is(section, .waypoint) { scroll-margin-top: 6rem; }
-.mountain-journey .trailhead { padding-bottom: 5rem; }
+.mountain-journey .trailhead { padding-bottom: 0; }
 .mountain-journey h1 { font-size: clamp(3.25rem, 6vw, 6rem); }
 .mountain-journey .scroll-cue { min-height: 1.5rem; }
 .mountain-journey :is(.about, .work, .personal-interlude, .summit) {

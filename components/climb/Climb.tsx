@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent, ReactNode, PointerEvent, FocusEvent, KeyboardEvent } from "react";
+import { flushSync } from "react-dom";
+import { toClimb, toList } from "../splash/controller";
+import type { SplashController } from "../splash/controller";
+import { createMapOverlay } from "../splash/map/markup";
 import { journeyStops } from "../../content/journey";
 import { createHudRenderer } from "./hud";
 import { createMountainRenderer } from "./mountain/render";
@@ -78,6 +82,8 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   const returnMarker = useRef<HTMLButtonElement | null>(null);
   const pendingFocus = useRef<HTMLButtonElement | null>(null);
   const keyboardInput = useRef(true);
+  const transition = useRef<SplashController | null>(null);
+  useEffect(() => () => transition.current?.dispose(), []);
 
   const revealList = useCallback(() => {
     if (!activeClimb.current) return;
@@ -98,6 +104,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
 
   const failScene = useCallback(() => {
     traceStartup("scene recovery", new Error("Climb recovery caller").stack);
+    transition.current?.dispose();
     revealList();
     setListMode(true);
     setEnhanced(false);
@@ -209,6 +216,8 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     });
     function hashChange() {
       if (!listTarget()) return;
+      if (location.hash === "#list-view" && transition.current?.destination === "list" && transition.current.active) return;
+      transition.current?.dispose();
       if (activeClimb.current) {
         lastClimbScroll.current = window.scrollY;
         focusList.current = true;
@@ -227,7 +236,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
         traceStartup("initialization frame entered");
         try {
           stopQuality = observeClimbQuality(lighten);
-          setListMode(Boolean(listTarget()) || preference.matches);
+          setListMode(true);
           setEnhanced(true);
           traceStartup("enhancement enabled", { listTarget: listTarget()?.id, reducedMotion: preference.matches });
         } catch (error) { traceStartup("initialization frame failed", error); failScene(); }
@@ -317,16 +326,32 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   }, [enhanced, listMode, theme, failScene]);
 
   function toggleView() {
+    transition.current?.dispose();
     pendingFocus.current = null;
     setSelection(null);
     if (listMode) {
       history.replaceState(null, "", location.pathname + location.search);
-      setListMode(false);
+      const overlay = createMapOverlay();
+      try {
+        transition.current = toClimb(overlay, () => flushSync(() => setListMode(false)));
+      } catch {
+        // A missing/unsupported animation API must never block view navigation.
+        transition.current?.dispose();
+        overlay.remove();
+        setListMode(false);
+      }
     } else {
       lastClimbScroll.current = window.scrollY;
-      focusList.current = true;
-      history.replaceState(null, "", "#list-view");
-      setListMode(true);
+      const overlay = createMapOverlay();
+      const switchToList = () => {
+        activeClimb.current = false;
+        focusList.current = true;
+        // Native fragment navigation also clears a previously targeted Case Study.
+        location.replace("#list-view");
+        flushSync(() => setListMode(true));
+        window.scrollTo({ top: 0, behavior: "instant" });
+      };
+      transition.current = toList(overlay, switchToList);
     }
   }
 
