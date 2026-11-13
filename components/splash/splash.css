@@ -2,7 +2,7 @@
    the controller share timing.json, including the continuous page handoff. */
 
 html[data-splash="active"] .splash { display: block; }
-html[data-theme="light"] .splash { --splash-page-bg: #f3eedd; }
+html[data-theme="light"] .splash { --splash-page-bg: #f3eedd; --splash-ground: #6f7c55; }
 
 .splash {
   --w: min(28vw, 47vh);
@@ -13,6 +13,8 @@ html[data-theme="light"] .splash { --splash-page-bg: #f3eedd; }
   --paper: #fffbed;
   --paper-back: #f6efda;
   --splash-page-bg: #1a211d;
+  /* Climb meadow (#6f7c55) under its 60% #0c1526 moonlight veil. */
+  --splash-ground: #343e39;
 
   --print: var(--print-wide);
   animation: splash-exit var(--splash-duration) linear both;
@@ -47,14 +49,12 @@ html[data-splash-art="loading"] .splash:not(.splash--climb):not(.splash--list) *
 /* ---------- World: table, camera, rig ---------- */
 .splash-world { animation: splash-world-off var(--splash-duration) linear both; inset: 0; position: absolute; }
 .splash-table {
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 44%, rgba(255, 251, 237, 0.06), transparent 70%),
-    radial-gradient(ellipse at 50% 40%, #1b4639 0%, #173f35 48%, #0f2e27 100%);
+  /* Match the Climb's flat meadow paint beneath the camera. */
+  background: var(--splash-ground);
   inset: -45vh 0 0; position: absolute;
   /* The top 35vh sit above the screen at rest; they feather the edge when the view tilts up to the mountain. */
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 35vh); mask-image: linear-gradient(to bottom, transparent, #000 35vh);
 }
-.splash-table::after { background: var(--grain); background-size: 192px; content: ""; inset: 0; opacity: 0.55; position: absolute; }
 .splash-camera {
   animation: splash-zoom-fallback var(--splash-duration) linear both;
   inset: 0; position: absolute; transform-origin: 50% var(--rig-top);

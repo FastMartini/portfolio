@@ -370,3 +370,19 @@ and WebKit. The initial run passed 44; the affected image-alpha assertions and
 readiness/seek race were corrected, and a single-worker rerun with a larger local
 time budget passed all 14 selected checks, covering all eight prior failures.
 Production static-export builds, typecheck, lint and diff checks pass.
+
+
+## Meadow ground for map transitions
+
+The map's ground uses the Climb meadow color from `mountain/scenery.ts`:
+`#6f7c55` in Light mode. Dark mode uses `#343e39`, the same meadow under the
+bottom of `night.ts`'s 60% `#0c1526` moonlight veil. The fixed pine-green
+vignette and floor grain are removed so the ground matches the scenery's flat
+paint. This shared splash surface covers the opening and both view transitions;
+the paper artwork, creases, shadows, timing and hero reveal are unchanged.
+
+Validation: all 18 selected Chromium/WebKit checks pass for both directions at
+390 px and 1440 px in Light/Dark, plus reduced-motion returns. Production
+static-export builds, typecheck, lint and diff checks pass. Updated opening,
+look-up and look-down contact sheets show the meadow ground; `return-dark.png`
+records the moonlit match. No new animation or rendering dependency is added.
