@@ -457,3 +457,17 @@ are unchanged.
 The final local Retina rerun passed all eight Chromium/WebKit combinations
 (two themes × desktop/mobile). Local Firefox fails before navigating because
 its browser profile cannot launch; its product checks run on Ubuntu instead.
+
+The final focused local run passes **44 Chromium/WebKit checks**: both themes,
+mobile/desktop paper outlines, Retina seams, opaque folded covers, first-frame
+Light, delayed cold loads, natural completion and the hero handoff. A separate
+paint control forces front faces visible, compares the fixed result with a
+clipped-away world, then restores the old opacity. The fixed frames are identical;
+the old opacity produces a detectable paper layer over the hero.
+
+The three refreshed Chrome recordings capture the final controller and both
+view switches, with no page errors. The focused three-engine Ubuntu follow-up
+is [recorded here](https://github.com/FastMartini/portfolio/actions/runs/43479141274);
+it includes all eight prior failures and the two previously flaky natural
+completion checks, with retries disabled. No verification-only workflow is
+included in this PR.
