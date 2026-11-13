@@ -86,10 +86,6 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .trailhead-portrait {
   align-self: stretch; margin: 0 calc(-1 * var(--page-padding)) 0 0;
   min-height: clamp(36rem, 78svh, 58rem); position: relative;
-  /* The print-like edges dissolve into the reading surface; the right and
-     bottom edges belong to the page rather than a floating photo card. */
-  mask-image: linear-gradient(to right, transparent, #000 14%), linear-gradient(to bottom, transparent, #000 12%);
-  mask-composite: intersect;
 }
 .trailhead-portrait picture { display: block; height: 100%; }
 .trailhead-portrait .trailhead-photo {
@@ -185,7 +181,6 @@ footer p { margin: 0; } footer a { text-decoration: none; }
   .trailhead-portrait {
     aspect-ratio: 4 / 5; margin: 0 calc(-1 * var(--page-padding)); min-height: 0;
     width: calc(100% + 2 * var(--page-padding));
-    mask-image: linear-gradient(to bottom, transparent, #000 12%);
   }
   .scroll-cue { display: none; }
   .about-copy, .work-heading, .interlude-grid { grid-template-columns: 1fr; }

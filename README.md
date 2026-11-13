@@ -23,7 +23,8 @@ the existing 950 ms expansion and a 1.8-second Trailhead reveal. The real
 headline appears at the viewport center, holds briefly, then glides into its
 final position. On desktop the edge-to-edge portrait rises during the glide;
 supporting copy and buttons follow as the heading settles. Mobile reserves a
-stacked portrait below the copy. Soft photo edges blend into the page. One paper effect
+stacked portrait below the copy. A transparent face-and-body cutout sits
+directly on the page background; Climb retains the original photograph. One paper effect
 covers the map until it matches the selected homepage background. The map
 artwork and parchment cover retain their existing design, without hands.
 

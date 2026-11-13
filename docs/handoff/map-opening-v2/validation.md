@@ -341,3 +341,17 @@ and stacked layouts, reduced motion, six face crops, both refreshed hero
 baselines and both cover-opacity comparisons. The temporary capture workflow
 is outside the PR; the repository's full verification/deployment workflow is
 unchanged. Full cross-browser CI continues separately on PR #34.
+
+
+## Transparent hero portrait
+
+List View now uses a transparent face-and-body cutout of the existing portrait,
+created with the built-in image editing tool. The original Climb photo is
+preserved. Alpha-capable responsive WebPs replace the List View photograph;
+their pixel widths are 480, 800 and 1086, and the reserved frame and reveal
+motion are unchanged. The rectangular photo's top/left masks are removed.
+See `portrait-cutout.md` for the selected PNG, final prompt and export details.
+
+The responsive image checks verify actual transparent corners and fully opaque
+face/body pixels after browser decoding, including no-JavaScript visits. Existing
+face-crop, layout reservation and both entry-path checks also cover the cutout.
