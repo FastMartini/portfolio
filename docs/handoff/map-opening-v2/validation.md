@@ -30,7 +30,8 @@ regenerated from the Waypoint registry and uses self-hosted Newsreader/Manrope.
 - Effect disposal releases resources without dismissing/restarting CSS, so
   React's development setup/cleanup/setup does not replay the intro.
 - List-to-Climb switches under paper at 380 ms. The header remains above the
-  overlay, the initiating input is excluded, and the mountain only translates.
+  overlay, the initiating input is excluded, and the live hillside camera owns
+  the terrain motion.
 - Controllers own their timers, input listeners, animation frames, and script
   animations. Completion, interruption, view reversal, hash navigation,
   enhancement failure, and unmount all release those resources.
@@ -171,13 +172,13 @@ both gatefolds already flat; the whole sheet tilts into view without unfolding.
 
 | Phase | Time | Behavior |
 | --- | --- | --- |
-| Look down | 0–900 ms | Mountain moves upward while the open map and green floor rise from below; map tilt settles from 58° to overhead. |
-| Hold | 900–1400 ms | Camera scale 1, map centered at 50%/50%, flat folds, visible grain/creases. |
-| Zoom | 1400–2350 ms | Same measured center-pane push/easing as the opening. |
-| Paper takeover | 2050–2330 ms | One opacity/color effect covers the map and matches the selected List View surface. |
-| Hero | 2350–4150 ms | Actual headline holds at center, glides into place, then supporting content arrives. |
+| Look down | 0–1400 ms | The live terrain pitches into a perspective hillside, bringing Waypoints into view before the open map rises during 800–1400 ms. |
+| Hold | 1400–1900 ms | Camera scale 1, map centered at 50%/50%, flat folds, visible grain/creases. |
+| Zoom | 1900–2850 ms | Same measured center-pane push/easing as the opening. |
+| Paper takeover | 2550–2830 ms | One opacity/color effect covers the map and matches the selected List View surface. |
+| Hero | 2850–4650 ms | Actual headline holds at center, glides into place, then supporting content arrives. |
 
-The green floor fully covers the viewport before the view changes at 900 ms.
+The live hillside remains painted through the covered view change at 1400 ms.
 The List View scroll and native fragment target reset under that cover. The
 paper is fully opaque 20 ms before the map world is hidden; it then lifts over
 the ready page, with no text clone or heading swap. The selected theme remains
@@ -277,7 +278,7 @@ checks pass; full Linux CI reruns on the updated PR.
 ## Centered greeting and integrated portrait
 
 Both entry paths call the same hero reveal, with these offsets from the end
-of the paper zoom (5000 ms for the opening, 2350 ms for Climb-to-List):
+of the paper zoom (5000 ms for the opening, 2850 ms for Climb-to-List):
 
 | Phase | Relative time |
 | --- | --- |
@@ -380,12 +381,73 @@ uses the same cream. Only the two cover sprites are regenerated; the other ten
 print sprites, lettering, contours, route, symbols and fold geometry are unchanged.
 Fold lighting and paper grain remain on top of the base color.
 
-The surrounding ground retains the original dark pine radial vignette and fine
-grain in both themes. The meadow-color background has been reverted. The same
-paper and ground appear in the initial opening and both view transitions.
+The initial opening retains the original dark pine radial vignette and fine
+grain in both themes. Its flat meadow-color background has been reverted. Mode
+changes now carry the same paper over the live hillside, as described below; the
+pine floor remains the optional-camera fallback.
 
 Paper/background validation: 30 selected Chromium/WebKit opening and two-way
 transition checks pass; two known WebKit 3D face-paint captures are skipped.
 The browser reports `rgb(243, 238, 221)` for the Light navbar and both paper
 faces. The original two radial gradients and floor-grain overlay are restored.
 Production builds, typecheck, lint and diff checks pass.
+
+
+## Continuous hillside camera
+
+Mode changes now use `components/climb/hillside-camera.ts`. The existing live
+vector camera is reframed and pitched into a downhill view; its Landmarks,
+foliage, trail, lighting and terrain shadows travel together. Actual Waypoint
+buttons are projected from their original world anchors, become smaller with
+distance, and counter-rotate around their stems to remain readable. They are
+inert during this decorative view change. The original camera node is retained.
+
+A small vector continuation extends the meadow below world row 3200, including
+sparse grass, the continuing trail, matching shadow direction and the original
+spruce SVG definitions. Its night overlay follows the live scene's moonlight
+veil. It overlays the old lower apron once, avoiding a double night tint or a
+break at the shadow edge. The initial opening retains its original pine backdrop;
+the map paper retains the Light-navbar cream.
+
+The downward tilt lasts 1400 ms. The mountain moves out of the forward view and
+the slope is visible before the map rises during the last 600 ms. The full-open
+hold remains 500 ms, zoom remains 950 ms and shared hero reveal remains 1800 ms.
+The reverse tilt follows the same terrain/camera endpoints over 1400 ms, within
+a 3000 ms List-to-Climb sequence. The terrain is primed synchronously beneath
+the opaque paper on first Climb entry so the camera never depends on a later
+scroll-render frame.
+
+After the covered List View commit, the actual scene remains temporarily painted
+as a fixed, inert underlay. It is released when the paper takeover is opaque at
+the hero boundary; the page and header remain stable. Completion, interruption,
+resize, motion changes, reversal, API failures and unmount remove the meadow
+continuation, restore transform origins and inert state, cancel owned animations
+and stop the lighting frame callback. Reduced motion switches directly.
+
+### Hillside verification
+
+- All 64 existing view-transition cases pass in Chromium/WebKit after the
+  first-entry terrain priming fix. A subsequent 12-case run verifies the final
+  first-frame setup and four additional round-trip cases, for 68 distinct cases
+  verified across the runs.
+- Desktop/mobile and Light/Dark cases verify perspective during the tilt,
+  multiple visible downslope Waypoints, readable badges with distance scaling,
+  original terrain-camera node identity, continuous covered List View commit,
+  paper opacity before releasing the live terrain, hero continuity and cleanup.
+- Round trips compare the downhill camera matrices in both directions, verify
+  the inherited moonlight value, restore the original normal-view matrices,
+  and release inert state and the temporary meadow.
+- Existing tests cover natural completion, preserved Ascent scroll, interruption,
+  rapid reversal, fragment navigation, open panels, API failures and reduced
+  motion. Production static-export builds, typecheck, lint and diff checks pass.
+- `hillside-desktop.webm` and `hillside-mobile.webm` record natural playback of
+  both directions, including a return from mid-Ascent. No page errors were
+  recorded. The updated return/Climb contact sheets show the same scene poses.
+- A final 16-case desktop/mobile Chromium/WebKit run passes after delaying the
+  contact shadow until the map arrives; the mid-tilt view has no premature dark
+  rectangle. Natural-playback clips and contact sheets were refreshed and inspected.
+- The previous full Linux run (before this hillside change) passed 763 cases,
+  skipped six, and failed two existing List View Waypoint screenshot comparisons
+  (`waypoint-desktop` and `waypoint-mobile`). The artifacts show small text/position
+  differences; those baselines and tolerances are unchanged here. Full Linux
+  verification reruns separately on the updated PR.

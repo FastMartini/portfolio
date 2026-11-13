@@ -230,3 +230,7 @@ html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
   html[data-splash] .splash:not(.splash--climb) { animation: none; display: none; }
 }
 html[data-motion="reduce"] .splash:not(.splash--climb) { animation: none; display: none; }
+
+/* Only mode changes look across the live hillside. The initial opening keeps
+   its original dark-green backdrop. */
+.splash[data-terrain="live"] .splash-table { visibility: hidden; }
