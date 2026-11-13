@@ -20,19 +20,3 @@
 /* Weather values are scoped to the three cloud roots, never the forest. */
 .climb-mountain .clouds .cb { fill: var(--cloud-base, #d7dee5); }
 .climb-mountain .clouds .ct { fill: var(--cloud-top, #ffffff); }
-
-/* A view-transition camera uses the existing world beyond the normal viewport
-   clip. Hidden markers may enter the sloping view; the entire scene is inert. */
-.climb-enhancement[data-hillside-transition] .climb-mountain { overflow: visible; }
-.climb-enhancement[data-hillside-transition] :is(.climb-scene, .climb-markers) { transform-style: preserve-3d; }
-.climb-enhancement[data-hillside-transition] .climb-marker[hidden] { display: flex; }
-.climb-enhancement[hidden][data-hillside-transition] {
-  display: block !important; inset: 0; pointer-events: none; position: fixed; z-index: 58;
-}
-.climb-terrain-continuation {
-  background: #6f7c55; height: 6000px; left: -1100px; pointer-events: none;
-  position: absolute; top: 3200px; width: 4400px;
-}
-.climb-terrain-shadow, .climb-terrain-night { inset: 0; position: absolute; }
-.climb-terrain-shadow { background: rgba(31,38,33,0.16); clip-path: polygon(53.18% 0,100% 0,100% 100%,59.15% 100%); }
-.climb-terrain-night { background: #0c1526; opacity: var(--hill-night, 0); }

@@ -1,4 +1,0 @@
-{
-  "climb": { "cover": 380, "pull": [380, 870], "tilt": [1150, 1400], "end": 3000 },
-  "list": { "tilt": 1400, "hold": 500, "mapArrival": 800 }
-}

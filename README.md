@@ -28,11 +28,10 @@ directly on the page background; Climb retains the original photograph. One pape
 covers the map until it matches the selected homepage background. The map
 artwork and parchment cover retain their existing design, without hands.
 
-The 3-second List-to-Climb transition switches views under paper at 380 ms,
-then looks up through the live hillside toward the mountain. Returning to List
-View tilts down over 1.4 seconds, revealing the terrain and perspective-scaled
-Waypoints before the already-open map enters the foreground. It holds for
-500 ms, then reuses the 950 ms camera push and the same 1.8-second hero reveal. The covered view
+The 2.6-second List-to-Climb transition switches views under paper at 380 ms;
+the mountain translates into place without scaling. Returning to List View
+looks down at the already-open map over 900 ms, holds overhead for 500 ms,
+then reuses the 950 ms camera push and the same 1.8-second hero reveal. The covered view
 switch lands at the List View Trailhead while preserving the previous Ascent
 position for the next Climb visit. Reduced motion returns directly.
 Pointer, key, wheel, touch, resize, and enabling reduced motion dismiss the
@@ -43,14 +42,7 @@ portrait can briefly extend the settled-map hold (bounded by a three-second
 readiness budget). Before descent, a prepaint gate decodes the map textures and
 waits for lettering fonts, keeping the paper offscreen until its print is ready.
 A failed texture or eight-second loading deadline shows the homepage directly.
-CSS still exits if hydration fails; script failures restore the finished page.
-Opening timings live in `components/splash/timing.json`; view-transition timings
-live in `components/splash/view-timing.json`. `components/climb/hillside-camera.ts`
-reframes the original terrain, Landmarks, shadows and night lighting rather than
-swapping to a flat backdrop. A small continuation extends the meadow below the
-original world edge; its foliage uses the same SVG definitions. The real scene
-stays inert and painted until the opaque paper handoff, then releases every
-camera effect and temporary node.
+CSS still exits if hydration fails; script failures restore the finished page. Shared timings live in `components/splash/timing.json`.
 
 The artwork and motion source live in `scripts/splash/`. Run
 `npm run splash:generate` to rebuild lettering and sampled motion CSS, or

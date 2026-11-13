@@ -4,15 +4,13 @@
  */
 
 import OPEN from "./timing.json";
-import VIEWS from "./view-timing.json";
-import { hillsideCamera } from "../climb/hillside-camera";
 const LIST = (() => {
-  const { tilt, hold } = VIEWS.list;
+  const tilt = 900, hold = 500;
   const zoom = [tilt + hold, OPEN.zoom[1]];
   const hero = [zoom[0] + zoom[1], OPEN.hero[1]];
   return { tilt, hold, zoom, hero, end: hero[0] + hero[1] };
 })();
-const CLIMB = VIEWS.climb;
+const CLIMB = { cover: 380, pull: [380, 870], tilt: [1150, 1000], end: 2600 };
 const CONTROLLER = Symbol.for("portfolio.splash");
 const EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"];
 
@@ -385,33 +383,29 @@ function transitionToClimb(el, switchView, options = {}) {
   // over the pane hides them and lifts as the folds come into view.
   add(el.querySelector(".splash-pane-cover"), [{ opacity: 1 }, { opacity: 0 }], { delay: 470, duration: 420, easing: "ease-in-out", fill: "both" });
   el.querySelectorAll(".splash-crease").forEach((c) => add(c, [{ opacity: 0 }, { opacity: 0.32 }], { delay: 640, duration: 560, fill: "both" }));
-  // 3. Lower the sheet and retrace the live hillside toward the mountain.
-  // The original table motion remains only as the optional-camera fallback.
+  // 3. Look up from the map to the mountain: the sheet tips away and drops out of view,
+  //    the table edge slides down, and the Climb (already behind) descends into place.
   const [t0, td] = CLIMB.tilt, lookUp = "cubic-bezier(0.5, 0, 0.3, 1)";
   add(el.querySelector(".splash-map"), [{ transform: "rotateX(0deg)" }, { transform: "rotateX(58deg)" }], { delay: t0, duration: td, easing: "cubic-bezier(0.45, 0, 0.6, 1)", fill: "forwards" });
-  add(el.querySelector(".splash-rig"), [{ translate: "0 0" }, { translate: "0 112vh" }], { delay: t0, duration: LIST.tilt - VIEWS.list.mapArrival, easing: lookUp, fill: "forwards" });
+  add(el.querySelector(".splash-rig"), [{ translate: "0 0" }, { translate: "0 112vh" }], { delay: t0 + 80, duration: td - 80, easing: lookUp, fill: "forwards" });
   add(el.querySelector(".splash-table"), [{ translate: "0 0" }, { translate: "0 140vh" }], { delay: t0, duration: td, easing: lookUp, fill: "forwards" });
-  el.querySelectorAll(".splash-shadow").forEach((shadow) => add(shadow,
-    [{ opacity: getComputedStyle(shadow).opacity }, { opacity: 0 }],
-    { delay: t0, duration: (LIST.tilt - VIEWS.list.mapArrival) * 0.6, fill: "both", easing: "ease-in" }));
   const stage = doc.querySelector(".climb-stage");
-  at(C, () => {
-    const hill = hillsideCamera(life, stage, "up", t0, td);
-    if (hill) el.dataset.terrain = "live";
-    else {
-      add(stage, [{ translate: "0 -62vh" }, { translate: "0 0" }], { delay: t0, duration: td, fill: "both" });
-      [...doc.querySelectorAll(".climb-marker:not([hidden])")].forEach((marker, index) =>
-        add(marker, [{ opacity: 0, scale: "0.4" }, { opacity: 1, scale: "1" }], { delay: 2180 + index * 90, duration: 420 }));
-    }
-  });
+  add(stage, [{ translate: "0 -62vh" }, { translate: "0 0" }], { delay: t0, duration: td + 120, easing: "cubic-bezier(0.35, 0, 0.2, 1)" });
 
   // 4. Waypoints, rail, Trailhead card and portrait arrive; the scene becomes interactive.
-  add(doc.querySelector(".climb-rail"), [{ opacity: 0 }, { opacity: 1 }], { delay: 2300, duration: 420 });
-  add(doc.querySelector('.climb-card[data-card="0"]'), [{ opacity: 0, translate: "0 14px" }, { opacity: 1, translate: "0 0" }], { delay: 2400, duration: 480, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-  add(doc.querySelector(".climb-portrait"), [{ opacity: 0, translate: "0 14px" }, { opacity: 1, translate: "0 0" }], { delay: 2480, duration: 480, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
+  const markers = [...doc.querySelectorAll(".climb-marker:not([hidden])")].sort((a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().top);
+  markers.forEach((m, i) => add(m, [{ opacity: 0, scale: "0.4" }, { opacity: 1, scale: "1" }], { delay: 1780 + i * 90, duration: 420, easing: "cubic-bezier(0.3, 1.45, 0.5, 1)" }));
+  add(doc.querySelector(".climb-rail"), [{ opacity: 0 }, { opacity: 1 }], { delay: 1900, duration: 420 });
+  add(doc.querySelector('.climb-card[data-card="0"]'), [{ opacity: 0, translate: "0 14px" }, { opacity: 1, translate: "0 0" }], { delay: 2000, duration: 480, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
+  add(doc.querySelector(".climb-portrait"), [{ opacity: 0, translate: "0 14px" }, { opacity: 1, translate: "0 0" }], { delay: 2080, duration: 480, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
   add(world, [{ opacity: 1 }, { opacity: 1 }], { delay: C, duration: t0 + td - C, fill: "none" });
   add(world, [{ visibility: "hidden" }, { visibility: "hidden" }], { delay: t0 + td, duration: CLIMB.end, fill: "none" });
 
+  // The climb stage's own markers are placed after switchView(); measure them then.
+  at(C + 20, () => {
+    [...doc.querySelectorAll(".climb-marker:not([hidden])")].sort((a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().top)
+      .forEach((m, i) => { if (!markers.includes(m)) add(m, [{ opacity: 0, scale: "0.4" }, { opacity: 1, scale: "1" }], { delay: 1780 + i * 90, duration: 420, easing: "cubic-bezier(0.3, 1.45, 0.5, 1)" }); });
+  });
   at(CLIMB.end - 1, () => life.finish(false));
   life.arm(CLIMB.end + 1500);
   return el[CONTROLLER] = { skip: life.skip, dispose: life.dispose, holdFailsafe: life.holdFailsafe, animations: life.created, reduced: false, framing: f, tick };
@@ -447,23 +441,18 @@ function transitionToList(el, switchView, options = {}) {
   // map rises during the same tilt, already open, rather than appearing later.
   const skyBottom = (sky && getComputedStyle(sky).getPropertyValue("--sky-bottom").trim()) || "#f6efdc";
   add(doc.querySelector(".climb-enhancement"), [{ backgroundColor: skyBottom }, { backgroundColor: skyBottom }], { duration: LIST.end, fill: "both" });
-  const hill = hillsideCamera(life, stage, "down", 0, LIST.tilt);
-  if (hill) el.dataset.terrain = "live";
-  else add(stage, [{ translate: "0 0" }, { translate: "0 -62vh" }], hold);
+  add(stage, [{ translate: "0 0" }, { translate: "0 -62vh" }], hold);
   add(el.querySelector(".splash-table"), [{ translate: "0 140vh" }, { translate: "0 0" }], hold);
-  const mapArrival = { delay: VIEWS.list.mapArrival, duration: LIST.tilt - VIEWS.list.mapArrival, easing: lookDown, fill: "both" };
-  add(el.querySelector(".splash-rig"), [{ translate: "0 112vh" }, { translate: "0 0" }], mapArrival);
-  add(el.querySelector(".splash-map"), [{ transform: "rotateX(58deg)" }, { transform: "rotateX(0deg)" }], mapArrival);
-  at(LIST.hero[0], () => hill?.releaseBackdrop());
+  add(el.querySelector(".splash-rig"), [{ translate: "0 112vh" }, { translate: "0 0" }], hold);
+  add(el.querySelector(".splash-map"), [{ transform: "rotateX(58deg)" }, { transform: "rotateX(0deg)" }], hold);
   // A flat contact shadow would arrive ahead of the still-tilted paper as a
   // dark rectangle. Let it gather only as the map approaches the ground.
   el.querySelectorAll(".splash-shadow").forEach((shadow) => add(shadow,
     [{ opacity: 0 }, { opacity: getComputedStyle(shadow).opacity }],
-    { delay: VIEWS.list.mapArrival + (LIST.tilt - VIEWS.list.mapArrival) * 0.4,
-      duration: (LIST.tilt - VIEWS.list.mapArrival) * 0.6, easing: "ease-out", fill: "both" }));
+    { delay: 360, duration: LIST.tilt - 360, easing: "ease-out", fill: "both" }));
 
-  // Keep the live hillside painted while the covered view commits. The paper
-  // takeover releases it before the hero becomes visible.
+  // The green floor fully covers the viewport here. Switch and reset scroll
+  // underneath it, then frame the same blank centre pane as the opening.
   at(LIST.tilt, () => {
     doSwitch();
     const heading = doc.getElementById("trailhead-title");

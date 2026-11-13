@@ -15,7 +15,6 @@ import { AmbientSound } from "./AmbientSound";
 import type { AmbientSoundController } from "./AmbientSound";
 import type { SnowController } from "./Snow";
 import { TrailRail } from "./TrailRail";
-import { readClimbProgress } from "./progress";
 import type { ClimbFrame } from "./progress";
 import { useClimbProgress } from "./useClimbProgress";
 import { createEnvironmentRenderer } from "./environment";
@@ -334,20 +333,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       history.replaceState(null, "", location.pathname + location.search);
       const overlay = createMapOverlay();
       try {
-        transition.current = toClimb(overlay, () => {
-          flushSync(() => setListMode(false));
-          // Prime the real terrain while the paper still covers the viewport.
-          // The camera must be measurable on the first Climb entry, before
-          // the normal scroll renderer's next animation frame.
-          window.scrollTo({ top: lastClimbScroll.current, behavior: "instant" });
-          const element = root.current;
-          if (element) {
-            const top = element.getBoundingClientRect().top + window.scrollY;
-            const range = Math.max(1, element.offsetHeight - window.innerHeight);
-            render({ ...readClimbProgress((window.scrollY - top) / range),
-              reducedMotion: currentTheme.current?.blend().reduced ?? true, geometryChanged: true });
-          }
-        });
+        transition.current = toClimb(overlay, () => flushSync(() => setListMode(false)));
       } catch {
         // A missing/unsupported animation API must never block view navigation.
         transition.current?.dispose();
