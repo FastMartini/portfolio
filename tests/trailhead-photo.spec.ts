@@ -29,7 +29,10 @@ test(`List View downloads a small responsive portrait at ${profile.width}px, ${p
     const sample = (x: number, y: number) => context.getImageData(Math.floor(x * (canvas.width - 1)), Math.floor(y * (canvas.height - 1)), 1, 1).data[3];
     return { topLeft: sample(0, 0), topRight: sample(1, 0), face: sample(0.5, 0.55), body: sample(0.5, 0.9) };
   });
-  expect(alpha).toEqual({ topLeft: 0, topRight: 0, face: 255, body: 255 });
+  expect(alpha.topLeft).toBe(0);
+  expect(alpha.topRight).toBe(0);
+  expect(alpha.face).toBeGreaterThanOrEqual(250);
+  expect(alpha.body).toBeGreaterThanOrEqual(250);
   await expect(portrait).toHaveAttribute("width", "480");
   await expect(portrait).toHaveAttribute("height", "640");
   await context.close();

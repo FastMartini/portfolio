@@ -4,15 +4,19 @@ import type { Page } from "@playwright/test";
 import { expectGreetingGlide } from "./helpers/hero-reveal";
 
 async function seekIntro(page: Page, time: number) {
-  await page.evaluate(() => document.fonts.ready);
-  await page.waitForFunction(() => Reflect.get(document.querySelector(".splash")!, Symbol.for("portfolio.splash"))?.ready);
-  await page.locator("body > .splash").evaluate((element, time) => {
+  // Freeze in the readiness task. A busy renderer can complete the live intro
+  // between a separate readiness check and a later locator evaluation.
+  await page.waitForFunction((time) => {
+    const element = document.querySelector("body > .splash");
+    if (!element) return false;
     const controller = Reflect.get(element, Symbol.for("portfolio.splash"));
-    controller?.holdFailsafe();
+    if (!controller?.ready) return false;
+    controller.holdFailsafe();
     for (const animation of [...element.getAnimations({ subtree: true }).filter((a) => a instanceof CSSAnimation), ...controller.animations]) {
       animation.pause();
       animation.currentTime = time;
     }
+    return true;
   }, time);
 }
 

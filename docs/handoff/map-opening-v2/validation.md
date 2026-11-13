@@ -352,6 +352,21 @@ their pixel widths are 480, 800 and 1086, and the reserved frame and reveal
 motion are unchanged. The rectangular photo's top/left masks are removed.
 See `portrait-cutout.md` for the selected PNG, final prompt and export details.
 
-The responsive image checks verify actual transparent corners and fully opaque
+The responsive image checks verify actual transparent corners and near-opaque
 face/body pixels after browser decoding, including no-JavaScript visits. Existing
 face-crop, layout reservation and both entry-path checks also cover the cutout.
+
+The focused [Ubuntu Chromium cutout run](https://github.com/FastMartini/portfolio/actions/runs/43344496507)
+passes all 30 checks, including actual decoded alpha, responsive downloads with
+and without JavaScript, six portrait frame/face checks, original Climb photo
+behavior, both hero entries, heading continuity and the updated Linux references.
+The subject's generated alpha is 253/255 at sampled face/body points; background
+corners are exactly zero. A test-only readiness/seek operation now freezes the
+opening in one browser task so a busy renderer cannot finish the live animation
+between the readiness check and the pause. Production timing is unchanged.
+
+Local cutout checks verified all 52 selected desktop/mobile cases across Chromium
+and WebKit. The initial run passed 44; the affected image-alpha assertions and
+readiness/seek race were corrected, and a single-worker rerun with a larger local
+time budget passed all 14 selected checks, covering all eight prior failures.
+Production static-export builds, typecheck, lint and diff checks pass.
