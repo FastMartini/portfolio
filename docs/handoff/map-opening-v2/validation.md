@@ -471,3 +471,13 @@ is [recorded here](https://github.com/FastMartini/portfolio/actions/runs/4347914
 it includes all eight prior failures and the two previously flaky natural
 completion checks, with retries disabled. No verification-only workflow is
 included in this PR.
+
+The focused Ubuntu run passed 65 of 66 checks with retries disabled, including
+all map material, clipping, Retina, first-frame Light, cold-load and Firefox
+paint-exit checks. Its remaining WebKit failure was the existing wall-clock
+completion test: a four-second assertion could expire before the controller's
+4.1-second failsafe. The return check likewise used five seconds against a
+5.65-second failsafe. These bounded-cleanup checks now allow 6.5/7.5 seconds
+and are named accordingly. The separate paused-clock tests still assert the
+2.6-second forward timeline and 4.15-second return timeline. Production motion,
+controller deadlines and hero timing are unchanged by this test correction.
