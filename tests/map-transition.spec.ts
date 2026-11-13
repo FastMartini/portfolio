@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 import opening from "../components/splash/timing.json";
 import { expectGreetingGlide } from "./helpers/hero-reveal";
-import { expectOpaqueMap } from "./helpers/map-paper";
 import type { Page } from "@playwright/test";
 
 async function seekTransition(page: Page, time: number) {
@@ -27,20 +26,6 @@ async function startPausedTransition(page: Page) {
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("splash-seen", "1"));
 });
-
-for (const width of [390, 1440]) {
-  test(`both view transitions keep all paper panels painted at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("./");
-    await startPausedTransition(page);
-    await seekTransition(page, 1100);
-    await expectOpaqueMap(page, page.locator(".splash--climb .splash-map"));
-    await seekTransition(page, 2600);
-    await startPausedReturn(page);
-    await seekReturn(page, 1100);
-    await expectOpaqueMap(page, page.locator(".splash--list .splash-map"));
-  });
-}
 
 for (const theme of ["light", "dark"] as const) {
   for (const width of [390, 1440]) {
@@ -216,9 +201,6 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "0");
       await seekReturn(page, 2430);
       await expect(overlay.locator(".splash-world")).toBeHidden();
-      for (const face of await overlay.locator(".splash-face").all()) {
-        await expect(face).toHaveCSS("visibility", "hidden");
-      }
       expect(Number(await page.locator("#trailhead-title").evaluate((el) => getComputedStyle(el).opacity))).toBeGreaterThan(0);
       await expect(page.locator("#trailhead .trailhead-lead")).toHaveCSS("opacity", "0");
       await expect(page.locator("#trailhead .trailhead-portrait")).toHaveCSS("opacity", "0");

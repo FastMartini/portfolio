@@ -10,11 +10,9 @@ html[data-theme="light"] .splash { --splash-page-bg: #f3eedd; }
   --entry-y: calc(-50vh - var(--ph) * 0.65 - 24px);
   --rig-top: 46%;
   --zoom-fallback: 5.4;
-  /* Same cream as the Light-mode navigation background. */
-  --paper: #f3eedd;
-  --paper-back: #f3eedd;
+  --paper: #fffbed;
+  --paper-back: #f6efda;
   --splash-page-bg: #1a211d;
-  --map-depth: preserve-3d;
 
   --print: var(--print-wide);
   animation: splash-exit var(--splash-duration) linear both;
@@ -32,8 +30,11 @@ html[data-theme="light"] .splash { --splash-page-bg: #f3eedd; }
   .splash { --w: min(43vw, 30vh); --ph: calc(var(--w) * 1.25); --rig-top: 43%; --zoom-fallback: 3.4; --print: var(--print-tall); }
 }
 html[data-splash] .splash.splash--skipped, html .splash.splash--finished { animation: none; display: none; }
+/* The sheet is already transparent when the root exits. */
+@keyframes splash-exit { 0%, 99.99% { visibility: visible; } 100% { visibility: hidden; } }
+
 /* Climb View transition reuses this overlay under the header; JS drives it. */
-html .splash:is(.splash--climb, .splash--list) { --map-depth: flat; animation: none; display: block; z-index: 59; }
+html .splash:is(.splash--climb, .splash--list) { animation: none; display: block; z-index: 59; }
 
 .splash--list, .splash:not(.splash--climb):not(.splash--list) { --rig-top: 50%; }
 /* Prepaint decoding holds the paper above the viewport. The bootstrap has its
@@ -80,12 +81,12 @@ html[data-splash-art="loading"] .splash:not(.splash--climb):not(.splash--list) *
 .splash-map {
   animation: splash-map var(--splash-duration) linear both;
   height: calc(var(--ph) * 2); left: calc(var(--w) * -1); position: absolute; top: calc(var(--ph) * -1);
-  transform-style: var(--map-depth); width: calc(var(--w) * 2);
+  transform-style: preserve-3d; width: calc(var(--w) * 2);
 }
-.splash-row { height: var(--ph); left: 0; position: absolute; transform-style: var(--map-depth); width: 100%; }
+.splash-row { height: var(--ph); left: 0; position: absolute; transform-style: preserve-3d; width: 100%; }
 .splash-row--top { animation: splash-top var(--splash-duration) linear both; top: 0; transform-origin: 50% 100%; }
 .splash-row--bottom { top: var(--ph); }
-.splash-pane, .splash-door { height: 100%; position: absolute; top: 0; transform-style: var(--map-depth); }
+.splash-pane, .splash-door { height: 100%; position: absolute; top: 0; transform-style: preserve-3d; }
 .splash-pane { left: calc(var(--w) * 0.5); width: var(--w); }
 .splash-door { width: calc(var(--w) * 0.5); }
 .splash-door--l { animation: splash-door-l var(--splash-duration) linear both; left: 0; transform-origin: 100% 50%; }

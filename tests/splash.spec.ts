@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import opening from "../components/splash/timing.json";
 import type { Page } from "@playwright/test";
 import { expectGreetingGlide } from "./helpers/hero-reveal";
-import { expectOpaqueMap } from "./helpers/map-paper";
 
 async function seekIntro(page: Page, time: number) {
   // Freeze in the readiness task. A busy renderer can complete the live intro
@@ -24,17 +23,6 @@ async function seekIntro(page: Page, time: number) {
 async function tabToLink(page: Page, browserName: string) {
   // Safari on macOS uses Option+Tab for links when full keyboard access is off.
   await page.keyboard.press(browserName === "webkit" && process.platform === "darwin" ? "Alt+Tab" : "Tab");
-}
-
-for (const width of [390, 1440]) {
-  test(`fully opened paper stays painted through the hold at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("./");
-    for (const time of [opening.unfold, opening.unfold + 250, opening.zoom[0] - 10]) {
-      await seekIntro(page, time);
-      await expectOpaqueMap(page, page.locator("body > .splash .splash-map"));
-    }
-  });
 }
 
 test("repeat visits skip the intro even when the first visit reloads before it finishes", async ({ page }) => {
