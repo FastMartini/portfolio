@@ -231,13 +231,18 @@ for (const theme of ["light", "dark"] as const) {
 
 for (const width of [390, 1440]) {
   test(`Climb-to-List completion from mid-Ascent at ${width}px preserves the heading and scroll history`, async ({ page }) => {
+    test.setTimeout(60_000); // Three view changes and two settled Ascent frames.
     await page.setViewportSize({ width, height: 900 });
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("./");
     await enterClimb(page);
+    // Let the initial scroll restoration finish before setting the test's stop.
+    await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
     await page.evaluate(() => window.scrollTo({ top: document.getElementById("climb")!.offsetHeight * 0.6, behavior: "instant" }));
     await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(1000);
+    await expect.poll(() => page.locator("#climb").getAttribute("data-position").then(Number)).toBeGreaterThan(0.5);
+    await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
     const climbScroll = await page.evaluate(() => scrollY);
     await page.evaluate(() => {
       const samples: number[] = [];

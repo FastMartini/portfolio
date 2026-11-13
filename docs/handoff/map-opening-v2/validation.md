@@ -481,3 +481,11 @@ completion test: a four-second assertion could expire before the controller's
 and are named accordingly. The separate paused-clock tests still assert the
 2.6-second forward timeline and 4.15-second return timeline. Production motion,
 controller deadlines and hero timing are unchanged by this test correction.
+
+The bounded-cleanup follow-up passed eight of nine Ubuntu checks. The remaining
+mobile WebKit history case exposed an existing setup race: its trace showed
+`data-settled="false"` and an intermediate Ascent position when it clicked List
+View, after saving the programmatic scroll value. The test now waits for initial
+restoration, the rendered mid-Ascent position and settlement before switching.
+The exact saved-scroll restoration assertion remains unchanged; production code
+is unchanged. This mirrors the existing settled-stop helper's synchronization.
