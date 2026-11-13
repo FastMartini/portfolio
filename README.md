@@ -6,11 +6,11 @@ The homepage opens in the complete List View. The header’s Climb view toggle u
 
 The complete server-rendered List View is visible without JavaScript and remains reachable through the view toggle or any hash targeting its content. Case Studies such as `#case-veritas` open with CSS `:target` even without script; standalone `/work/*/` routes remain available. Waypoint metadata comes from `content/waypoints.ts`, and Case Study prose stays in `app/work/*/page.mdx`.
 
-The large deterministic mountain SVG is built once from fixed seeds. Native scroll frames update cached transforms, trail offset, climber and marker positions without rerendering content. SVG SMIL provides landmark animation; an optional 2D canvas provides snow. Hidden tabs and List View idle the scene. No WebGL, external illustration assets, or camera controls are used. Dark is the first-visit default, with a manual Light/Dark header control shared across List View, Climb, and Case Studies. The selected appearance persists across refreshes and tabs, independently of the browser’s color preference. Day and night retain the same altitude weather; the shared transition blends sky and selective environmental lighting while keeping the original live vectors.
+The large deterministic mountain SVG is built once from fixed seeds. Native scroll frames update cached transforms, trail offset, climber and marker positions without rerendering content. SVG SMIL provides landmark animation; an optional 2D canvas provides snow. Hidden tabs and List View idle the scene. No WebGL, external illustration assets, or camera controls are used. Light is the first-visit default, with a manual Light/Dark header control shared across List View, Climb, and Case Studies. The selected appearance persists across refreshes and tabs, independently of the browser’s color preference. Day and night retain the same altitude weather; the shared transition blends sky and selective environmental lighting while keeping the original live vectors.
 
 ## Appearance
 
-The approved theme design adds warm parchment reading surfaces and moonlit Climb lighting. All four Climb cards use cream surfaces in Light mode. A shared controller supports continuous reversal, mid-transition view switches, pre-paint restoration, and a short color-only reduced-motion fade. The map opening uses its own fixed paper palette and hands off to the selected reading palette.
+The approved theme design adds warm parchment reading surfaces and moonlit Climb lighting. All four Climb cards use cream surfaces in Light mode. A shared controller supports continuous reversal, mid-transition view switches, pre-paint restoration, and a short color-only reduced-motion fade. The map paper uses the exact Light navigation-bar background token in both themes and hands off to the selected reading palette. The exported HTML and synchronous head script apply Light before the first paint on a first visit; valid saved choices still restore before paint.
 
 Palette values live in `components/theme/tokens.json`; run `npm run theme:generate` after changing them. UI roots own both settled and animated tokens so the mountain does not inherit frame-by-frame interface colors. See [the implementation and validation notes](docs/handoff/theme-validation.md) and [ADR 0005](docs/adr/0005-scope-theme-palettes-to-ui-roots.md).
 
@@ -48,7 +48,7 @@ The artwork and motion source live in `scripts/splash/`. Run
 `npm run splash:generate` to rebuild lettering and sampled motion CSS, or
 `npm run splash:rasterize` (Playwright Chromium required) to rebuild the twelve
 shape-only WebPs. The committed WebPs and grain come from v2; the two cover sprites replace the
-green band with parchment and fold creases. Use
+green band with transparent print and fold creases. Paper fill, printed shapes and live lettering share each clipped SVG viewport; panel shadows and sheen stay inside those faces. Once all folds are flat, a continuous paper backing seals fractional-pixel seams through the zoom. Use
 `npm run splash:rasterize -- --covers-only` for cover-only edits so the other
 ten sprites stay byte-for-byte unchanged. Lettering remains live SVG with the site's self-hosted fonts. All asset paths
 respect `NEXT_PUBLIC_BASE_PATH`. See the [handoff](docs/handoff/map-opening-v2/HANDOFF.md)

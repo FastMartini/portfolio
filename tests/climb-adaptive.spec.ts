@@ -599,11 +599,11 @@ test("reduced-motion List View keeps canonical content and accessible reading su
   }
   for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme });
-    await expect(page.locator(".climb-list")).toHaveCSS("color", "rgb(236, 230, 210)");
-    await expect(page.locator(".site-header")).toHaveCSS("color", "rgb(236, 230, 210)");
+    await expect(page.locator(".climb-list")).toHaveCSS("color", "rgb(31, 38, 33)");
+    await expect(page.locator(".site-header")).toHaveCSS("color", "rgb(31, 38, 33)");
     // Browser appearance changes must leave inherited reading colors intact.
     for (const text of await page.locator(".site-header a, .site-header span").all()) {
-      await expect(text).toHaveCSS("color", "rgb(236, 230, 210)");
+      await expect(text).toHaveCSS("color", "rgb(31, 38, 33)");
     }
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
   }

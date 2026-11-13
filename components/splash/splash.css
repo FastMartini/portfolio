@@ -10,11 +10,9 @@ html[data-theme="light"] .splash { --splash-page-bg: #f3eedd; }
   --entry-y: calc(-50vh - var(--ph) * 0.65 - 24px);
   --rig-top: 46%;
   --zoom-fallback: 5.4;
-  --paper: #fffbed;
-  --paper-back: #f6efda;
+  /* --paper comes from the Light navbar token in the server-rendered style. */
   --splash-page-bg: #1a211d;
 
-  --print: var(--print-wide);
   animation: splash-exit var(--splash-duration) linear both;
   contain: strict;
   display: none;
@@ -27,7 +25,7 @@ html[data-theme="light"] .splash { --splash-page-bg: #f3eedd; }
 }
 /* Portrait phones: a taller sheet, the same three panes and two folds. */
 @media (max-aspect-ratio: 4/5) {
-  .splash { --w: min(43vw, 30vh); --ph: calc(var(--w) * 1.25); --rig-top: 43%; --zoom-fallback: 3.4; --print: var(--print-tall); }
+  .splash { --w: min(43vw, 30vh); --ph: calc(var(--w) * 1.25); --rig-top: 43%; --zoom-fallback: 3.4; }
 }
 html[data-splash] .splash.splash--skipped, html .splash.splash--finished { animation: none; display: none; }
 /* The sheet is already transparent when the root exits. */
@@ -83,42 +81,39 @@ html[data-splash-art="loading"] .splash:not(.splash--climb):not(.splash--list) *
   height: calc(var(--ph) * 2); left: calc(var(--w) * -1); position: absolute; top: calc(var(--ph) * -1);
   transform-style: preserve-3d; width: calc(var(--w) * 2);
 }
+/* Once every fold is flat, one continuous backing seals rasterized panel
+   edges. Before that point, only the individual paper viewports may fill. */
+.splash-underlay {
+  animation: splash-underlay var(--splash-duration) steps(1, end) both;
+  height: 100%; inset: 0; overflow: hidden; position: absolute;
+  transform: translateZ(-0.1px); width: 100%;
+}
 .splash-row { height: var(--ph); left: 0; position: absolute; transform-style: preserve-3d; width: 100%; }
-.splash-row--top { animation: splash-top var(--splash-duration) linear both; top: 0; transform-origin: 50% 100%; }
-.splash-row--bottom { top: var(--ph); }
+.splash-row--top { --slice-y: 0; animation: splash-top var(--splash-duration) linear both; top: 0; transform-origin: 50% 100%; }
+.splash-row--bottom { --slice-y: 1; top: var(--ph); }
 .splash-pane, .splash-door { height: 100%; position: absolute; top: 0; transform-style: preserve-3d; }
-.splash-pane { left: calc(var(--w) * 0.5); width: var(--w); }
+.splash-pane { --slice-x: 0.5; left: calc(var(--w) * 0.5); width: var(--w); }
 .splash-door { width: calc(var(--w) * 0.5); }
-.splash-door--l { animation: splash-door-l var(--splash-duration) linear both; left: 0; transform-origin: 100% 50%; }
-.splash-door--r { animation: splash-door-r var(--splash-duration) linear both; left: calc(var(--w) * 1.5); transform-origin: 0 50%; }
+.splash-door--l { --slice-x: 0; animation: splash-door-l var(--splash-duration) linear both; left: 0; transform-origin: 100% 50%; }
+.splash-door--r { --slice-x: 1.5; animation: splash-door-r var(--splash-duration) linear both; left: calc(var(--w) * 1.5); transform-origin: 0 50%; }
 
 .splash-face {
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  background-color: var(--paper);
+  /* The generated facing track selects exactly one side. Keep the browser
+     from separately culling its background and its SVG print layers. */
+  backface-visibility: visible; -webkit-backface-visibility: visible;
   box-shadow: inset 0 0 0 0.5px rgba(80, 66, 40, 0.16);
-  inset: 0; overflow: hidden; position: absolute;
+  inset: 0; isolation: isolate; overflow: hidden; position: absolute;
 }
-/* Contours, route and symbols are pre-rendered (scripts/rasterize-splash-print.mjs): one sprite per aspect,
-   sliced per face. Only the lettering stays live SVG. */
-.splash-face--front { background-image: var(--print); background-repeat: no-repeat; background-size: calc(var(--w) * 2) calc(var(--ph) * 2); }
-.splash-door--l .splash-face--front { background-position: 0 0; }
-.splash-pane .splash-face--front { background-position: calc(var(--w) * -0.5) 0; }
-.splash-door--r .splash-face--front { background-position: calc(var(--w) * -1.5) 0; }
-.splash-row--bottom .splash-door--l .splash-face--front { background-position: 0 calc(var(--ph) * -1); }
-.splash-row--bottom .splash-pane .splash-face--front { background-position: calc(var(--w) * -0.5) calc(var(--ph) * -1); }
-.splash-row--bottom .splash-door--r .splash-face--front { background-position: calc(var(--w) * -1.5) calc(var(--ph) * -1); }
-.splash-face--back { background-image: var(--art); background-size: 100% 100%; }
-@media (max-aspect-ratio: 4/5) { .splash-face--back { background-image: var(--art-t); } }
-.splash-face::before { animation: splash-face-grain var(--splash-duration) linear both; background: var(--grain); background-size: 192px; content: ""; inset: 0; position: absolute; }
-.splash-pane .splash-face--front { transform: translateZ(-1px); }
-.splash-pane .splash-face--back { background-color: var(--paper-back); transform: rotateX(180deg) translateZ(1px); }
-.splash-door .splash-face--back { background-color: var(--paper-back); transform: rotateY(180deg); }
-.splash-face svg { display: block; height: 100%; left: 0; position: absolute; top: 0; width: 100%; }
+/* Fill, pre-rendered shapes and live lettering share the same clipped SVG. */
+.splash-face::before { animation: splash-face-grain var(--splash-duration) linear both; background: var(--grain); background-size: 192px; content: ""; inset: 0; position: absolute; z-index: 1; }
+.splash-pane .splash-face--back { transform: rotateX(180deg) translateZ(1px); }
+.splash-door .splash-face--back { transform: rotateY(180deg); }
+.splash-face svg { display: block; height: 100%; left: 0; overflow: hidden; position: absolute; top: 0; width: 100%; z-index: 0; }
 .splash-face .splash-print--tall { display: none; }
 @media (max-aspect-ratio: 4/5) { .splash-face .splash-print--wide { display: none; } .splash-face .splash-print--tall { display: block; } }
 
 /* Lighting: each face darkens as it turns from the light (top-left). */
-.splash-shade { background: #13241d; inset: 0; opacity: 0; position: absolute; }
+.splash-shade { background: #13241d; inset: 0; opacity: 0; position: absolute; z-index: 2; }
 .splash-row--top .splash-pane .splash-face--front .splash-shade { animation: splash-shade-c-top-front var(--splash-duration) linear both; }
 .splash-row--top .splash-pane .splash-face--back .splash-shade { animation: splash-shade-c-top-back var(--splash-duration) linear both; }
 .splash-row--bottom .splash-door--l .splash-face--front .splash-shade { animation: splash-shade-l-bot-front var(--splash-duration) linear both; }
@@ -131,7 +126,7 @@ html[data-splash-art="loading"] .splash:not(.splash--climb):not(.splash--list) *
 .splash-row--top .splash-door--r .splash-face--back .splash-shade { animation: splash-shade-r-top-back var(--splash-duration) linear both; }
 
 /* Creases: a valley along the half fold and at each door hinge; they relax as the paper flattens. */
-.splash-crease { inset: 0; opacity: 0; position: absolute; }
+.splash-crease { inset: 0; opacity: 0; position: absolute; z-index: 2; }
 .splash-row--bottom .splash-crease--row { animation: splash-crease-row var(--splash-duration) linear both; background: linear-gradient(to bottom, rgba(36, 30, 18, 0.5) 0 1px, rgba(255, 255, 255, 0.65) 1px 2px, rgba(36, 30, 18, 0.12) 3px, rgba(36, 30, 18, 0) 9%); }
 .splash-row--top .splash-crease--row { animation: splash-crease-row var(--splash-duration) linear both; background: linear-gradient(to top, rgba(36, 30, 18, 0.42) 0 1px, rgba(255, 255, 255, 0.65) 1px 2px, rgba(255, 255, 255, 0.35) 1.2%, rgba(255, 255, 255, 0) 6%); }
 .splash-crease--hinge { animation: splash-crease-hinge var(--splash-duration) linear both; }
@@ -140,20 +135,20 @@ html[data-splash-art="loading"] .splash:not(.splash--climb):not(.splash--list) *
 .splash-door--r .splash-crease--hinge { background: linear-gradient(to right, rgba(36, 30, 18, 0.16), rgba(36, 30, 18, 0) 12%); }
 
 /* Cast shadows inside the sheet. */
-.splash-cast { pointer-events: none; position: absolute; }
+.splash-cast { pointer-events: none; position: absolute; z-index: 2; }
 .splash-cast--top { /* lifting top half onto the lower half */
   animation: splash-cast-top var(--splash-duration) linear both;
   background: linear-gradient(to bottom, rgba(10, 24, 18, 0.9), rgba(10, 24, 18, 0));
-  height: 100%; left: calc(var(--w) * 0.5); opacity: 0; top: 0; transform-origin: 50% 0; translate: 0 0 0.5px; width: var(--w);
+  height: 100%; left: 0; opacity: 0; top: 0; transform-origin: 50% 0; width: var(--w);
 }
 .splash-cast--door { /* left door onto the centre pane */
   animation: splash-cast-door var(--splash-duration) linear both;
   background: linear-gradient(to right, rgba(10, 24, 18, 0.85), rgba(10, 24, 18, 0));
-  height: 100%; left: calc(var(--w) * 0.5); opacity: 0; top: 0; transform-origin: 0 50%; translate: 0 0 -0.5px; width: calc(var(--w) * 0.5);
+  height: 100%; left: 0; opacity: 0; top: 0; transform-origin: 0 50%; width: calc(var(--w) * 0.5);
 }
 
 /* One restrained ripple of light across the settling sheet. */
-.splash-sheen { height: 100%; left: 0; overflow: hidden; position: absolute; top: 0; translate: 0 0 2px; width: 100%; }
+.splash-sheen { height: calc(var(--ph) * 2); left: calc(var(--w) * -1 * var(--slice-x)); overflow: hidden; position: absolute; top: calc(var(--ph) * -1 * var(--slice-y)); width: calc(var(--w) * 2); z-index: 3; }
 .splash-sheen i {
   animation: splash-sheen var(--splash-duration) linear both;
   background: linear-gradient(90deg, rgba(20, 30, 24, 0), rgba(20, 30, 24, 0.07) 30%, rgba(255, 255, 255, 0.3) 62%, rgba(255, 255, 255, 0));

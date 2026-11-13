@@ -156,7 +156,7 @@ for (const width of [390, 1440]) {
     test(`${journeyStops[index].label} card keeps its dark-green appearance at ${width}px with either browser preference`, async ({ page }) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
-      await openClimb(page);
+      await openClimb(page, "dark");
       await expect(page.locator("#climb")).toBeVisible();
       await scrollToStop(page, index);
       const card = page.locator(`[data-card="${index}"]`);
@@ -192,7 +192,7 @@ for (const width of [390, 1440]) {
   test(`dark List View is accessible at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "dark" });
-    await openClimb(page);
+    await openClimb(page, "dark");
     await expect(page.locator("#climb")).toBeVisible();
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await expect(page.locator(".climb-list")).toHaveCSS("background-color", "rgb(26, 33, 29)");

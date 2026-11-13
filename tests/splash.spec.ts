@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import opening from "../components/splash/timing.json";
 import type { Page } from "@playwright/test";
 import { expectGreetingGlide } from "./helpers/hero-reveal";
+import { expectOpaqueMap, expectNoMapBleed, expectSolidPaperSeams } from "./helpers/map-paper";
 
 async function seekIntro(page: Page, time: number) {
   // Freeze in the readiness task. A busy renderer can complete the live intro
@@ -24,6 +25,61 @@ async function tabToLink(page: Page, browserName: string) {
   // Safari on macOS uses Option+Tab for links when full keyboard access is off.
   await page.keyboard.press(browserName === "webkit" && process.platform === "darwin" ? "Alt+Tab" : "Tab");
 }
+
+test("first visit opens Light before hydration even with a dark device preference", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.addInitScript(() => {
+    const frames: { theme: string | undefined; background: string; paper: string }[] = [];
+    Reflect.set(window, "firstLightFrames", frames);
+    const sample = () => {
+      const splash = document.querySelector("body > .splash");
+      if (document.body && splash) frames.push({ theme: document.documentElement.dataset.theme,
+        background: getComputedStyle(document.body).backgroundColor, paper: getComputedStyle(splash).getPropertyValue("--paper").trim() });
+      if (frames.length < 5) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+  await page.route("**/_next/static/**/*.js", (route) => route.abort());
+  await page.goto("./");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator(".site-header")).toHaveCSS("background-color", "rgb(243, 238, 221)");
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "firstLightFrames").length)).toBe(5);
+  expect(await page.evaluate(() => Reflect.get(window, "firstLightFrames"))).toEqual(
+    Array.from({ length: 5 }, () => ({ theme: "light", background: "rgb(243, 238, 221)", paper: "#f3eedd" })));
+});
+
+for (const theme of ["light", "dark"] as const) for (const width of [390, 1512]) {
+  test(`${theme} paper keeps its Light-navbar fill and clipped outline at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 827 });
+    await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
+    await page.goto("./");
+    for (const time of [opening.descent, opening.foldStart + 470, opening.foldStart + 1000, 3200, 3213, opening.unfold]) {
+      await seekIntro(page, time);
+      await expectNoMapBleed(page, page.locator("body > .splash .splash-map"));
+    }
+    await seekIntro(page, opening.unfold + 250);
+    // Model the recorded background-layer loss: print must retain its own paper.
+    await page.addStyleTag({ content: ".splash-face { background:none!important; }" });
+    await expectOpaqueMap(page, page.locator("body > .splash .splash-map"));
+    await expectSolidPaperSeams(page, page.locator("body > .splash .splash-map"));
+    expect(await page.locator("body > .splash").evaluate((el) => getComputedStyle(el).getPropertyValue("--paper").trim())).toBe("#f3eedd");
+  });
+}
+
+test.describe("Retina paper seams", () => {
+  test.use({ deviceScaleFactor: 2 });
+  for (const theme of ["light", "dark"] as const) for (const width of [390, 1512]) {
+    test(`${theme} paper stays continuous through the open hold and zoom at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 827 });
+      await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
+      await page.goto("./");
+      for (const time of [opening.unfold + 250, opening.zoom[0] + opening.zoom[1] - 1]) {
+        await seekIntro(page, time);
+        await expectSolidPaperSeams(page, page.locator("body > .splash .splash-map"));
+      }
+    });
+  }
+});
 
 test("repeat visits skip the intro even when the first visit reloads before it finishes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -166,8 +222,7 @@ test("blocked session storage cannot break the intro, skipping or deep links", a
 });
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
-  test(`folded cover stays opaque over the inside print at ${viewport.width}px`, async ({ page, browserName }) => {
-    test.skip(browserName === "webkit", "WebKit snapshots flatten 3D layers; projected geometry is covered separately.");
+  test(`folded cover stays opaque over the inside print at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto("./", { waitUntil: "domcontentloaded" });
@@ -502,6 +557,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await seekIntro(page, 0);
     expect((await cover.boundingBox())!.y + (await cover.boundingBox())!.height).toBeLessThan(0);
     const firstMap = await page.locator(".splash-map").elementHandle();
+    const firstPrint = await page.locator(".splash-face--front image").first().elementHandle();
     const positions: { x: number; y: number; width: number; height: number }[] = [];
     for (const time of [600, 1200, 1800]) {
       await seekIntro(page, time);
@@ -523,7 +579,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await seekIntro(page, opening.unfold);
     expect(await firstMap!.evaluate((el) => el === document.querySelector(".splash-map"))).toBe(true);
     expect(await page.locator(".splash-row--top").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m22)).toBeCloseTo(1, 4);
-    expect(await page.locator(".splash-face--front").first().evaluate((el) => getComputedStyle(el).backgroundImage)).toContain("print-");
+    expect(await firstPrint!.evaluate((el) => el === document.querySelector(".splash-face--front image"))).toBe(true);
+    await expect(page.locator(".splash-face--front image").first()).toHaveAttribute("href", /print-/);
   });
 
   test(`cold map artwork is decoded before descent at ${viewport.width}px`, async ({ page }) => {

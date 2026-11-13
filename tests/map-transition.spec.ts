@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import opening from "../components/splash/timing.json";
 import { expectGreetingGlide } from "./helpers/hero-reveal";
+import { expectNoMapBleed, expectOpaqueMap, expectSolidPaperSeams } from "./helpers/map-paper";
 import type { Page } from "@playwright/test";
 
 async function seekTransition(page: Page, time: number) {
@@ -44,6 +45,10 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.getByRole("button", { name: "List view", exact: true })).toBeFocused();
       await expect(page.locator(".site-header")).toHaveCSS("z-index", "60");
       await expect(page.locator(".splash--climb")).toHaveCSS("z-index", "59");
+      await seekTransition(page, 1100);
+      await expectNoMapBleed(page, page.locator(".splash--climb .splash-map"));
+      await expectOpaqueMap(page, page.locator(".splash--climb .splash-map"));
+      await expectSolidPaperSeams(page, page.locator(".splash--climb .splash-map"));
       await seekTransition(page, 1500);
       const scale = await page.locator(".climb-stage").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
       expect(scale).toBe(1);
@@ -175,6 +180,7 @@ for (const theme of ["light", "dark"] as const) {
       }
       const below = (await overlay.locator(".splash-map").boundingBox())!;
       await seekReturn(page, 450);
+      await expectNoMapBleed(page, overlay.locator(".splash-map"));
       const arriving = (await overlay.locator(".splash-map").boundingBox())!;
       expect(arriving.y).toBeLessThan(below.y);
       expect(arriving.y).toBeLessThan(900);
@@ -191,6 +197,9 @@ for (const theme of ["light", "dark"] as const) {
       await expect(overlay.locator(".splash-camera")).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
       await seekReturn(page, 1400);
       expect(await overlay.locator(".splash-map").boundingBox()).toEqual(overhead);
+      await expectNoMapBleed(page, overlay.locator(".splash-map"));
+      await expectOpaqueMap(page, overlay.locator(".splash-map"));
+      await expectSolidPaperSeams(page, overlay.locator(".splash-map"));
       await seekReturn(page, 1800);
       const zoom = await overlay.locator(".splash-camera").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
       expect(zoom).toBeGreaterThan(1);
@@ -201,6 +210,8 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "0");
       await seekReturn(page, 2430);
       await expect(overlay.locator(".splash-world")).toBeHidden();
+      for (const face of await overlay.locator(".splash-face").all()) await expect(face).toHaveCSS("visibility", "hidden");
+      await expect(overlay.locator(".splash-underlay")).toHaveCSS("visibility", "hidden");
       expect(Number(await page.locator("#trailhead-title").evaluate((el) => getComputedStyle(el).opacity))).toBeGreaterThan(0);
       await expect(page.locator("#trailhead .trailhead-lead")).toHaveCSS("opacity", "0");
       await expect(page.locator("#trailhead .trailhead-portrait")).toHaveCSS("opacity", "0");

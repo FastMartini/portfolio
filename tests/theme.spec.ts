@@ -13,7 +13,12 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-async function ready(page: Page, href = "./#list-view") {
+async function ready(page: Page, href = "./#list-view", initial: Theme | null = "dark") {
+  // Theme-transition checks name their starting palette; first-visit checks
+  // pass null to exercise the application's actual default.
+  if (initial) await page.addInitScript((theme) => {
+    try { if (localStorage.getItem("portfolio-theme") == null) localStorage.setItem("portfolio-theme", theme); } catch {}
+  }, initial);
   await page.goto(href);
   await expect(page.getByRole("button", { name: /Switch to (light|dark) theme/ })).toBeVisible();
 }
@@ -24,11 +29,11 @@ async function select(page: Page, theme: Theme) {
 }
 
 for (const colorScheme of ["light", "dark"] as const) {
-  test(`first visit is Dark under ${colorScheme} device preferences`, async ({ page }) => {
+  test(`first visit is Light under ${colorScheme} device preferences`, async ({ page }) => {
     await page.emulateMedia({ colorScheme });
-    await ready(page);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.dark);
+    await ready(page, "./#list-view", null);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.light);
     expect(await page.evaluate(() => localStorage.getItem("portfolio-theme"))).toBeNull();
   });
 }
@@ -61,11 +66,11 @@ for (const restricted of ["invalid", "denied"] as const) {
     }, restricted);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    await ready(page);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await select(page, "light");
+    await ready(page, "./#list-view", null);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await select(page, "dark");
     await page.reload();
-    await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.dark);
+    await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.light);
     expect(errors).toEqual([]);
   });
 }

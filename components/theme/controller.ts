@@ -29,7 +29,7 @@ export const uiEase = (p: number) => (p < 0.5 ? 4 * p ** 3 : 1 - (-2 * p + 2) **
 export function createThemeController(root: HTMLElement = document.documentElement) {
   let reducedQuery: MediaQueryList | undefined;
   try { reducedQuery = matchMedia("(prefers-reduced-motion: reduce)"); } catch { /* The full-text theme works without scene capabilities. */ }
-  const initial = root.dataset.theme === "light" ? 0 : 1; // set by the pre-paint script
+  const initial = root.dataset.theme === "dark" ? 1 : 0; // set by the pre-paint script; Light is the fallback
   const state = { target: initial, p: initial, v: 0, reduced: reducedQuery?.matches ?? true, raf: 0, last: 0, settled: true };
   const listeners = new Set<Listener>();
 

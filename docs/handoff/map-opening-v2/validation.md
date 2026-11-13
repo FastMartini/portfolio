@@ -370,3 +370,58 @@ and WebKit. The initial run passed 44; the affected image-alpha assertions and
 readiness/seek race were corrected, and a single-worker rerun with a larger local
 time budget passed all 14 selected checks, covering all eight prior failures.
 Production static-export builds, typecheck, lint and diff checks pass.
+
+## Paper clipping and Light-first visits
+
+The map now takes its paper color directly from the Light navigation-bar entry
+in `components/theme/tokens.json`: `#f3eedd`, including when the selected theme
+is Dark. The two cover sprites contain transparent print rather than a second
+baked paper color. The other ten print sprites, artwork, camera paths and
+opening/view-transition timing remain unchanged.
+
+Each panel paints paper, shape-only print and live lettering inside one clipped
+SVG viewport. Grain, crease shading, cast shadows and sheen remain clipped to
+their receiving face. Generated facing tracks use the same fold clock to hide
+away-facing surfaces, including inside gatefolds concealed by the closed cover.
+The physical top fold also paints after the bottom row. This removes the
+folded-cover print bleed in WebKit; the previous software-rendering skip is gone.
+
+All front panels finish on one plane. After the last fold reaches its authored
+zero-angle endpoint, a continuous paper backing seals fractional-pixel seams.
+It stays hidden throughout unfolding. The outline regression constructs its
+reference from visible faces alone, excluding the backing, and samples both
+sides of the backing's activation boundary to detect any premature rectangle.
+
+### Reproduction and verification
+
+- The folded-cover comparison reproduced real print showing through paper in
+  WebKit. Both desktop/mobile comparisons now pass in Chromium and WebKit with
+  no skipped engine and without relaxing the existing comparison tolerances.
+- A Retina-density pixel probe at 1512 × 827 reproduced 1,098 green pixels in
+  Chromium and 1,079 in WebKit between fully open panels. The same probe now
+  reports **zero in both engines**. Hiding decorative layers or merely removing
+  the center panel's depth offset did not fix the gaps; the settled backing did.
+- A separate fault-injection check removes CSS face backgrounds to model the
+  reported missing-fill symptom. Previously all eight theme/viewport/engine
+  combinations exposed the green floor; the SVG-owned material stays opaque.
+  This injected failure is not a claim that the original large native-Chrome
+  holes were reproduced naturally.
+- Pixel checks cover unfolding, the open hold, zoom, and both view transitions;
+  Retina cases cover both themes and mobile/desktop sizes. Existing checks
+  retain heading continuity, covered view switching, reduced motion, interrupted
+  transitions, delayed fonts/textures and cold loads.
+- Refreshed `opening-*.png`, `return-*.png` and `map-fill-*.webm` show the current
+  app only. The videos use installed Chrome with Metal rendering, a cold initial
+  page, both view switches, and no page errors. No private browser UI or supplied
+  recording is included.
+
+The HTML declares Light before any script executes. The synchronous head script,
+provider and controller share that default; only a valid saved manual choice
+overrides it. The first five painted frames are checked with client scripts
+blocked and a Dark device preference. No-JavaScript, invalid/denied storage,
+manual choices, refresh and cross-tab synchronization remain covered. Saved
+Dark preferences intentionally continue to restore before paint.
+
+The six default List View visual references now depict Light. Tests that
+specifically exercise Dark select it explicitly, and Waypoint Panel/embedded
+Case Study accessibility is checked in both themes.
