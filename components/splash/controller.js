@@ -399,7 +399,9 @@ function transitionToClimb(el, switchView, options = {}) {
   add(doc.querySelector('.climb-card[data-card="0"]'), [{ opacity: 0, translate: "0 14px" }, { opacity: 1, translate: "0 0" }], { delay: 2000, duration: 480, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
   add(doc.querySelector(".climb-portrait"), [{ opacity: 0, translate: "0 14px" }, { opacity: 1, translate: "0 0" }], { delay: 2080, duration: 480, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
   add(world, [{ opacity: 1 }, { opacity: 1 }], { delay: C, duration: t0 + td - C, fill: "none" });
-  add(world, [{ visibility: "hidden" }, { visibility: "hidden" }], { delay: t0 + td, duration: CLIMB.end, fill: "none" });
+  // Opacity closes the whole composited subtree. An animated child's resolved
+  // visibility:inherit can otherwise remain visible after the parent hides.
+  add(world, [{ opacity: 0, visibility: "hidden" }, { opacity: 0, visibility: "hidden" }], { delay: t0 + td, duration: CLIMB.end, fill: "none" });
 
   // The climb stage's own markers are placed after switchView(); measure them then.
   at(C + 20, () => {
@@ -475,7 +477,7 @@ function transitionToList(el, switchView, options = {}) {
   el.querySelectorAll(".splash-face").forEach((face) => add(face, [{ opacity: 1 }, { opacity: 0 }], { delay: LIST.zoom[0], duration: 600, pseudoElement: "::before", fill: "both" }));
   el.querySelectorAll(".splash-crease").forEach((crease) => add(crease, [{ opacity: 0.22 }, { opacity: 0 }], { delay: LIST.zoom[0], duration: 600, fill: "both" }));
   add(el.querySelector(".splash-world"), [{ visibility: "visible" }, { visibility: "visible" }], { duration: LIST.hero[0], fill: "backwards" });
-  add(el.querySelector(".splash-world"), [{ visibility: "hidden" }, { visibility: "hidden" }], { delay: LIST.hero[0], duration: LIST.end, fill: "none" });
+  add(el.querySelector(".splash-world"), [{ opacity: 0, visibility: "hidden" }, { opacity: 0, visibility: "hidden" }], { delay: LIST.hero[0], duration: LIST.end, fill: "none" });
   at(LIST.end - 1, () => life.finish(false));
   life.arm(LIST.end + 1500);
   return el[CONTROLLER] = {

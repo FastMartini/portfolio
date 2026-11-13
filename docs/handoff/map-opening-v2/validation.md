@@ -430,3 +430,30 @@ The targeted [Ubuntu 24.04 baseline run](https://github.com/FastMartini/portfoli
 passes all six default List View captures. Only those six Linux references are
 imported from its artifact; the workflow adjustment lives on a temporary
 verification branch and does not change the PR's workflow.
+
+### Cross-engine handoff follow-up
+
+The first broad Ubuntu run completed with 405 passed, two flaky natural-completion
+checks and eight failures. Four failures exposed a Firefox handoff bug: an
+animated face's resolved `visibility: inherit` could remain visible after the
+world hid, leaving cream paper over the hero. Both view-transition exits now
+also set the world's opacity to zero on the existing clock. This closes the
+whole composited subtree regardless of a child's visibility. There is no new
+transition, timing change or heading restart.
+
+The regression now compares the actual hero pixels with the world present and
+with it removed. It forces front faces visible to model the observed stale
+visibility, so restoring only the old visibility exit recreates the failure.
+This tests what paints rather than relying on the face's computed visibility.
+
+The other four failures exhausted the 30-second test budget during desktop
+WebKit visual checks. Trace captures took up to three seconds each; the fold
+outline check takes twenty screenshots. Those two intensive test families now
+have a scoped 60-second budget. The opacity helper also reads its canvas bitmap
+once, retaining the exact same panel samples and assertions while avoiding
+thousands of single-pixel GPU readbacks. Pixel thresholds and outline coverage
+are unchanged.
+
+The final local Retina rerun passed all eight Chromium/WebKit combinations
+(two themes × desktop/mobile). Local Firefox fails before navigating because
+its browser profile cannot launch; its product checks run on Ubuntu instead.

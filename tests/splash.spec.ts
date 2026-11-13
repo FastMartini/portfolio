@@ -50,6 +50,7 @@ test("first visit opens Light before hydration even with a dark device preferenc
 
 for (const theme of ["light", "dark"] as const) for (const width of [390, 1512]) {
   test(`${theme} paper keeps its Light-navbar fill and clipped outline at ${width}px`, async ({ page }) => {
+    test.setTimeout(60_000); // Twenty bitmap captures across the six fold phases.
     await page.setViewportSize({ width, height: 827 });
     await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
     await page.goto("./");

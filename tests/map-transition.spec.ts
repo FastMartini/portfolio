@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import opening from "../components/splash/timing.json";
 import { expectGreetingGlide } from "./helpers/hero-reveal";
-import { expectNoMapBleed, expectOpaqueMap, expectSolidPaperSeams } from "./helpers/map-paper";
+import { expectNoMapBleed, expectOpaqueMap, expectSolidPaperSeams, expectMapWorldGone } from "./helpers/map-paper";
 import type { Page } from "@playwright/test";
 
 async function seekTransition(page: Page, time: number) {
@@ -166,6 +166,7 @@ async function seekReturn(page: Page, time: number) {
 for (const theme of ["light", "dark"] as const) {
   for (const width of [390, 1440]) {
     test(`${theme} Climb-to-List at ${width}px looks down at an open map, holds, then reveals the hero`, async ({ page }) => {
+      test.setTimeout(60_000); // Includes outline masks, paper pixels and the hero glide.
       await page.setViewportSize({ width, height: 900 });
       await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
       await page.goto("./");
@@ -210,8 +211,7 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "0");
       await seekReturn(page, 2430);
       await expect(overlay.locator(".splash-world")).toBeHidden();
-      for (const face of await overlay.locator(".splash-face").all()) await expect(face).toHaveCSS("visibility", "hidden");
-      await expect(overlay.locator(".splash-underlay")).toHaveCSS("visibility", "hidden");
+      await expectMapWorldGone(page, overlay.locator(".splash-world"));
       expect(Number(await page.locator("#trailhead-title").evaluate((el) => getComputedStyle(el).opacity))).toBeGreaterThan(0);
       await expect(page.locator("#trailhead .trailhead-lead")).toHaveCSS("opacity", "0");
       await expect(page.locator("#trailhead .trailhead-portrait")).toHaveCSS("opacity", "0");
