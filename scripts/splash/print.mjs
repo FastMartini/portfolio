@@ -159,7 +159,7 @@ function cover(variant) {
   const band = variant === "tall" ? 150 : 104;
   const cy = variant === "tall" ? 350 : 196, k = variant === "tall" ? 1.3 : 0.78;
   return `<g id="cover-${variant}">
-<rect width="${W}" height="${band}" fill="#f6efda"/>
+<rect width="${W}" height="${band}" fill="#f3eedd"/>
 <path d="M250 8V${H - 8}M8 ${H / 2}H492" class="cv-fold"/>
 <path d="M251.5 8V${H - 8}M8 ${H / 2 + 1.5}H492" class="cv-fold-light"/>
 <path d="M28 ${band - 26}h40" stroke="${COPPER}" stroke-width="2"/>

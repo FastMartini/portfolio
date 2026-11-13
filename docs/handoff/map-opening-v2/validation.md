@@ -372,17 +372,20 @@ time budget passed all 14 selected checks, covering all eight prior failures.
 Production static-export builds, typecheck, lint and diff checks pass.
 
 
-## Meadow ground for map transitions
+## Map paper and surrounding background
 
-The map's ground uses the Climb meadow color from `mountain/scenery.ts`:
-`#6f7c55` in Light mode. Dark mode uses `#343e39`, the same meadow under the
-bottom of `night.ts`'s 60% `#0c1526` moonlight veil. The fixed pine-green
-vignette and floor grain are removed so the ground matches the scenery's flat
-paint. This shared splash surface covers the opening and both view transitions;
-the paper artwork, creases, shadows, timing and hero reveal are unchanged.
+The map paper uses `#f3eedd`, the Light-mode navbar background color. Both front
+and reverse paper surfaces share this base, and the cover's printed header band
+uses the same cream. Only the two cover sprites are regenerated; the other ten
+print sprites, lettering, contours, route, symbols and fold geometry are unchanged.
+Fold lighting and paper grain remain on top of the base color.
 
-Validation: all 18 selected Chromium/WebKit checks pass for both directions at
-390 px and 1440 px in Light/Dark, plus reduced-motion returns. Production
-static-export builds, typecheck, lint and diff checks pass. Updated opening,
-look-up and look-down contact sheets show the meadow ground; `return-dark.png`
-records the moonlit match. No new animation or rendering dependency is added.
+The surrounding ground retains the original dark pine radial vignette and fine
+grain in both themes. The meadow-color background has been reverted. The same
+paper and ground appear in the initial opening and both view transitions.
+
+Paper/background validation: 30 selected Chromium/WebKit opening and two-way
+transition checks pass; two known WebKit 3D face-paint captures are skipped.
+The browser reports `rgb(243, 238, 221)` for the Light navbar and both paper
+faces. The original two radial gradients and floor-grain overlay are restored.
+Production builds, typecheck, lint and diff checks pass.
