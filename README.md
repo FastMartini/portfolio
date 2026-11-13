@@ -27,6 +27,10 @@ stacked portrait below the copy. A transparent face-and-body cutout sits
 directly on the page background; Climb retains the original photograph. One paper effect
 covers the map until it matches the selected homepage background. The map
 artwork and parchment cover retain their existing design, without hands.
+Face visibility follows the crease geometry and perspective eye explicitly;
+after the folds settle, the same artwork paints as a flat sheet for the hold
+and zoom. Both mode transitions start with this flat, fully open map, avoiding
+front/reverse-face sorting artifacts without replacing its artwork.
 
 The 2.6-second List-to-Climb transition switches views under paper at 380 ms;
 the mountain translates into place without scaling. Returning to List View
