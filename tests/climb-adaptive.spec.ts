@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { waypoints } from "../content/waypoints";
-import { scrollToClimbStop } from "./helpers/climb";
+import { enterClimb, scrollToClimbStop } from "./helpers/climb";
 
 // Simulate frames at the browser boundary, not inside the quality controller.
 // A logical frame is independent of native paint cadence: Linux WebKit's
@@ -27,6 +27,7 @@ function installFrameClock() {
 
 test("the frame fixture does not slow navigation when native painting is sparse", async ({ page }) => {
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
   await page.evaluate(() => {
     const deliveredFrame = requestAnimationFrame.bind(window);
@@ -40,6 +41,7 @@ test("a failed reading-panel enhancement preserves its Waypoint in List View", a
     HTMLDialogElement.prototype.show = () => { throw new Error("Simulated dialog failure"); };
   });
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
@@ -83,6 +85,7 @@ test("a failed live animation pause and cleanup preserve the Case Study", async 
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
   await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
@@ -101,6 +104,7 @@ test("a failed live animation pause and cleanup preserve the Case Study", async 
 for (const caseStudy of [false, true]) {
   test(`a failed ${caseStudy ? "Case Study" : "Waypoint"} dismissal restores its reading destination`, async ({ page }) => {
     await page.goto("./");
+    await enterClimb(page);
     await scrollToClimbStop(page, 3);
     await page.locator('[data-marker="3"]').click();
     await expect(page.getByRole("dialog").locator("#panel-title")).toHaveText("Veritas");
@@ -125,6 +129,7 @@ test("a failed marker focus restoration preserves the current Waypoint in List V
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await scrollToClimbStop(page, 3);
   const marker = page.locator('[data-marker="3"]');
   await marker.click();
@@ -144,6 +149,7 @@ test("throwing observer cleanup cannot replace the List View reading destination
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
   await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
@@ -162,6 +168,7 @@ test("throwing preference listener cleanup preserves the Case Study reading dest
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
   await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
@@ -180,6 +187,7 @@ test("a throwing live motion preference callback preserves the Case Study withou
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
   await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
@@ -201,6 +209,7 @@ test("a failing live progress measurement recovers the current Case Study", asyn
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
   await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
@@ -219,6 +228,7 @@ test("a failed Landmark accessibility update preserves the selected Waypoint", a
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await scrollToClimbStop(page, 3);
   await page.locator('.lm[data-stop="3"]').evaluate((landmark) => {
     const setAttribute = landmark.setAttribute.bind(landmark);
@@ -238,6 +248,7 @@ test("a required browser API failure during Trail Rail navigation restores List 
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await scrollToClimbStop(page, 3);
   await page.evaluate(() => {
     window.matchMedia = () => { throw new Error("Simulated live motion detection failure"); };
@@ -299,6 +310,7 @@ for (const unavailable of ["missing", "throwing"] as const) {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("./");
+    await enterClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     await scrollToClimbStop(page, 3);
     await page.locator('[data-marker="3"]').click();
@@ -310,6 +322,7 @@ for (const unavailable of ["missing", "throwing"] as const) {
 test("snow uses a bounded bitmap on a large viewport", async ({ page }) => {
   await page.setViewportSize({ width: 2000, height: 1200 });
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 6);
   await expect(page.locator(".climb-snow")).toHaveAttribute("data-flakes", "320");
@@ -325,6 +338,7 @@ test("a snow drawing failure stops only decoration", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 6);
   await expect(page.locator(".climb-snow")).toHaveAttribute("data-flakes", "320");
@@ -344,6 +358,7 @@ for (const [hint, value] of [["deviceMemory", 1], ["hardwareConcurrency", 2]] as
       Object.defineProperty(navigator, hint, { value, configurable: true });
     }, [hint, value]);
     await page.goto("./");
+    await enterClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     await expect.poll(() => page.locator("svg.mtn").evaluate((svg) => (svg as SVGSVGElement).animationsPaused())).toBe(true);
     await expect(page.locator(".climb-snow")).toBeHidden();
@@ -355,6 +370,7 @@ for (const [hint, value] of [["deviceMemory", 1], ["hardwareConcurrency", 2]] as
 
 test("losing a running snow context stops decoration without losing the open panel", async ({ page }) => {
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 6);
   const snow = page.locator(".climb-snow");
@@ -369,15 +385,28 @@ test("losing a running snow context stops decoration without losing the open pan
 test("sustained slow frames first quiet decoration, then preserve the Case Study in List View", async ({ page }) => {
   test.setTimeout(60000); // Drives 240 logical frames through the browser boundary.
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
   await page.getByRole("dialog").getByRole("link", { name: "Read case study" }).click();
-  await page.evaluate(() => Reflect.set(window, "frameGap", 70));
+  await page.evaluate(() => {
+    // Hold a healthy frame budget after the first downgrade so its reading
+    // state can be inspected independently of test-runner paint speed.
+    const root = document.querySelector(".climb-enhancement")!;
+    const observer = new MutationObserver(() => {
+      if (root.getAttribute("data-quality") !== "light") return;
+      Reflect.set(window, "frameGap", 16);
+      observer.disconnect();
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["data-quality"] });
+    Reflect.set(window, "frameGap", 70);
+  });
   await expect(page.locator(".climb-snow")).toBeHidden({ timeout: 20000 });
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.locator(".climb-panel-body")).toBeFocused();
   await expect(page.locator("#climb")).toHaveAttribute("data-stop", "3");
+  await page.evaluate(() => Reflect.set(window, "frameGap", 70));
   await expect(page.locator("#case-veritas")).toBeFocused({ timeout: 20000 });
   await expect(page).toHaveURL(/#case-veritas$/);
   await expect(page.locator("#climb")).toBeHidden();
@@ -387,6 +416,7 @@ test("sustained slow frames first quiet decoration, then preserve the Case Study
 test("isolated slow frames and suspension gaps do not downgrade a healthy Climb", async ({ page }) => {
   test.setTimeout(60000);
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
@@ -420,6 +450,7 @@ test("a runtime SVG failure preserves the open Case Study and focus", async ({ p
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
@@ -441,6 +472,7 @@ test("a live save-data downgrade preserves the reading panel and focus", async (
     Object.defineProperty(navigator, "connection", { value: new EventTarget(), configurable: true });
   });
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();
@@ -471,8 +503,11 @@ test("failed SVG initialization restores complete List View instead of a broken 
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  await page.getByRole("button", { name: "Climb view", exact: true }).click();
+  await page.keyboard.press("Escape");
   await expect(page).toHaveURL(/#trailhead$/);
   await expect(page.locator("#trailhead")).toBeFocused();
+  await expect(page.locator("#trailhead")).toBeVisible();
   await expect(page.locator("#list-view")).toBeVisible();
   await expect(page.locator("#climb")).toBeHidden();
   await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeHidden();
@@ -519,6 +554,7 @@ test("throwing required observers restore List View without an error page", asyn
 test("a narrow device gets quiet scenery without losing Waypoint navigation", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await expect.poll(() => page.locator("svg.mtn").evaluate((svg) => (svg as SVGSVGElement).animationsPaused())).toBe(true);
   await expect(page.locator(".climb-snow")).toBeHidden();
@@ -553,6 +589,7 @@ for (const failure of ["null", "throwing"] as const) {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("./");
+    await enterClimb(page);
     await expect(page.locator("#climb")).toBeVisible();
     await scrollToClimbStop(page, 3);
     await page.locator('[data-marker="3"]').focus();
@@ -576,11 +613,12 @@ test("reduced-motion List View keeps canonical content and accessible reading su
   }
   for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme });
-    await expect(page.locator(".climb-list")).toHaveCSS("color", "rgb(236, 230, 210)");
-    await expect(page.locator(".site-header")).toHaveCSS("color", "rgb(236, 230, 210)");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(page.locator(".climb-list")).toHaveCSS("color", "rgb(31, 38, 33)");
+    await expect(page.locator(".site-header")).toHaveCSS("color", "rgb(31, 38, 33)");
     // Browser appearance changes must leave inherited reading colors intact.
     for (const text of await page.locator(".site-header a, .site-header span").all()) {
-      await expect(text).toHaveCSS("color", "rgb(236, 230, 210)");
+      await expect(text).toHaveCSS("color", "rgb(31, 38, 33)");
     }
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
   }
@@ -588,6 +626,7 @@ test("reduced-motion List View keeps canonical content and accessible reading su
 
 test("a live reduced-motion change preserves the open Case Study in List View", async ({ page }) => {
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
   await scrollToClimbStop(page, 3);
   await page.locator('[data-marker="3"]').click();

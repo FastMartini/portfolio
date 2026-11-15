@@ -33,7 +33,7 @@ test("List View introduces Diego with his photo instead of Field note 01, withou
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto("./");
-  const trailhead = page.getByRole("region", { name: "Howdy, I'm Diego 👋" });
+  const trailhead = page.getByRole("region", { name: "Howdy, I'm Diego:" });
   const portrait = trailhead.getByRole("img", { name: "Diego Martinez" });
   await expect(portrait).toBeVisible();
   await expect.poll(() => portrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
