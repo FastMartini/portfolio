@@ -218,14 +218,23 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       if (preference.matches) { viewTransition.current?.skip(); revealList(); }
     });
     function hashChange() {
-      if (!listTarget()) return;
+      const target = listTarget();
+      if (!target) return;
+      // Cancel before revealing the reading destination: skip() would finish
+      // the old transition and could hide List View or overwrite this hash.
+      viewTransition.current?.dispose();
+      viewTransition.current = null;
       if (activeClimb.current) {
         lastClimbScroll.current = window.scrollY;
-        focusList.current = true;
       }
-      setListMode(true);
-      setSelection(null);
+      focusList.current = false;
       pendingFocus.current = null;
+      flushSync(() => { setListMode(true); setSelection(null); });
+      // A cancelled entry can leave List View already visible, so its view
+      // effect need not rerun. Restore the fragment's scroll and focus here.
+      target.scrollIntoView({ behavior: "instant" });
+      if (!target.matches("a, button, [tabindex]")) target.tabIndex = -1;
+      target.focus({ preventScroll: true });
     }
     const cleanup = sceneCleanup(failScene,
       () => cancelAnimationFrame(raf),

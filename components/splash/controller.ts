@@ -1,7 +1,7 @@
 import { mapAssetStyles, mapOverlayMarkup } from "./map/markup";
 import { trailheadIntro } from "../../content/trailhead";
 
-type Options = { rate?: number; failsafe?: boolean; remember?: boolean; allowSeen?: boolean; seekCss?: boolean; onDone?: (skipped: boolean) => void };
+type Options = { rate?: number; failsafe?: boolean; remember?: boolean; allowSeen?: boolean; seekCss?: boolean; preserveFragment?: boolean; onDone?: (skipped: boolean) => void };
 const part = (root: ParentNode, selector: string) => {
   const element = root.querySelector<HTMLElement>(selector);
   if (!element) throw new Error(`Missing map overlay part: ${selector}`);
@@ -156,7 +156,7 @@ function lifecycle(el: HTMLElement, options: Options, onEnd: (skipped: boolean) 
       clearTimeout(failsafe); clearTimeout(inputTask);
       EVENTS.forEach((type) => window.removeEventListener(type, skip, true));
       window.removeEventListener("resize", skip);
-      window.removeEventListener("hashchange", skip);
+      window.removeEventListener("hashchange", navigate);
       window.removeEventListener("pagehide", skip);
       try { motion?.removeEventListener("change", onMotion); } catch { /* Optional preference observation. */ }
       cleanups.forEach((fn) => fn());
@@ -173,7 +173,7 @@ function lifecycle(el: HTMLElement, options: Options, onEnd: (skipped: boolean) 
         if (active) EVENTS.forEach((type) => window.addEventListener(type, skip, { capture: true, passive: true }));
       }, 0);
       window.addEventListener("resize", skip, { passive: true });
-      window.addEventListener("hashchange", skip);
+      window.addEventListener("hashchange", navigate);
       window.addEventListener("pagehide", skip);
       try { motion?.addEventListener("change", onMotion); } catch { /* CSS still responds to the preference. */ }
     },
@@ -198,6 +198,9 @@ function lifecycle(el: HTMLElement, options: Options, onEnd: (skipped: boolean) 
     },
   };
   const skip = () => api.finish(true);
+  // Browser navigation owns its reading destination. Cancelling a view
+  // transition must not run the ordinary dismissal's view-switch callback.
+  const navigate = () => api.finish(true, !options.preserveFragment);
   const onMotion = (event: MediaQueryListEvent) => {
     document.documentElement.dataset.motion = event.matches ? "reduce" : "full";
     skip();
@@ -317,7 +320,7 @@ function toListTransition(el: HTMLElement, switchView: () => void, options: Opti
   const doc = el.ownerDocument;
   let switched = false, landing: SplashController | null = null, frame = 0;
   const doSwitch = () => { if (!switched) { switched = true; switchView(); } };
-  const life = lifecycle(el, options, doSwitch);
+  const life = lifecycle(el, { ...options, preserveFragment: true }, doSwitch);
   life.t0 = Number(doc.timeline.currentTime);
   const screenTracks: Animation[] = [];
   let clock: Animation | undefined;
@@ -408,7 +411,8 @@ export function toClimbTransition(el: HTMLElement, switchView: () => void, optio
   if (reduced) {
     // Opacity only: the Climb fades in over the page background.
     doSwitch();
-    const life = lifecycle(el, options, () => el.remove());
+    const life = lifecycle(el, { ...options, preserveFragment: true }, () => {});
+    life.cleanup(() => el.remove());
     life.review(undefined, false);
     life.t0 = Number(doc.timeline.currentTime);
     life.add(doc.querySelector<HTMLElement>(".climb-enhancement"), [{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: "ease-out" })
@@ -427,7 +431,8 @@ export function toClimbTransition(el: HTMLElement, switchView: () => void, optio
     a.pause();
     a.currentTime = /^splash-world-off/.test(n) ? 0 : /^splash-(print-fade)/.test(n) ? 0 : 3550;
   }
-  const life = lifecycle(el, options, () => { doSwitch(); el.remove(); });
+  const life = lifecycle(el, { ...options, preserveFragment: true }, doSwitch);
+  life.cleanup(() => el.remove());
   life.review(undefined, false);
   const { add } = life;
   life.t0 = Number(doc.timeline.currentTime);

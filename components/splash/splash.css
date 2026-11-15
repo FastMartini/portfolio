@@ -35,6 +35,9 @@ html[data-splash] .splash.splash--skipped { animation: none; display: none; }
 /* Climb View transition reuses this overlay under the header; JS drives it. */
 html .splash.splash--climb { animation: none; display: block; z-index: 59; }
 html .splash.splash--list { display: block; z-index: 59; }
+/* On the look-down return the open sheet is beneath the camera. The opening's
+   two flat table shadows would float behind its tilted paper as dark halos. */
+.splash--list .splash-shadow { display: none; }
 
 /* ---------- World: table, camera, rig ---------- */
 .splash-world { animation: splash-world-off 6400ms linear both; inset: 0; position: absolute; }

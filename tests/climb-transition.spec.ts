@@ -119,3 +119,26 @@ test("relaxing reduced motion before opting into Climb restores the full map cho
   await page.keyboard.press("Escape");
   await expect(page.locator(".splash--climb")).toHaveCount(0);
 });
+
+for (const width of [1440, 390]) {
+  for (const time of [100, 1400]) {
+    test(`browser Back preserves the reading destination during Climb entry at ${time}ms and ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto("./#work");
+      await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeVisible();
+      await page.evaluate(() => { location.hash = "about"; });
+      await expect(page).toHaveURL(/#about$/);
+      await holdNextTransition(page);
+      await page.getByRole("button", { name: "Climb view", exact: true }).click();
+      await seekIntro(page, time, ".splash--climb");
+      await page.goBack();
+      await expect(page).toHaveURL(/#work$/);
+      await expect(page.locator(".splash--climb")).toHaveCount(0);
+      await expect(page.locator(".climb-list")).toBeVisible();
+      await expect(page.locator("#climb")).toBeHidden();
+      await expect(page.locator("#work")).toBeFocused();
+      await expect(page.locator("#work")).toBeInViewport();
+      await expect(page.locator(".climb-stage")).toHaveCSS("translate", "none");
+    });
+  }
+}

@@ -24,6 +24,16 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       }));
       expect(await open()).toEqual(Array(6).fill([1, 1, 1]));
       await page.screenshot({ path: info.outputPath("01-looking-down.png") });
+      await seekIntro(page, 650, ".splash--list");
+      const edge = (await overlay.locator(".splash-map").boundingBox())!;
+      const halo = { x: Math.floor(edge.x + edge.width / 4), y: Math.floor(edge.y - 20), width: Math.floor(edge.width / 2), height: 12 };
+      const withEffects = await page.screenshot();
+      // Compare actual rendered pixels with the table-shadow layers disabled:
+      // this return must already paint the same frame without their halo.
+      const noShadows = await page.addStyleTag({ content: ".splash--list .splash-shadow { display: none !important; }" });
+      const withoutEffects = await page.screenshot();
+      await noShadows.evaluate(el => el.parentNode?.removeChild(el));
+      expect((await imageDifference(page, withEffects, withoutEffects, halo)).max).toBeLessThanOrEqual(1);
       await seekIntro(page, LIST.tilt, ".splash--list");
       await expect(page.locator(".climb-list")).toBeVisible();
       const map = overlay.locator(".splash-map"), camera = overlay.locator(".splash-camera");
@@ -114,3 +124,25 @@ test("List return restores the page on resize during zoom", async ({ page }) => 
   await expect(page.locator(".splash--list")).toHaveCount(0);
   await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
 });
+
+for (const width of [1440, 390]) {
+  for (const time of [400, 2100]) {
+    test(`fragment navigation preserves the Case Study during List return at ${time}ms and ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 844 });
+      await openClimb(page);
+      await holdNextTransition(page, ".splash--list");
+      await page.getByRole("button", { name: "List view", exact: true }).click();
+      await seekIntro(page, time, ".splash--list");
+      await page.evaluate(() => { location.hash = "case-veritas"; });
+      await expect(page).toHaveURL(/#case-veritas$/);
+      await expect(page.locator(".splash--list")).toHaveCount(0);
+      await expect(page.locator(".climb-list")).toBeVisible();
+      await expect(page.locator("#case-veritas")).toBeVisible();
+      await expect(page.locator("#case-veritas")).toBeFocused();
+      await expect(page.locator("#case-veritas")).toBeInViewport();
+      await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
+      await expect(page.getByRole("banner")).toHaveCSS("opacity", "1");
+      await expect(page.locator(".climb-stage")).toHaveCSS("translate", "none");
+    });
+  }
+}
