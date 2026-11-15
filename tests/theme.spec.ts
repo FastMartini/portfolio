@@ -24,11 +24,11 @@ async function select(page: Page, theme: Theme) {
 }
 
 for (const colorScheme of ["light", "dark"] as const) {
-  test(`first visit is Dark under ${colorScheme} device preferences`, async ({ page }) => {
+  test(`first visit is Light under ${colorScheme} device preferences`, async ({ page }) => {
     await page.emulateMedia({ colorScheme });
     await ready(page);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.dark);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.light);
     expect(await page.evaluate(() => localStorage.getItem("portfolio-theme"))).toBeNull();
   });
 }
@@ -62,16 +62,17 @@ for (const restricted of ["invalid", "denied"] as const) {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await ready(page);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await select(page, "light");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await select(page, "dark");
     await page.reload();
-    await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.dark);
+    await expect(page.getByRole("banner")).toHaveCSS("background-color", ground.light);
     expect(errors).toEqual([]);
   });
 }
 
 test("refresh during an unfinished change restores its destination without replay", async ({ page }) => {
   await ready(page);
+  await select(page, "dark");
   await page.getByRole("button", { name: "Switch to light theme" }).click();
   expect(await page.evaluate(() => localStorage.getItem("portfolio-theme"))).toBe("light");
   await page.reload();
@@ -95,6 +96,7 @@ for (const feature of ["MutationObserver", "requestAnimationFrame"] as const) {
 
 test("rapid reversals keep rendered surfaces and text continuous and honor the last choice", async ({ page }) => {
   await ready(page);
+  await select(page, "dark");
   // Exercise real browser colors on a reproducible 60 Hz clock. Sparse native
   // software painting is checked separately by the moving-frame paint tests.
   await page.clock.install();
@@ -124,6 +126,7 @@ test("rapid reversals keep rendered surfaces and text continuous and honor the l
 
 test("view switches inherit the in-flight palette without leaking palette tokens into vectors", async ({ page }) => {
   await ready(page);
+  await select(page, "dark");
   await page.getByRole("button", { name: "Switch to light theme" }).click();
   await page.waitForTimeout(350);
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
@@ -145,6 +148,7 @@ test("view switches inherit the in-flight palette without leaking palette tokens
 test("stationary snow-stage toggles finish, cloud hides celestial light, and four Light cards are cream", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await ready(page);
+  await select(page, "dark");
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
   await scrollToClimbStop(page, 6);
   await expect(page.locator(".climb-moon")).toHaveCSS("opacity", "0");
@@ -164,6 +168,7 @@ test("stationary snow-stage toggles finish, cloud hides celestial light, and fou
 test("reduced motion fades briefly without twilight and live preference changes settle immediately", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await ready(page);
+  await select(page, "dark");
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
   await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
   // Verify the designed duration against rendered styles on a controlled
@@ -186,6 +191,7 @@ test("reduced motion fades briefly without twilight and live preference changes 
 
 test("same-origin tabs synchronize without a storage write-back loop", async ({ page, context }) => {
   await ready(page);
+  await select(page, "dark");
   const second = await context.newPage();
   await second.goto("./#list-view");
   await expect(second.getByRole("button", { name: "Switch to light theme" })).toBeVisible();
@@ -207,6 +213,7 @@ test("same-origin tabs synchronize without a storage write-back loop", async ({ 
 
 test("hidden-document visibility events settle the destination instead of replaying", async ({ page }) => {
   await ready(page);
+  await select(page, "dark");
   await page.getByRole("button", { name: "Switch to light theme" }).click();
   await page.waitForTimeout(200);
   await page.evaluate(() => {
@@ -221,6 +228,7 @@ test("hidden-document visibility events settle the destination instead of replay
 test("theme changes preserve an open Waypoint's reading position and closing focus", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await ready(page);
+  await select(page, "dark");
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
   await scrollToClimbStop(page, 3);
   const marker = page.locator('[data-marker="3"]');

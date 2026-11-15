@@ -90,7 +90,7 @@ test("the navigation view toggle is keyboard reachable and switches both ways", 
   const navigation = page.getByRole("navigation", { name: "Primary navigation" });
   await navigation.getByRole("link", { name: "Contact", exact: true }).focus();
   await page.keyboard.press("Tab");
-  await expect(navigation.getByRole("button", { name: "Switch to light theme" })).toBeFocused();
+  await expect(navigation.getByRole("button", { name: "Switch to dark theme" })).toBeFocused();
   await page.keyboard.press("Tab");
   const toggle = navigation.getByRole("button", { name: "Climb view" });
   await expect(toggle).toBeFocused();
@@ -245,6 +245,8 @@ for (const [width, id, name] of [
   test(`stable Editorial Alpine snapshot: ${name}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
+    // Preserve the approved Dark reference images while fresh visits default to Light.
+    await page.addInitScript(() => localStorage.setItem("portfolio-theme", "dark"));
     await page.goto(`./#${id}`);
     await page.evaluate(() => document.fonts.ready);
     const target = page.locator(`#${id}`);

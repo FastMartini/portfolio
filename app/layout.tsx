@@ -10,6 +10,7 @@ import "./globals.css";
 import "./theme.css";
 import "../components/theme/theme.css";
 import "../components/splash/splash.css";
+import "../components/splash/motion.generated.css";
 
 const newsreader = Newsreader({
   subsets: ["latin"],
@@ -36,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="dark" className={`${newsreader.variable} ${manrope.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="light" className={`${newsreader.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
         <script id="theme-restore" dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script id="splash-gate" dangerouslySetInnerHTML={{ __html: SPLASH_GATE_SCRIPT }} />

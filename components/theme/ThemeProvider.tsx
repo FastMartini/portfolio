@@ -7,10 +7,10 @@ import { createThemeController } from "./controller";
 import type { Theme, ThemeController } from "./controller";
 import { applyUiTokens, clearUiTokens } from "./ui-tokens";
 
-const ThemeContext = createContext<{ theme: Theme; controller: ThemeController | null }>({ theme: "dark", controller: null });
+const ThemeContext = createContext<{ theme: Theme; controller: ThemeController | null }>({ theme: "light", controller: null });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<{ theme: Theme; controller: ThemeController | null }>({ theme: "dark", controller: null });
+  const [state, setState] = useState<{ theme: Theme; controller: ThemeController | null }>({ theme: "light", controller: null });
   const pathname = usePathname();
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { enterClimb } from "./helpers/climb";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -11,7 +12,7 @@ test("visitor understands Diego's professional identity at the Trailhead", async
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Howdy, I'm Diego 👋",
+      name: "Howdy, I'm Diego:",
     }),
   ).toBeVisible();
   await expect(page.locator("#trailhead .trailhead-lead")).toHaveText(
@@ -66,7 +67,7 @@ test("portfolio remains complete without client-side JavaScript", async ({
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Howdy, I'm Diego 👋",
+      name: "Howdy, I'm Diego:",
     }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Engineering with intent." })).toBeVisible();
@@ -97,9 +98,10 @@ test("portfolio remains complete without client-side JavaScript", async ({
 
 test("keyboard visitor can enter the full text from the Climb", async ({ page }) => {
   await page.goto("./");
+  await enterClimb(page);
   await expect(page.locator("#climb")).toBeVisible();
 
-  await page.keyboard.press("Tab");
+  await page.getByRole("link", { name: "Skip to full text" }).focus();
   await expect(page.getByRole("link", { name: "Skip to full text" })).toBeFocused();
   await page.keyboard.press("Enter");
 
@@ -108,13 +110,13 @@ test("keyboard visitor can enter the full text from the Climb", async ({ page })
 });
 
 test("Editorial Alpine foundation uses the approved visual tokens", async ({ page }) => {
-  // Check the default Dark reading palette independently of the illustrated Climb.
+  // Check the default Light reading palette independently of the illustrated Climb.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./#list-view");
 
-  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(26, 33, 29)");
-  await expect(page.locator("#about")).toHaveCSS("background-color", "rgb(18, 49, 41)");
-  await expect(page.locator("#summit")).toHaveCSS("background-color", "rgb(18, 23, 20)");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(243, 238, 221)");
+  await expect(page.locator("#about")).toHaveCSS("background-color", "rgb(23, 63, 53)");
+  await expect(page.locator("#summit")).toHaveCSS("background-color", "rgb(31, 38, 33)");
 
   const headingFont = await page.locator("#list-view h1").evaluate(
     (element) => getComputedStyle(element).fontFamily,

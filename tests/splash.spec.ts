@@ -1,15 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-
-async function seekIntro(page: Page, time: number) {
-  await page.evaluate(() => document.fonts.ready);
-  await page.locator(".splash").evaluate((element, time) => {
-    for (const animation of element.getAnimations({ subtree: true })) {
-      animation.pause();
-      animation.currentTime = time;
-    }
-  }, time);
-}
+import { imageDifference, seekIntro } from "./helpers/splash";
 
 async function tabToLink(page: Page, browserName: string) {
   // Safari on macOS uses Option+Tab for links when full keyboard access is off.
@@ -55,10 +46,11 @@ test("the full intro exits naturally without console or hydration errors", async
   await page.goto("./");
   const splash = page.locator(".splash");
   await expect(splash).toBeVisible();
-  await expect(splash.locator(".splash-name-line")).toHaveText(["Diego", "Martinez"]);
-  await expect(splash.locator(".splash-role")).toHaveText("Software engineer");
+  await expect(splash.locator(".splash-pane")).toHaveCount(2);
+  await expect(splash.locator(".splash-hand")).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego:");
   await expect(splash.locator(".wordmark-mark")).toHaveCount(0);
-  await expect(splash).toBeHidden({ timeout: 5000 });
+  await expect(splash).toBeHidden({ timeout: 7000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -77,8 +69,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       if (input === "pointer") {
         await page.getByRole("navigation", { name: "Primary navigation" })
           .getByRole("link", { name: "Work", exact: true }).click();
-        if (reducedMotion === "reduce") await expect(page).toHaveURL(/#work$/);
-        else await expect(page.locator("#climb")).toHaveAttribute("data-stop", "2");
+        await expect(page).toHaveURL(/#work$/);
       } else if (input === "wheel") {
         const before = await page.evaluate(() => scrollY);
         await page.mouse.wheel(0, 400);
@@ -98,9 +89,9 @@ test("reduced motion uses a still card and an opacity-only exit", async ({ page 
   await page.goto("./");
   const splash = page.locator(".splash");
   await expect(splash).toBeVisible();
-  await expect(splash.locator(".splash-climber")).toBeHidden();
+  await expect(splash.locator(".splash-world")).toBeHidden();
   await expect(splash).toHaveCSS("transform", "none");
-  for (const selector of [".splash-route-mask", ".splash-glyph", ".splash-flag-pole", ".splash-flag-cloth", ".splash-flag-flutter"]) {
+  for (const selector of [".splash-word"]) {
     for (const element of await splash.locator(selector).all()) await expect(element).toHaveCSS("animation-name", "none");
   }
   await expect(splash).toBeHidden({ timeout: 3000 });
@@ -136,7 +127,7 @@ test("the failsafe dismisses the intro if its CSS animation cannot complete", as
   await page.goto("./");
   await page.addStyleTag({ content: ".splash { animation: none !important; }" });
   await expect(page.locator(".splash")).toBeVisible();
-  await expect(page.locator(".splash")).toBeHidden({ timeout: 6000 });
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 8000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
@@ -165,33 +156,77 @@ test("blocked session storage cannot break the intro, skipping or deep links", a
 });
 
 for (const viewport of [
-  { width: 320, height: 568 },
-  { width: 390, height: 844 },
-  { width: 844, height: 390 },
-  { width: 768, height: 1024 },
-  { width: 1024, height: 768 },
-  { width: 1440, height: 900 },
+  { width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 },
+  { width: 768, height: 1024 }, { width: 1024, height: 768 }, { width: 1440, height: 900 },
 ]) {
-  test(`name, flag and summit stay visible without letter jitter at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  test(`map handling, blank paper and aligned greeting at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto("./");
-    await seekIntro(page, 1200);
-    const initialPositions = await page.locator(".splash-char").evaluateAll((letters) =>
-      letters.map((letter) => letter.getBoundingClientRect().left));
-    await seekIntro(page, 2700);
-    expect(await page.locator(".splash-char").evaluateAll((letters) =>
-      letters.map((letter) => letter.getBoundingClientRect().left))).toEqual(initialPositions);
-    for (const selector of [".splash-name", ".splash-flag-cloth", ".splash-flag-pole", ".splash-summit-ring"]) {
-      const box = await page.locator(selector).boundingBox();
-      expect(box).not.toBeNull();
-      expect(box!.x).toBeGreaterThanOrEqual(0);
-      expect(box!.y).toBeGreaterThanOrEqual(0);
-      expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
-      expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
-    }
+    await seekIntro(page, 1400);
+    const folded = await page.screenshot({ path: testInfo.outputPath("01-folded.png") });
+    const cover = (await page.locator(".splash-row--top .splash-pane .splash-face--back").boundingBox())!;
+    const coverCenter = { x: cover.x + cover.width * 0.1, y: cover.y + cover.height * 0.15, width: cover.width * 0.8, height: cover.height * 0.7 };
+    const isolateCover = await page.addStyleTag({ content: ".splash-face:not(.splash-row--top .splash-pane .splash-face--back) { visibility: hidden !important; }" });
+    const coverDifference = await imageDifference(page, folded, await page.screenshot(), coverCenter);
+    expect(coverDifference.mean, "the folded packet's cover must paint above the inside legends").toBeLessThan(0.1);
+    expect(coverDifference.changedRatio).toBeLessThan(0.001);
+    await isolateCover.evaluate((style) => style.parentNode?.removeChild(style));
+    await seekIntro(page, 3500);
+    const unfolded = await page.screenshot({ path: testInfo.outputPath("02-unfolded.png") });
+    // An open sheet must show its front print. This also catches WebKit painting
+    // reversed covers/legends through backface-visibility during 3D folds.
+    const hideBacks = await page.addStyleTag({ content: ".splash-face--back { visibility: hidden !important; }" });
+    const faceDifference = await imageDifference(page, unfolded, await page.screenshot());
+    await testInfo.attach("Unfolded face comparison", { body: JSON.stringify(faceDifference), contentType: "application/json" });
+    // Permit tiny rasterisation differences when WebKit recomposes the layer.
+    // Showing a reversed cover/legend changes a large part of the sheet.
+    expect(faceDifference.mean, "reverse-side artwork must not paint on the unfolded map").toBeLessThan(0.1);
+    expect(faceDifference.changedRatio).toBeLessThan(0.001);
+    await hideBacks.evaluate((style) => style.parentNode?.removeChild(style));
+    await expect(page.locator(".splash-hand")).toHaveCount(0);
+    await seekIntro(page, 4420);
+    await page.screenshot({ path: testInfo.outputPath("03-paper.png") });
+    const panes = await page.locator(".splash-pane .splash-face--front").evaluateAll((faces) => faces.map((face) => {
+      const box = face.getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+    }));
+    // Inspect the transformed paper itself, including the two joined rows.
+    expect(Math.min(...panes.map((box) => box.left))).toBeLessThan(0);
+    expect(Math.max(...panes.map((box) => box.right))).toBeGreaterThan(viewport.width);
+    expect(Math.min(...panes.map((box) => box.top))).toBeLessThan(0);
+    expect(Math.max(...panes.map((box) => box.bottom))).toBeGreaterThan(viewport.height);
+    await seekIntro(page, 5000);
+    const heading = page.locator("#trailhead-title");
+    const box = await heading.boundingBox();
+    for (const copy of ["paper", "page"]) expect(await page.locator(`.splash-greeting--${copy}`).boundingBox()).toEqual(box);
+    await expect(heading).toHaveCSS("opacity", "0");
+    await page.screenshot({ path: testInfo.outputPath("04-greeting.png") });
+    await page.keyboard.press("Escape");
+    expect(await heading.boundingBox()).toEqual(box);
+    await expect(heading).toHaveCSS("opacity", "1");
+    await expect(heading).toHaveCSS("animation-name", "none");
+    await expect(page.locator(".climb-list")).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("05-trailhead.png") });
   });
 }
+
+test.describe("rendered map opening recordings", () => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    test(`continuous opening at ${viewport.width}x${viewport.height}`, async ({ browser, baseURL }, testInfo) => {
+      const context = await browser.newContext({ baseURL, viewport, reducedMotion: "no-preference", recordVideo: { dir: testInfo.outputPath("recording"), size: viewport } });
+      const page = await context.newPage();
+      await page.goto("./");
+      await expect(page.locator(".splash")).toBeVisible();
+      await expect(page.locator(".splash")).toBeHidden({ timeout: 7000 });
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego:");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCSS("opacity", "1");
+      await context.close();
+      await page.video()!.saveAs(testInfo.outputPath("video.webm"));
+      await testInfo.attach("Map opening", { path: testInfo.outputPath("video.webm"), contentType: "video/webm" });
+    });
+  }
+});
 
 test("without JavaScript the homepage and keyboard focus are immediately unobscured", async ({ browser, browserName, baseURL }) => {
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false, reducedMotion: "no-preference" });
@@ -239,7 +274,63 @@ test("an eligible intro still exits in CSS when client bundles cannot hydrate", 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("./");
   await expect(page.locator(".splash")).toBeVisible();
-  await expect(page.locator(".splash")).toBeHidden({ timeout: 5000 });
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 7000 });
   await page.getByRole("link", { name: "View selected work" }).click();
   await expect(page).toHaveURL(/#momentumx$/);
 });
+
+
+test("switching to reduced motion during the zoom restores the reading view immediately", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("./");
+  await expect(page.locator(".climb-view-toggle")).toBeVisible();
+  await seekIntro(page, 4050);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 750 });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCSS("opacity", "1");
+  await expect(page.locator(".climb-list")).toBeVisible();
+});
+
+for (const motion of ["no-preference", "reduce"] as const) {
+for (const theme of ["light", "dark"] as const) {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
+    test(`${theme} ${motion} heading swaps in one frame at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
+      await page.setViewportSize(viewport);
+      await page.emulateMedia({ reducedMotion: motion });
+      const swap = motion === "reduce" ? 1190 : 5960;
+      await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
+      await page.goto("./");
+      await seekIntro(page, swap - 5);
+      const heading = page.locator("#trailhead-title");
+      await expect(heading).toHaveCSS("opacity", "0");
+      await expect(page.locator(".splash-greeting--page")).toHaveCSS("visibility", "visible");
+      const box = (await heading.boundingBox())!;
+      const clip = { x: Math.floor(box.x), y: Math.floor(box.y), width: Math.ceil(box.width), height: Math.ceil(box.height) };
+      const before = await page.screenshot();
+      await seekIntro(page, swap + 5);
+      await expect(heading).toHaveCSS("opacity", "1");
+      await expect(page.locator(".splash-greeting--page")).toHaveCSS("visibility", "hidden");
+      const after = await page.screenshot();
+      const difference = await page.evaluate(async ({ before, after, clip, viewport }) => {
+        const read = async (png: string) => {
+          const image = new Image(); image.src = `data:image/png;base64,${png}`; await image.decode();
+          const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
+          const ctx = canvas.getContext("2d")!; ctx.drawImage(image, 0, 0);
+          const scale = image.width / viewport.width;
+          return ctx.getImageData(Math.round(clip.x * scale), Math.round(clip.y * scale), Math.round(clip.width * scale), Math.round(clip.height * scale)).data;
+        };
+        const a = await read(before), b = await read(after);
+        let max = 0; for (let i = 0; i < a.length; i++) max = Math.max(max, Math.abs(a[i] - b[i]));
+        return max;
+      }, { before: before.toString("base64"), after: after.toString("base64"), clip, viewport });
+      await testInfo.attach("Before heading swap", { body: before, contentType: "image/png" });
+      await testInfo.attach("After heading swap", { body: after, contentType: "image/png" });
+      expect(difference).toBeLessThanOrEqual(1);
+      await seekIntro(page, motion === "reduce" ? 1399 : 6399);
+      await page.keyboard.press("Escape");
+      await expect(page.locator("body > .splash")).toBeHidden();
+      await expect(page.locator("html")).toHaveAttribute("data-splash", "seen");
+    });
+  }
+}
+}

@@ -81,7 +81,7 @@ for (const width of [390, 1440]) {
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "Ambient sound", exact: true })).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeFocused();
+    await expect(page.getByRole("button", { name: "Switch to dark theme" })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "List view", exact: true })).toBeFocused();
     await page.keyboard.press("Enter");

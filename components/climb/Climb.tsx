@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import type { MouseEvent, ReactNode, PointerEvent, FocusEvent, KeyboardEvent } from "react";
 import { journeyStops } from "../../content/journey";
 import { createHudRenderer } from "./hud";
@@ -25,6 +26,8 @@ import { canEnhanceClimb, observeClimbQuality, watchClimbPerformance } from "./q
 import type { ClimbQuality } from "./quality";
 import { SceneRecovery } from "./SceneRecovery";
 import { sceneCleanup, sceneTask } from "./recovery";
+import { createClimbTransition, createListTransition } from "../splash/controller";
+import type { SplashController } from "../splash/controller";
 
 import "./climb.css";
 import "./sky.css";
@@ -68,6 +71,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   const ambience = useRef<AmbientSoundController>(null);
   const renderers = useRef<{ mountain: ReturnType<typeof createMountainRenderer>; weather: ReturnType<typeof createEnvironmentRenderer>; hud: (frame: ClimbFrame) => void; markers: ReturnType<typeof createMarkerRenderer> } | null>(null);
   const lastPosition = useRef(0);
+  const lastFrame = useRef<ClimbFrame | null>(null);
   const focusList = useRef<boolean | string>(false);
   const reading = useRef<PanelSelection | null>(null);
   // Recovery outlives the enhancement subtree: its DOM refs can already be
@@ -78,6 +82,12 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   const returnMarker = useRef<HTMLButtonElement | null>(null);
   const pendingFocus = useRef<HTMLButtonElement | null>(null);
   const keyboardInput = useRef(true);
+  const viewTransition = useRef<SplashController | null>(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; viewTransition.current?.skip(); };
+  }, []);
 
   const revealList = useCallback(() => {
     if (!activeClimb.current) return;
@@ -205,7 +215,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     let stopQuality: (() => void) | undefined;
     let raf = 0;
     const motionChange = sceneTask(failScene, () => {
-      if (preference.matches) revealList();
+      if (preference.matches) { viewTransition.current?.skip(); revealList(); }
     });
     function hashChange() {
       if (!listTarget()) return;
@@ -227,7 +237,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
         traceStartup("initialization frame entered");
         try {
           stopQuality = observeClimbQuality(lighten);
-          setListMode(Boolean(listTarget()) || preference.matches);
+          setListMode(true);
           setEnhanced(true);
           traceStartup("enhancement enabled", { listTarget: listTarget()?.id, reducedMotion: preference.matches });
         } catch (error) { traceStartup("initialization frame failed", error); failScene(); }
@@ -289,6 +299,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   }, [enhanced, listMode]);
 
   const render = useCallback((frame: ClimbFrame) => {
+    lastFrame.current = frame;
     const element = stage.current;
     if (!element) return;
     lastRenderedStop.current = frame.nearest;
@@ -321,12 +332,26 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
     setSelection(null);
     if (listMode) {
       history.replaceState(null, "", location.pathname + location.search);
-      setListMode(false);
+      viewTransition.current?.skip();
+      viewTransition.current = createClimbTransition(() => {
+        // The page switches underneath opaque paper. Flush the React update so
+        // the controller can measure the newly visible scene on this clock.
+        if (mounted.current) flushSync(() => setListMode(false));
+      }, sceneTask(failScene, () => {
+        // Stage translation changes screen clipping without changing scroll
+        // geometry. Refresh keyboard targets after that translation is removed.
+        if (lastFrame.current && activeClimb.current) renderers.current?.markers.render(lastFrame.current);
+      }));
     } else {
+      viewTransition.current?.skip();
       lastClimbScroll.current = window.scrollY;
-      focusList.current = true;
-      history.replaceState(null, "", "#list-view");
-      setListMode(true);
+      viewTransition.current = createListTransition(() => {
+        if (!mounted.current) return;
+        focusList.current = true;
+        history.replaceState(null, "", "#list-view");
+        flushSync(() => setListMode(true));
+        window.scrollTo({ top: 0, behavior: "instant" });
+      });
     }
   }
 
