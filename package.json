@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "preview:reveals": "NEXT_PUBLIC_BASE_PATH=/portfolio next dev --hostname 127.0.0.1 --port 3001",
     "build": "next build",
     "build:test": "next build",
     "lint": "eslint .",

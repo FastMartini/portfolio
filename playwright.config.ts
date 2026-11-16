@@ -31,12 +31,12 @@ export default defineConfig({
     },
     {
       name: "firefox-adaptive",
-      testMatch: ["theme.spec.ts", "climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "feather-splash.spec.ts", "map-polish.spec.ts", "climb-transition.spec.ts", "list-transition.spec.ts", "discoverability.spec.ts"],
+      testMatch: ["theme.spec.ts", "climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "feather-splash.spec.ts", "map-polish.spec.ts", "climb-transition.spec.ts", "list-transition.spec.ts", "discoverability.spec.ts", "trailhead-hero.spec.ts"],
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit-adaptive",
-      testMatch: ["theme.spec.ts", "climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "feather-splash.spec.ts", "map-polish.spec.ts", "climb-transition.spec.ts", "list-transition.spec.ts", "discoverability.spec.ts"],
+      testMatch: ["theme.spec.ts", "climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "feather-splash.spec.ts", "map-polish.spec.ts", "climb-transition.spec.ts", "list-transition.spec.ts", "discoverability.spec.ts", "trailhead-hero.spec.ts"],
       use: { ...devices["Desktop Safari"] },
     },
   ],

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Newsreader } from "next/font/google";
+import { HeroRevealPreview } from "../components/hero-reveal-prototype/Preview";
 import { Splash } from "../components/splash/Splash";
 import { SPLASH_GATE_SCRIPT } from "../components/splash/gate";
 import { professionalDescription, siteUrl } from "../content/site";
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body>
         <Splash />
         <ThemeProvider>{children}</ThemeProvider>
+        {process.env.NODE_ENV === "development" && <HeroRevealPreview />}
       </body>
     </html>
   );

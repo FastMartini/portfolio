@@ -12,11 +12,11 @@ test("visitor understands Diego's professional identity at the Trailhead", async
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Howdy, I'm Diego:",
+      name: "Howdy, I'm Diego.",
     }),
   ).toBeVisible();
   await expect(page.locator("#trailhead .trailhead-lead")).toHaveText(
-    "Software engineer, problem solver, and lifelong learner passionate about building technology that makes an impact.",
+    "Software engineer building intelligent, data-driven products. I turn ambitious ideas into useful, thoughtful experiences.",
   );
 });
 
@@ -67,7 +67,7 @@ test("portfolio remains complete without client-side JavaScript", async ({
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Howdy, I'm Diego:",
+      name: "Howdy, I'm Diego.",
     }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Engineering with intent." })).toBeVisible();
@@ -228,8 +228,8 @@ test("Trailhead reaches the first Waypoint and links every published Case Study"
 }) => {
   await page.goto("./#list-view");
 
-  await page.getByRole("link", { name: "View selected work" }).click();
-  await expect(page).toHaveURL(/#momentumx$/);
+  await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true }).click();
+  await expect(page).toHaveURL(/#work$/);
   await expect(page.locator("#momentumx")).toBeVisible();
   await expect(
     page

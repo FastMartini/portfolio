@@ -1,46 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
-import type { Response } from "@playwright/test";
-
-for (const profile of [
-  { width: 390, deviceScaleFactor: 1, javaScriptEnabled: false, selectedWidth: 480, budget: 150_000 },
-  { width: 390, deviceScaleFactor: 2, javaScriptEnabled: false, selectedWidth: 800, budget: 200_000 },
-  { width: 390, deviceScaleFactor: 2, javaScriptEnabled: true, selectedWidth: 800, budget: 200_000 },
-  { width: 1440, deviceScaleFactor: 1, javaScriptEnabled: true, selectedWidth: 800, budget: 200_000 },
-]) {
-test(`List View downloads a small responsive portrait at ${profile.width}px, ${profile.deviceScaleFactor}x, JavaScript ${profile.javaScriptEnabled}`, async ({ browser, baseURL }) => {
-  const context = await browser.newContext({ baseURL, javaScriptEnabled: profile.javaScriptEnabled, viewport: { width: profile.width, height: 844 }, deviceScaleFactor: profile.deviceScaleFactor });
-  const page = await context.newPage();
-  const responses: Response[] = [];
-  page.on("response", (response) => { if (response.request().resourceType() === "image") responses.push(response); });
-  await page.goto("./#trailhead");
-  const portrait = page.getByRole("img", { name: "Diego Martinez" });
-  await expect.poll(() => portrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-  const selected = await portrait.evaluate((image: HTMLImageElement) => ({ src: image.currentSrc, srcset: image.parentElement?.querySelector("source")?.srcset ?? image.srcset, width: image.naturalWidth }));
-  const response = responses.find((response) => response.url() === selected.src);
-  expect(response).toBeDefined();
-  expect((await response!.body()).byteLength).toBeLessThan(profile.budget);
-  expect(selected.src).toContain("/portfolio/photos/");
-  expect(selected.srcset).toContain("480w");
-  expect(selected.src).toContain(`/photos/dm-${profile.selectedWidth}.webp`);
-  await expect(portrait).toHaveAttribute("width", "480");
-  await expect(portrait).toHaveAttribute("height", "640");
-  await context.close();
-});
-}
-
-test("List View introduces Diego with his photo instead of Field note 01, without JavaScript", async ({ browser, baseURL }) => {
-  const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
+test("List View has a portrait-free typographic opening without JavaScript", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, javaScriptEnabled: false, reducedMotion: "reduce" });
   const page = await context.newPage();
   await page.goto("./");
-  const trailhead = page.getByRole("region", { name: "Howdy, I'm Diego:" });
-  const portrait = trailhead.getByRole("img", { name: "Diego Martinez" });
-  await expect(portrait).toBeVisible();
-  await expect.poll(() => portrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect(trailhead.getByText("Field note 01")).toHaveCount(0);
-  const imageBounds = await portrait.boundingBox();
-  const titleBounds = await trailhead.getByRole("heading", { level: 1 }).boundingBox();
-  expect(imageBounds!.x).toBeGreaterThan(titleBounds!.x + titleBounds!.width);
+  await expect(page.locator("#trailhead img, #trailhead [data-paper-piece]")).toHaveCount(0);
+  await expect(page.locator("#trailhead .resume-link")).toHaveCount(1);
+  await expect(page.locator("#trailhead .resume-link")).toHaveAttribute("href", "/portfolio/resume/Martinez_Diego_2026.pdf");
   await context.close();
 });
 
@@ -59,11 +25,8 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }
     await expect(page.getByRole("link", { name: "View résumé (PDF, opens in a new tab)" })).toBeVisible();
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await page.goto("./#trailhead");
-    const listPortrait = page.getByRole("img", { name: "Diego Martinez" });
-    await expect(listPortrait).toBeVisible();
-    const listImageBounds = await listPortrait.boundingBox();
-    const copyBounds = await page.locator(".trailhead-copy").boundingBox();
-    expect(listImageBounds!.y).toBeGreaterThanOrEqual(copyBounds!.y + copyBounds!.height);
+    await expect(page.locator("#trailhead img[alt='Diego Martinez']")).toHaveCount(0);
+    await expect(page.locator("#trailhead .resume-link")).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }

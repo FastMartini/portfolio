@@ -68,7 +68,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await expect(page.getByRole("banner")).toHaveCSS("opacity", "1");
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       await expect(page.locator(".climb-stage")).toHaveCSS("translate", "none");
-      expect(await page.locator(".climb-list").evaluate(el => el.getAnimations({ subtree: true }).filter(a => !(a instanceof CSSAnimation)).length)).toBe(0);
+      expect(await page.locator(".climb-list").evaluate(el => el.getAnimations({ subtree: true }).filter(a => !(a instanceof CSSAnimation) && !(a.effect instanceof KeyframeEffect && a.effect.target instanceof Element && a.effect.target.matches(".trailhead-trail"))).length)).toBe(0);
       expect(await page.evaluate(() => scrollY)).toBe(0);
     });
   }

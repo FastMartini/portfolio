@@ -1,5 +1,7 @@
 import { mapAssetStyles, mapOverlayMarkup } from "./map/markup";
-import { trailheadIntro } from "../../content/trailhead";
+import { listTrailheadIntro } from "../../content/trailhead";
+import { activeReveal, prototypeReveal } from "../hero-reveal-prototype/motion";
+import { HERO_READY_EVENT } from "../trailhead-art";
 
 type Options = { rate?: number; failsafe?: boolean; remember?: boolean; allowSeen?: boolean; seekCss?: boolean; preserveFragment?: boolean; onDone?: (skipped: boolean) => void };
 const part = (root: ParentNode, selector: string) => {
@@ -24,14 +26,13 @@ const animationTime = (animation?: Animation | null) => typeof animation?.curren
  *
  * Stability rules (from the flicker review):
  *   - one visible copy of the heading at a time; swaps happen on one shared clock;
- *   - no filters on text; the ink mask is dropped on the last frame;
+ *   - no filters on text; both copies preserve the semantic line breaks;
  *   - only opacity/translate on page layers; the mountain is never scaled;
  *   - geometry is measured again once webfonts settle, while nothing depends on it yet.
  */
 
 
 export const OPEN = { zoom: [3420, 1000], handoff: [5420, 480], fade: [5420, 340], swap: 5960, end: 6400 };
-const OPEN_REDUCED = { swap: 1190, end: 1400 };
 export const CLIMB = { cover: 380, pull: [380, 870], tilt: [1150, 1000], end: 2600 };
 export const LIST = { tilt: 1100, hold: 500, zoom: 1600, end: 4580 };
 const LIST_OPEN_OFFSET = OPEN.zoom[0] - LIST.zoom;
@@ -66,28 +67,40 @@ function copyType(target: HTMLElement, heading: HTMLElement) {
     textWrap: cs.textWrap, wordSpacing: cs.wordSpacing, textAlign: cs.textAlign,
   });
   target.dataset.aligned = "";
-  // The page copy needs no word masks. Keeping it one text run preserves the
-  // font's subpixel advances across spaces, exactly like the semantic heading.
-  if (target.classList.contains("splash-greeting--page")) target.textContent = heading.textContent;
-  // Newsreader's spacing across word boundaries differs slightly from the
-  // prototype's substitute font. Use the semantic text's actual word ranges,
-  // keeping the mask spans in normal flow and avoiding transformed text layers.
-  const text = heading.ownerDocument.createTreeWalker(heading, NodeFilter.SHOW_TEXT).nextNode();
-  const words = Array.from(target.querySelectorAll<HTMLElement>(".splash-word"));
-  words.forEach((word) => { word.style.position = "relative"; word.style.left = "0px"; word.style.top = "0px"; });
-  if (text) {
-    const matches = [...(text.textContent ?? "").matchAll(/\S+/g)];
-    const offsets = words.map((word, i) => {
-      const match = matches[i];
-      if (!match) return { x: 0, y: 0 };
-      const real = heading.ownerDocument.createRange(), copy = heading.ownerDocument.createRange();
-      real.setStart(text, match.index); real.setEnd(text, match.index + match[0].length);
-      copy.selectNodeContents(word);
-      const a = real.getBoundingClientRect(), b = copy.getBoundingClientRect();
-      return { x: a.left - b.left, y: a.top - b.top };
-    });
-    words.forEach((word, i) => { word.style.left = `${offsets[i].x}px`; word.style.top = `${offsets[i].y}px`; });
+  // Clone the real line structure so intentional breaks survive every handoff.
+  target.replaceChildren(...[...heading.childNodes].map(node => node.cloneNode(true)));
+  if (target.classList.contains("splash-greeting--page")) return { rect: r, style: cs };
+  const readText = (element: HTMLElement) => {
+    const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT), nodes: Text[] = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+    return nodes;
+  };
+  const doc = heading.ownerDocument;
+  const realWords = readText(heading).flatMap(node => [...(node.textContent ?? "").matchAll(/\S+/g)].map(match => ({ node, match })));
+  for (const text of readText(target)) {
+    const fragment = doc.createDocumentFragment();
+    for (const token of (text.textContent ?? "").match(/\s+|\S+/g) ?? []) {
+      if (/^\s+$/.test(token)) fragment.append(doc.createTextNode(token));
+      else {
+        const word = doc.createElement("span"); word.className = "splash-word";
+        word.textContent = token; word.style.animation = "none";
+        word.style.maskImage = word.style.webkitMaskImage = "none";
+        word.style.position = "relative"; fragment.append(word);
+      }
+    }
+    text.replaceWith(fragment);
   }
+  const words = [...target.querySelectorAll<HTMLElement>(".splash-word")];
+  const offsets = words.map((word, i) => {
+    const source = realWords[i];
+    if (!source) return { x: 0, y: 0 };
+    const real = doc.createRange(), copy = doc.createRange();
+    real.setStart(source.node, source.match.index); real.setEnd(source.node, source.match.index + source.match[0].length);
+    copy.selectNodeContents(word);
+    const a = real.getBoundingClientRect(), b = copy.getBoundingClientRect();
+    return { x: a.left - b.left, y: a.top - b.top };
+  });
+  words.forEach((word, i) => { word.style.left = `${offsets[i].x}px`; word.style.top = `${offsets[i].y}px`; });
   return { rect: r, style: cs };
 }
 
@@ -197,7 +210,10 @@ function lifecycle(el: HTMLElement, options: Options, onEnd: (skipped: boolean) 
       return controller;
     },
   };
-  const skip = () => api.finish(true);
+  const skip = (event?: Event) => {
+    if (process.env.NODE_ENV === "development" && event?.target instanceof Element && event.target.closest("[data-hero-reveal-controls]")) return;
+    api.finish(true);
+  };
   // Browser navigation owns its reading destination. Cancelling a view
   // transition must not run the ordinary dismissal's view-switch callback.
   const navigate = () => api.finish(true, !options.preserveFragment);
@@ -213,9 +229,12 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
   const doc = el.ownerDocument, win = window, root = doc.documentElement;
   if (root.dataset.splash !== "active" && !options.allowSeen) return null;
   if (typeof el.animate !== "function" || typeof el.getAnimations !== "function" || typeof requestAnimationFrame !== "function" || typeof CSSAnimation === "undefined") return null;
-  const reduced = reducedMotion();
-  const T = reduced ? OPEN_REDUCED : OPEN;
-  const clock = el.getAnimations().find((a) => a instanceof CSSAnimation && a.animationName === "splash-exit" || a instanceof CSSAnimation && a.animationName === "splash-rm-exit");
+  if (reducedMotion()) {
+    root.dataset.splash = "seen";
+    el.classList.add("splash--skipped");
+    return null;
+  }
+  const clock = el.getAnimations().find((a) => a instanceof CSSAnimation && a.animationName === "splash-exit");
   const elapsed = () => animationTime(clock);
   const cancelCss = (target: HTMLElement | null, name: string) => target && target.getAnimations().forEach((a) => { if (a instanceof CSSAnimation && a.animationName === name) a.cancel(); });
 
@@ -225,6 +244,7 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
     root.dataset.splash = "seen";
     if (skipped) el.classList.add("splash--skipped");
     if (options.remember !== false) { try { win.sessionStorage.setItem("splash-seen", "1"); } catch {} }
+    if (!skipped && !el.classList.contains("splash--list")) doc.dispatchEvent(new Event(HERO_READY_EVENT));
   });
   life.review(undefined, options.seekCss !== false);
   function setup() {
@@ -236,11 +256,10 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
     let zoomAnim: Animation | null = null;
 
     function layout() {
-      copyType(paper, heading!);
+      const { rect } = copyType(paper, heading!);
       copyType(page, heading!);
-      if (reduced || elapsed() > OPEN.zoom[0] - 50) return;
-      const g = paper.getBoundingClientRect();
-      const f = framing(el, { x: g.left + g.width / 2, y: g.top + g.height / 2 });
+      if (elapsed() > OPEN.zoom[0] - 50) return;
+      const f = framing(el, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       if (!f) return;
       cancelCss(camera, "splash-zoom-fallback");
       camera.style.transformOrigin = `${f.F.x}px ${f.F.y}px`;
@@ -257,39 +276,37 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
         if (life.active && elapsed() < OPEN.zoom[0] - 50) {
           layout();
           if (clock?.playState === "paused" && zoomAnim) { zoomAnim.pause(); zoomAnim.currentTime = elapsed(); }
-        } else if (life.active && elapsed() < 4250) { copyType(paper, heading!); copyType(page, heading!); }
+        } else if (life.active && elapsed() < 4250) { layout(); }
       });
 
       // One heading at a time: the real <h1> is hidden until the frame the page copy disappears.
-      add(heading, [{ opacity: 0 }, { opacity: 0 }], { duration: T.swap, fill: "none" });
-      add(page, [{ visibility: "visible" }, { visibility: "visible" }], { delay: reduced ? 0 : 5000, duration: T.swap - (reduced ? 0 : 5000), fill: "none" });
+      add(heading, [{ opacity: 0 }, { opacity: 0 }], { duration: OPEN.swap, fill: "none" });
+      const preview = process.env.NODE_ENV === "development" && activeReveal();
+      if (preview) prototypeReveal(paper, page, add);
+      else add(paper, [{ opacity: 0 }, { opacity: 1 }], { delay: 4300, duration: 440, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)", fill: "both" });
+      add(page, [{ visibility: "visible" }, { visibility: "visible" }], { delay: 5000, duration: OPEN.swap - 5000, fill: "none" });
 
       const theme = root.dataset.theme === "light" ? "light" : "dark";
-      if (!reduced) {
-        if (theme === "light") {
-          add(sheet, [{ opacity: 1 }, { opacity: 0 }], { delay: OPEN.fade[0], duration: OPEN.fade[1], easing: "ease-in-out", fill: "forwards" });
-        } else {
-          // Dusk passes over the paper, left to right; only a narrow band is ever between states.
-          const vw = win.innerWidth, M = vw * 3.2, image = "linear-gradient(100deg, transparent 0 46%, #000 54% 100%)";
-          const at = (x: number) => ({ maskImage: image, webkitMaskImage: image, maskSize: `${M}px 100%`, webkitMaskSize: `${M}px 100%`,
-            maskRepeat: "no-repeat", webkitMaskRepeat: "no-repeat", maskPosition: `${x}px 0`, webkitMaskPosition: `${x}px 0` });
-          add(sheet, [at(-0.2 * vw - M / 2), at(1.2 * vw - M / 2)], { delay: OPEN.handoff[0], duration: OPEN.handoff[1], easing: "cubic-bezier(0.45, 0, 0.4, 1)", fill: "forwards" });
-        }
-        const rise = (target: Element | null, delay: number, duration: number, distance = 6) => add(target, [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
-          { delay, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-        add(doc.querySelector<HTMLElement>(".site-header"), [{ opacity: 0, translate: "0 -8px" }, { opacity: 1, translate: "0 0" }], { delay: 5500, duration: 500, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-        rise(section.querySelector<HTMLElement>(".trailhead-portrait"), 5560, 620, 16);
-        rise(section.querySelector<HTMLElement>(".eyebrow"), 5700, 420);
-        rise(section.querySelector<HTMLElement>(".trailhead-lead"), 5760, 440);
-        rise(section.querySelector<HTMLElement>(".trailhead-intro"), 5820, 440);
-        rise(section.querySelector<HTMLElement>(".trailhead-actions"), 5880, 440);
-        rise(section.querySelector<HTMLElement>(".scroll-cue"), 5960, 420);
+      if (theme === "light") {
+        add(sheet, [{ opacity: 1 }, { opacity: 0 }], { delay: OPEN.fade[0], duration: OPEN.fade[1], easing: "ease-in-out", fill: "forwards" });
       } else {
-        [doc.querySelector<HTMLElement>(".site-header"), section.querySelector<HTMLElement>(".eyebrow"), section.querySelector<HTMLElement>(".trailhead-lead"),
-          section.querySelector<HTMLElement>(".trailhead-intro"), section.querySelector<HTMLElement>(".trailhead-actions"),
-          section.querySelector<HTMLElement>(".trailhead-portrait"), section.querySelector<HTMLElement>(".scroll-cue")]
-          .forEach((target, i) => add(target, [{ opacity: 0 }, { opacity: 1 }], { delay: 520 + i * 60, duration: 480, easing: "ease-out" }));
+        // Dusk passes over the paper, left to right; only a narrow band is ever between states.
+        const vw = win.innerWidth, M = vw * 3.2, image = "linear-gradient(100deg, transparent 0 46%, #000 54% 100%)";
+        const at = (x: number) => ({ maskImage: image, webkitMaskImage: image, maskSize: `${M}px 100%`, webkitMaskSize: `${M}px 100%`,
+          maskRepeat: "no-repeat", webkitMaskRepeat: "no-repeat", maskPosition: `${x}px 0`, webkitMaskPosition: `${x}px 0` });
+        add(sheet, [at(-0.2 * vw - M / 2), at(1.2 * vw - M / 2)], { delay: OPEN.handoff[0], duration: OPEN.handoff[1], easing: "cubic-bezier(0.45, 0, 0.4, 1)", fill: "forwards" });
       }
+      const rise = (target: Element | null, delay: number, duration: number, distance = 6) => add(target, [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
+        { delay, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
+      add(doc.querySelector<HTMLElement>(".site-header"), [{ opacity: 0, translate: "0 -8px" }, { opacity: 1, translate: "0 0" }], { delay: 5500, duration: 500, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
+      // The trail draws once after the overlay is gone, on its own short clock.
+      // Until then this hold prevents an already-open return from exposing it.
+      if (!preview) section.querySelectorAll(".trailhead-trail").forEach(trail =>
+        add(trail, [{ strokeDasharray: "1", strokeDashoffset: 1 }, { strokeDasharray: "1", strokeDashoffset: 1 }], { duration: OPEN.end, fill: "none" }));
+      rise(section.querySelector<HTMLElement>(".eyebrow"), 5700, 420);
+      if (!preview) rise(section.querySelector<HTMLElement>(".trailhead-lead"), 5760, 440);
+      if (!preview) rise(section.querySelector<HTMLElement>(".trailhead-actions"), 5880, 440);
+      rise(section.querySelector<HTMLElement>(".scroll-cue"), 5960, 420);
     }
 
   }
@@ -304,12 +321,16 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
   const waitForLayout = () => {
     if (!life.active) return;
     const heading = doc.getElementById("trailhead-title");
+    if (process.env.NODE_ENV === "development" && activeReveal() && doc.fonts?.status === "loading") {
+      void doc.fonts.ready.then(() => { if (life.active) waitForLayout(); });
+      return;
+    }
     if (heading?.getClientRects().length) { setup(); sync(); }
     else if (performance.now() < deadline) layoutFrame = requestAnimationFrame(waitForLayout);
   };
   life.cleanup(() => cancelAnimationFrame(layoutFrame));
   waitForLayout();
-  life.arm(Math.max(0, (reduced ? 2400 : 7000) - elapsed()));
+  life.arm(Math.max(0, 7000 - elapsed()));
   return life.review(undefined, options.seekCss !== false);
 }
 
@@ -320,7 +341,10 @@ function toListTransition(el: HTMLElement, switchView: () => void, options: Opti
   const doc = el.ownerDocument;
   let switched = false, landing: SplashController | null = null, frame = 0;
   const doSwitch = () => { if (!switched) { switched = true; switchView(); } };
-  const life = lifecycle(el, { ...options, preserveFragment: true }, doSwitch);
+  const life = lifecycle(el, { ...options, preserveFragment: true }, (skipped) => {
+    doSwitch();
+    if (!skipped) doc.dispatchEvent(new Event(HERO_READY_EVENT));
+  });
   life.t0 = Number(doc.timeline.currentTime);
   const screenTracks: Animation[] = [];
   let clock: Animation | undefined;
@@ -390,7 +414,7 @@ export function createListTransition(switchView: () => void, onDone?: () => void
   const overlay = document.createElement("div");
   overlay.className = "splash splash--list";
   overlay.setAttribute("aria-hidden", "true");
-  overlay.innerHTML = mapOverlayMarkup(trailheadIntro.heading, "splash-list");
+  overlay.innerHTML = mapOverlayMarkup(listTrailheadIntro.heading, "splash-list");
   for (const [name, value] of Object.entries(mapAssetStyles)) overlay.style.setProperty(name, value);
   document.body.prepend(overlay);
   let switched = false;
@@ -535,7 +559,7 @@ export function createClimbTransition(switchView: () => void, onDone?: () => voi
   const overlay = document.createElement("div");
   overlay.className = "splash splash--climb";
   overlay.setAttribute("aria-hidden", "true");
-  overlay.innerHTML = mapOverlayMarkup(trailheadIntro.heading, "splash-climb");
+  overlay.innerHTML = mapOverlayMarkup(listTrailheadIntro.heading, "splash-climb");
   for (const [name, value] of Object.entries(mapAssetStyles)) overlay.style.setProperty(name, value);
   try { return toClimbTransition(overlay, switchView, { onDone }); }
   catch { (overlay as SplashElement).splashController?.skip(); overlay.remove(); switchView(); onDone?.(); return null; }

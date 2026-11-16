@@ -1,0 +1,33 @@
+/* THROWAWAY controls and decorative motion pieces; opt-in development only. */
+html .splash.splash--prototype { display: block; }
+.splash-greeting:has(.prototype-reveal-letter) { isolation: isolate; }
+.prototype-reveal-letter { will-change: transform, opacity; z-index: 1; }
+.prototype-paper-fold { background-image: linear-gradient(to bottom, transparent 80%, #8b442812 97%, #8b44282b); border-bottom: 1px solid #8b44282b; pointer-events: none; position: absolute; transform-origin: 50% 100%; z-index: 3; }
+.prototype-trail-cue { height: calc(100% + 40px); left: 0; overflow: visible; pointer-events: none; position: absolute; top: 0; width: calc(100% + 100px); z-index: 0; }
+.hero-reveal-controls { background: #173f35; border: 1px solid #d8d4c480; border-radius: 12px; bottom: 10px; box-shadow: 0 5px 28px #0003; color: #fffbed; font-family: var(--font-manrope), sans-serif; left: 50%; max-width: calc(100vw - 20px); padding: 4px; position: fixed; transform: translateX(-50%); width: max-content; z-index: 120; }
+.prototype-control-row { align-items: center; display: flex; gap: 3px; }
+.hero-reveal-controls button { background: transparent; border: 1px solid #d8d4c450; border-radius: 7px; color: #fffbed; cursor: pointer; font: inherit; font-size: 12px; min-height: 30px; min-width: 30px; padding: 4px 8px; white-space: nowrap; }
+.hero-reveal-controls button:hover { background: #285d4f; }
+.hero-reveal-controls :is(button, select):focus-visible { outline: 2px solid #e0a07a; outline-offset: 2px; }
+.hero-reveal-controls .prototype-current { border-color: transparent; font-size: 11px; min-width: 11rem; text-align: left; }
+.prototype-current > span { color: #d8d4c4; font-size: 10px; margin-left: 0.6rem; }
+.prototype-options { border-top: 1px solid #d8d4c440; margin-top: 5px; padding: 8px; }
+.prototype-pickers { align-items: end; display: flex; gap: 10px; }
+.prototype-pickers label { display: grid; font-size: 10px; gap: 4px; }
+.prototype-pickers select { background: #fffbed; border: 0; border-radius: 5px; color: #173f35; font: inherit; font-size: 12px; min-height: 34px; padding: 4px 8px; }
+.hero-reveal-controls .prototype-replay { background: #fffbed; color: #173f35; min-height: 34px; }
+.prototype-options > p, .prototype-status { color: #e9e1cc; font-size: 10px; line-height: 1.5; margin: 6px 0 0; }
+.prototype-status { display: none; padding: 0 8px 4px; }
+.is-expanded .prototype-status { display: block; }
+@media (max-width: 600px) {
+  .prototype-current > span { margin-left: 0.3rem; }
+  .hero-reveal-controls .prototype-current { min-width: 0; font-size: 10px; padding-inline: 4px; }
+  .prototype-pickers { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+  .prototype-pickers select { max-width: 100%; min-width: 0; width: 100%; }
+  .prototype-pickers .prototype-replay { grid-column: 1 / -1; }
+  .hero-reveal-controls.is-expanded { width: calc(100vw - 20px); }
+  .prototype-options > p { max-width: 32ch; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prototype-reveal-letter { will-change: auto; }
+}
