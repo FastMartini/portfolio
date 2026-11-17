@@ -4,10 +4,25 @@ import type { SplashElement } from "../../components/splash/controller";
 
 export async function seekIntro(page: Page, time: number, selector = "body > .splash:not(.splash--climb)") {
   const overlay = page.locator(selector);
-  await expect.poll(() => overlay.evaluate((el: SplashElement) => Boolean(el.splashController))).toBe(true);
-  await overlay.evaluate((el: SplashElement) => el.splashController!.seek(0));
+  await expect.poll(() => overlay.evaluate((el: SplashElement) => {
+    if (!el.splashController) return false;
+    el.splashController.seek(0);
+    return true;
+  })).toBe(true);
   await page.evaluate(() => document.fonts.ready);
   await overlay.evaluate((el: SplashElement, time) => el.splashController!.seek(time), time);
+}
+
+export async function holdOpening(page: Page) {
+  await page.addInitScript(() => {
+    const observer = new MutationObserver(() => {
+      const overlay = document.querySelector<SplashElement>("body > .splash:not(.splash--climb)");
+      if (!overlay?.splashController) return;
+      overlay.splashController.seek(0);
+      observer.disconnect();
+    });
+    observer.observe(document, { childList: true, subtree: true, attributes: true });
+  });
 }
 
 export async function holdNextTransition(page: Page, selector = ".splash--climb") {

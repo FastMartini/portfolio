@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { OPEN } from "../components/splash/controller";
-import { imageDifference, seekIntro } from "./helpers/splash";
+import { holdOpening, imageDifference, seekIntro } from "./helpers/splash";
 
 async function tabToLink(page: Page, browserName: string) {
   // Safari on macOS uses Option+Tab for links when full keyboard access is off.
@@ -157,8 +157,10 @@ for (const viewport of [
   { width: 768, height: 1024 }, { width: 1024, height: 768 }, { width: 1440, height: 900 },
 ]) {
   test(`map handling, blank paper and aligned greeting at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
+    if (testInfo.project.name === "webkit-adaptive") test.slow();
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "no-preference" });
+    await holdOpening(page);
     await page.goto("./");
     await seekIntro(page, 1400);
     const folded = await page.screenshot({ path: testInfo.outputPath("01-folded.png") });
@@ -279,6 +281,7 @@ test("an eligible intro still exits in CSS when client bundles cannot hydrate", 
 
 test("switching to reduced motion during the zoom restores the reading view immediately", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
+  await holdOpening(page);
   await page.goto("./");
   await expect(page.locator(".climb-view-toggle")).toBeVisible();
   await seekIntro(page, 4050);

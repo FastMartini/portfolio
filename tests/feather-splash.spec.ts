@@ -63,7 +63,8 @@ for (const theme of ["light", "dark"] as const) {
   }
 }
 
-test("fresh dark-device visit paints Light immediately and manual choices survive reload", async ({ page }) => {
+test("fresh dark-device visit paints Light immediately and manual choices survive reload", async ({ page, browserName }) => {
+  if (browserName === "webkit") test.slow();
   await page.emulateMedia({ colorScheme: "dark" });
   await page.addInitScript(() => {
     const paints: { theme?: string; background: string }[] = [];
@@ -75,7 +76,7 @@ test("fresh dark-device visit paints Light immediately and manual choices surviv
     requestAnimationFrame(sample);
   });
   await page.goto("./");
-  await expect.poll(() => page.evaluate(() => Reflect.get(window, "firstThemePaints").length)).toBe(8);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "firstThemePaints").length), { timeout: 15_000 }).toBe(8);
   expect(await page.evaluate(() => Reflect.get(window, "firstThemePaints"))).toEqual(Array(8).fill({ theme: "light", background: paper }));
   await page.keyboard.press("Escape");
   expect(await page.evaluate(() => localStorage.getItem("portfolio-theme"))).toBeNull();

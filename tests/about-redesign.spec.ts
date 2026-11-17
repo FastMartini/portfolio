@@ -11,6 +11,24 @@ async function settleTrail(page: Page) {
   }, { intervals: [50] }).toBeGreaterThanOrEqual(3);
 }
 
+test("the trail catches up after a delayed animation frame", async ({ page }) => {
+  const epoch = new Date("2026-01-01T00:00:00Z");
+  await page.clock.install({ time: epoch });
+  await page.goto("./#trailhead");
+  await expect(page.locator("#main-content")).toHaveClass(/journey-trail-motion/);
+  await page.evaluate(() => document.fonts.ready);
+  await page.clock.pauseAt(new Date(epoch.getTime() + 60_000));
+  await page.evaluate(() => {
+    window.scrollTo(0, document.documentElement.scrollHeight);
+    window.dispatchEvent(new Event("scroll"));
+  });
+  await page.clock.runFor(16);
+  // One late frame models a software renderer that cannot paint at 60 Hz.
+  await page.clock.fastForward(1000);
+  await expect(page.locator(".journey-trail-line")).toHaveCSS("stroke-dashoffset", "0px");
+  await expect(page.locator(".about-pitch--teacher")).toHaveCSS("opacity", "1");
+});
+
 for (const width of [390, 1440]) {
   test(`pitch fades follow scroll position through pauses and reversals at ${width}px`, async ({ page }) => {
     test.setTimeout(90_000);

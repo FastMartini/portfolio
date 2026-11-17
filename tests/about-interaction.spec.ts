@@ -33,7 +33,8 @@ async function aboutContour(page: Page) {
   });
 }
 for (const width of [390, 1440]) {
-  test(`About contours and braid share click-only sound and mute at ${width}px`, async ({ browser, baseURL }) => {
+  test(`About contours and braid share click-only sound and mute at ${width}px`, async ({ browser, browserName, baseURL }) => {
+    if (browserName === "webkit") test.slow();
     const context = await browser.newContext({ baseURL, hasTouch: true, viewport: { width, height: 900 } });
     const page = await context.newPage(); await audioProbe(page); await page.goto("./#about");
     const point = await aboutContour(page), notes = () => page.evaluate(() => Reflect.get(window, "aboutNotes"));

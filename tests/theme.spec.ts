@@ -95,11 +95,14 @@ for (const feature of ["MutationObserver", "requestAnimationFrame"] as const) {
 }
 
 test("rapid reversals keep rendered surfaces and text continuous and honor the last choice", async ({ page }) => {
+  // Install before application timers exist so every frame uses the same clock.
+  const epoch = new Date("2026-01-01T00:00:00Z");
+  await page.clock.install({ time: epoch });
   await ready(page);
   await select(page, "dark");
+  await page.clock.pauseAt(new Date(epoch.getTime() + 60_000));
   // Exercise real browser colors on a reproducible 60 Hz clock. Sparse native
   // software painting is checked separately by the moving-frame paint tests.
-  await page.clock.install();
   await page.evaluate(() => {
     const header = document.querySelector(".site-header")!, heading = document.querySelector(".climb-list h1")!;
     const button = document.querySelector<HTMLButtonElement>(".theme-toggle")!;

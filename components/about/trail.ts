@@ -79,7 +79,7 @@ export function mountJourneyTrail(main: HTMLElement, svg: SVGSVGElement) {
   function tick(now: number) { try { renderFrame(now); } catch { cleanup(); } }
   function renderFrame(now: number) {
     frame = 0;
-    const dt = Math.min(64, now - (last || now - 16)); last = now;
+    const dt = Math.max(0, now - (last || now - 16)); last = now;
     const goal = target(now), tau = shown < floor - 4 ? 35 : 90;
     shown = reduce.matches ? goal : shown + (goal - shown) * (1 - Math.exp(-dt / tau));
     if (Math.abs(goal - shown) < 0.5) shown = goal;
