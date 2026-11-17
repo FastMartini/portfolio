@@ -202,7 +202,10 @@ for (const [width, height] of [[320, 900], [390, 900], [768, 900], [900, 900], [
 
 for (const width of [390, 1440]) {
   test(`scroll trail follows fast bursts, lights pitches and completes at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 }); await page.goto("./#trailhead");
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript(() => sessionStorage.setItem("splash-seen", "1"));
+    await page.goto("./");
+    await page.evaluate(() => document.fonts.ready);
     await expect(page.locator("#main-content")).toHaveClass(/journey-trail-motion/);
     // On phones the existing route starts below the first reading line.
     // Native scroll jumps model large trackpad bursts independently of optional wheel glide.

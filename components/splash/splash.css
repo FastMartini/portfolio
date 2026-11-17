@@ -207,6 +207,6 @@ html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
 /* Reduced motion opens the complete reading surface on the first frame,
    including before hydration and with JavaScript disabled. */
 @media (prefers-reduced-motion: reduce) {
-  html .splash { display: none; animation: none; }
+  html[data-splash] .splash { display: none; animation: none; }
 }
 html[data-motion="reduce"] .splash { display: none; animation: none; }

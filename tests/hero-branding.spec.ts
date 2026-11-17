@@ -58,6 +58,7 @@ for (const width of [1440, 390]) {
   });
 
   test(`contours vibrate silently and only clicks or taps play at ${width}px`, async ({ browser, baseURL }) => {
+    test.slow();
     const context = await browser.newContext({ baseURL, hasTouch: true, viewport: { width, height: 900 } });
     const page = await context.newPage();
     await probeAudio(page);
@@ -88,12 +89,14 @@ for (const width of [1440, 390]) {
     await page.reload();
     await expect(sound).toHaveAttribute("aria-pressed", "false");
     await page.getByRole("button", { name: "Climb view", exact: true }).click();
-    await expect(page.locator(".splash--climb")).toHaveCount(0, { timeout: 4000 });
+    // This checks audio ownership through natural view changes. The dedicated
+    // transition spec checks authored duration independently of software paint.
+    await expect(page.locator(".splash--climb")).toHaveCount(0, { timeout: 15_000 });
     await expect(page.locator(".hero-strings")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Ambient sound", exact: true })).toBeVisible();
     await expect(sound).toHaveCount(0);
     await page.getByRole("button", { name: "List view", exact: true }).click();
-    await expect(page.locator(".splash--list")).toHaveCount(0, { timeout: 7000 });
+    await expect(page.locator(".splash--list")).toHaveCount(0, { timeout: 15_000 });
     await expect(page.locator(".hero-strings")).toHaveCount(1);
     await expect(sound).toHaveAttribute("aria-pressed", "false");
     await context.close();

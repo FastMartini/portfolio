@@ -279,6 +279,16 @@ test("an eligible intro still exits in CSS when client bundles cannot hydrate", 
 });
 
 
+test("live reduced motion hides the opening before client hydration", async ({ page }) => {
+  await page.route("**/_next/static/**/*.js", route => route.abort());
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("./");
+  await expect(page.locator(".splash")).toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect.poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
+  await expect(page.locator(".splash")).toBeHidden();
+});
+
 test("switching to reduced motion during the zoom restores the reading view immediately", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await holdOpening(page);

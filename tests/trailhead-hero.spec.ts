@@ -50,6 +50,19 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
 
 function browserTab(project: string) { return project.startsWith("webkit") && process.platform === "darwin" ? "Alt+Tab" : "Tab"; }
 
+test("reduced motion does not create a hero button transition", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("./#trailhead");
+  const animations = await page.locator("#trailhead .button-primary").evaluate(el => {
+    const button = el as HTMLElement;
+    void getComputedStyle(button).transform;
+    button.style.transform = "translateY(-2px)";
+    void getComputedStyle(button).transform;
+    return button.getAnimations().map(animation => animation.constructor.name);
+  });
+  expect(animations).toEqual([]);
+});
+
 for (const width of [1440, 390]) {
   for (const entry of ["opening", "return"] as const) {
     test(`${entry} brands the fixed greeting before starting the continuous scroll trail at ${width}px`, async ({ page }, info) => {

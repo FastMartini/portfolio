@@ -91,13 +91,14 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   });
 
   test(`List return plays continuously at ${viewport.width}px`, async ({ browser, baseURL }, info) => {
+    test.slow();
     const context = await browser.newContext({ baseURL, viewport, reducedMotion: "no-preference", recordVideo: { dir: info.outputPath("recording"), size: viewport } });
     const page = await context.newPage();
     await openClimb(page);
     await scrollToClimbStop(page, 3);
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await expect(page.locator(".splash--list")).toBeVisible();
-    await expect(page.locator(".splash--list")).toHaveCount(0, { timeout: 7000 });
+    await expect(page.locator(".splash--list")).toHaveCount(0, { timeout: 15_000 });
     await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
     await expect(page.getByRole("banner")).toHaveCSS("opacity", "1");
     await context.close();

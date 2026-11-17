@@ -12,8 +12,8 @@ async function audioProbe(page: Page) {
   });
 }
 async function aboutContour(page: Page) {
-  await page.locator("#about").evaluate(el => { const rect = el.getBoundingClientRect(); window.scrollTo(0, scrollY + rect.bottom - innerHeight + 10); });
   await page.evaluate(() => document.fonts.ready);
+  await page.locator("#about").evaluate(el => { const rect = el.getBoundingClientRect(); window.scrollTo(0, scrollY + rect.bottom - innerHeight + 10); });
   await expect(page.locator(".about-pitch--teacher")).toHaveClass(/is-shown/);
   await expect(page.locator(".about-pitch--teacher")).toHaveCSS("opacity", "1");
   await expect(page.locator(".about-pitch--teacher")).toHaveCSS("transform", "none");
@@ -36,7 +36,11 @@ for (const width of [390, 1440]) {
   test(`About contours and braid share click-only sound and mute at ${width}px`, async ({ browser, browserName, baseURL }) => {
     if (browserName === "webkit") test.slow();
     const context = await browser.newContext({ baseURL, hasTouch: true, viewport: { width, height: 900 } });
-    const page = await context.newPage(); await audioProbe(page); await page.goto("./#about");
+    const page = await context.newPage(); await audioProbe(page);
+    // This test positions the viewport itself; a late native fragment jump
+    // must not undo that position when WebKit finishes its first layout.
+    await page.addInitScript(() => sessionStorage.setItem("splash-seen", "1"));
+    await page.goto("./");
     const point = await aboutContour(page), notes = () => page.evaluate(() => Reflect.get(window, "aboutNotes"));
     await page.mouse.move(point.x - 15, point.y - 20); await page.mouse.move(point.x + 15, point.y + 20, { steps: 8 });
     expect(await notes()).toBe(0); expect(await page.evaluate(() => Reflect.get(window, "aboutContexts"))).toBe(0);

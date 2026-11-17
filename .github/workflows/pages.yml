@@ -16,14 +16,14 @@ concurrency:
 
 jobs:
   browser-tests:
-    name: ${{ matrix.project }} (${{ matrix.shard }}/2)
+    name: ${{ matrix.project }} (${{ matrix.shard }}/4)
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         project: ${{ fromJSON(github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && '["chromium"]' || '["chromium", "firefox-adaptive", "webkit-adaptive"]') }}
-        shard: ${{ fromJSON(github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && '[1]' || '[1, 2]') }}
+        shard: ${{ fromJSON(github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && '[1]' || '[1, 2, 3, 4]') }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -63,7 +63,7 @@ jobs:
 
       - name: Test the production static export
         if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
-        run: npm test -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
+        run: npm test -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}/4
 
       - name: Verify custom-domain metadata and routing without a project base path
         if: matrix.shard == 1 && (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main')
