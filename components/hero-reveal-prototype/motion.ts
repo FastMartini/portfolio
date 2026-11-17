@@ -1,9 +1,14 @@
-// THROWAWAY: four greeting motions on the existing List View; layout stays fixed.
+import { BRAND, brandGreeting } from "./brand";
+
+// THROWAWAY: greeting motions on the existing List View; layout stays fixed.
+// shift: extra ms added to every handoff clock after the greeting (wipe, swap, overlay end).
+// lead: when intro + actions begin rising, relative to greeting start.
 export const revealVariants = [
-  { id: "letterpress", name: "Letterpress", duration: 1080, detail: "Ripple → first-line beat → faster second line → period." },
-  { id: "trail-drawn", name: "Trail-drawn reveal", duration: 1100, detail: "Copper cue → nearby letters → onward along the route." },
-  { id: "paper-fold", name: "Paper-fold reveal", duration: 1040, detail: "Upper fold → lower fold; the lettering stays anchored." },
-  { id: "trail-sign", name: "Trail sign", duration: 960, detail: "Howdy settles as one piece → tighter letter rise." },
+  { id: "letterpress", name: "Letterpress", duration: 1080, lead: 1080, shift: 0, detail: "Ripple → first-line beat → faster second line → period." },
+  { id: "trail-drawn", name: "Trail-drawn reveal", duration: 1100, lead: 1100, shift: 0, detail: "Copper cue → nearby letters → onward along the route." },
+  { id: "paper-fold", name: "Paper-fold reveal", duration: 1040, lead: 1040, shift: 0, detail: "Upper fold → lower fold; the lettering stays anchored." },
+  { id: "trail-sign", name: "Trail sign", duration: 960, lead: 960, shift: 0, detail: "Howdy settles as one piece → tighter letter rise." },
+  { id: "branding-iron", name: "Branding iron", duration: BRAND.settle, lead: BRAND.lead, shift: BRAND.shift, detail: "Howdy, pressed white-hot → full beat → I'm Diego. pressed → both cool to ink. Stays debossed. Contour lines are bluesy guitar strings." },
 ] as const;
 export type RevealVariant = typeof revealVariants[number]["id"];
 export function activeReveal() {
@@ -47,7 +52,9 @@ export function prototypeReveal(paper: HTMLElement, page: HTMLElement, add: Add)
     const lines = [...copy.querySelectorAll<HTMLElement>(".trailhead-title-line")];
     const first = [...lines[0].querySelectorAll<HTMLElement>(".prototype-reveal-letter")];
     const second = [...lines[1].querySelectorAll<HTMLElement>(".prototype-reveal-letter")];
-    if (variant.id === "letterpress") {
+    if (variant.id === "branding-iron") {
+      brandGreeting(copy, start, add, copy === paper);
+    } else if (variant.id === "letterpress") {
       first.forEach((letter, i) => rise(letter, i * 42, 200, 3, true));
       second.forEach((letter, i) => rise(letter, i === second.length - 1 ? 1000 : 530 + i * 38, i === second.length - 1 ? 80 : 160, 2, true));
     } else if (variant.id === "trail-drawn") {
@@ -102,6 +109,6 @@ export function prototypeReveal(paper: HTMLElement, page: HTMLElement, add: Add)
   document.querySelectorAll(".trailhead-trail").forEach(trail => add(trail,
     [{ strokeDasharray: "1", strokeDashoffset: 1 }, { strokeDasharray: "1", strokeDashoffset: 0 }],
     { delay: end, duration: 750, fill: "both", easing: "cubic-bezier(0.3, 0, 0.2, 1)" }));
-  for (const target of document.querySelectorAll(".trailhead-lead, .trailhead-actions")) rise(target, variant.duration, 320, 5);
+  for (const target of document.querySelectorAll(".trailhead-lead, .trailhead-actions")) rise(target, variant.lead, 320, 5);
   return variant;
 }

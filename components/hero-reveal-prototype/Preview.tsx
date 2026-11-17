@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { revealVariants } from "./motion";
+import { mountHeroInteraction } from "./strum";
 import type { RevealVariant } from "./motion";
 import { startSplash } from "../splash/controller";
 import type { SplashElement } from "../splash/controller";
@@ -10,7 +11,7 @@ import { listTrailheadIntro } from "../../content/trailhead";
 import "./prototype.css";
 
 // THROWAWAY comparison on the real homepage, opt-in via ?variant=letterpress
-// (or trail-drawn / paper-fold / trail-sign). No winning default is selected.
+// (or trail-drawn / paper-fold / trail-sign / branding-iron). No winning default is selected.
 export function HeroRevealPreview() {
   const [variant, setVariant] = useState<RevealVariant | null>(null);
   const [entry, setEntry] = useState<"opening" | "climb">("opening");
@@ -97,17 +98,24 @@ export function HeroRevealPreview() {
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       event.preventDefault();
       const index = revealVariants.findIndex(value => value.id === document.documentElement.dataset.revealVariant);
-      chooseRef.current(revealVariants[(index + (event.key === "ArrowRight" ? 1 : 3)) % 4].id);
+      chooseRef.current(revealVariants[(index + (event.key === "ArrowRight" ? 1 : revealVariants.length - 1)) % revealVariants.length].id);
     };
     window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey);
   }, []);
+  // The strummable contour strings belong to the Branding iron direction only.
+  // Their sound is switched from the nav icon (HeroSoundToggle).
+  useEffect(() => {
+    if (variant !== "branding-iron") return;
+    const mounted = mountHeroInteraction(document);
+    return () => mounted.dispose();
+  }, [variant]);
   if (!chosen || !variant) return null;
   const index = revealVariants.findIndex(value => value.id === variant);
   return <aside className={`hero-reveal-controls ${expanded ? "is-expanded" : ""}`} data-hero-reveal-controls data-theme-root aria-label="Temporary greeting reveal comparison">
     <div className="prototype-control-row">
-      <button type="button" aria-label="Previous reveal" onClick={() => choose(revealVariants[(index + 3) % 4].id)}>←</button>
-      <button type="button" className="prototype-current" aria-expanded={expanded} aria-controls="reveal-options" onClick={() => setExpanded(value => !value)}>{index + 1}/4 · {chosen.name} <span>{expanded ? "▾" : "Controls ▴"}</span></button>
-      <button type="button" aria-label="Next reveal" onClick={() => choose(revealVariants[(index + 1) % 4].id)}>→</button>
+      <button type="button" aria-label="Previous reveal" onClick={() => choose(revealVariants[(index + revealVariants.length - 1) % revealVariants.length].id)}>←</button>
+      <button type="button" className="prototype-current" aria-expanded={expanded} aria-controls="reveal-options" onClick={() => setExpanded(value => !value)}>{index + 1}/{revealVariants.length} · {chosen.name} <span>{expanded ? "▾" : "Controls ▴"}</span></button>
+      <button type="button" aria-label="Next reveal" onClick={() => choose(revealVariants[(index + 1) % revealVariants.length].id)}>→</button>
       <button type="button" aria-label="Replay map handoff" onClick={() => void replay(variant)}>↻</button>
     </div>
     {expanded && <div id="reveal-options" className="prototype-options">

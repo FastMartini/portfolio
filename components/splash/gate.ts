@@ -6,7 +6,7 @@ const homePaths = JSON.stringify([basePath || "/", `${basePath}/`]);
 export const SPLASH_GATE_SCRIPT = `(()=>{
   if(${JSON.stringify(process.env.NODE_ENV === "development")}){
     const variant=new URLSearchParams(location.search).get("variant");
-    if(["letterpress","trail-drawn","paper-fold","trail-sign"].includes(variant))document.documentElement.dataset.revealVariant=variant;
+    if(["letterpress","trail-drawn","paper-fold","trail-sign","branding-iron"].includes(variant))document.documentElement.dataset.revealVariant=variant;
   }
   try{document.documentElement.dataset.motion=matchMedia("(prefers-reduced-motion: reduce)").matches?"reduce":"full"}catch{}
   if(document.documentElement.dataset.motion==="reduce"||location.hash||!${homePaths}.includes(location.pathname)){

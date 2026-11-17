@@ -61,7 +61,7 @@ export function ListView() {
           <p className="trailhead-lead">{listTrailheadIntro.lead}</p>
           <div className="trailhead-actions">
             <ResumeLink className="button button-primary">
-              Resume <ArrowIcon />
+              Resume
             </ResumeLink>
             <a className="button button-secondary" href="#summit">
               Contact me

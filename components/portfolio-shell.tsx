@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "./theme/ThemeToggle";
+import { HeroSoundToggle } from "./hero-reveal-prototype/HeroSoundToggle";
 import { AmbientSoundToggle } from "./climb/AmbientSound";
 
 type ShellLink = {
@@ -55,6 +56,7 @@ export function PortfolioHeader({
         </div>
         <div className="site-header-controls">
           <AmbientSoundToggle />
+          {process.env.NODE_ENV === "development" && <HeroSoundToggle />}
           <ThemeToggle />
           {action}
         </div>
