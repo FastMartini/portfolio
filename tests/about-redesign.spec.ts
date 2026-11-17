@@ -1,7 +1,102 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { enterClimb, scrollToClimbStop } from "./helpers/climb";
 
+async function settleTrail(page: Page) {
+  let previous = Number.NaN, stable = 0;
+  await expect.poll(async () => {
+    const offset = await page.locator(".journey-trail-line").evaluate(el => Number.parseFloat(getComputedStyle(el).strokeDashoffset));
+    stable = Math.abs(offset - previous) < 0.1 ? stable + 1 : 0;
+    previous = offset;
+    return stable;
+  }, { intervals: [50] }).toBeGreaterThanOrEqual(3);
+}
+
 for (const width of [390, 1440]) {
+  test(`pitch fades follow scroll position through pauses and reversals at ${width}px`, async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("./#trailhead");
+    await expect(page.locator("#main-content")).toHaveClass(/journey-trail-motion/);
+    await page.evaluate(() => document.fonts.ready);
+    await settleTrail(page);
+
+    for (const pitch of await page.locator(".about-pitch").all()) {
+      // Find the middle of the existing lead-in to this pitch's trail pin.
+      const range = await pitch.evaluate(el => {
+        const index = [...document.querySelectorAll(".about-pitch")].indexOf(el);
+        const line = document.querySelector<SVGPathElement>(".journey-trail-line")!;
+        const pin = document.querySelectorAll(".trail-pin")[index];
+        const y = Number(pin.getAttribute("cy")), length = line.getTotalLength();
+        let lo = 0, hi = length;
+        for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (line.getPointAtLength(mid).y < y) lo = mid; else hi = mid; }
+        const midpoint = (lo + hi) / 2 - length * 0.0175;
+        return { midpoint, y: line.ownerSVGElement!.getBoundingClientRect().top + scrollY + line.getPointAtLength(midpoint).y };
+      });
+      let low = Math.max(0, range.y - 725), high = range.y - 445;
+      for (let i = 0; i < 12; i++) {
+        const position = Math.round((low + high) / 2);
+        await page.evaluate(y => window.scrollTo(0, y), position);
+        await settleTrail(page);
+        const shown = await page.locator(".journey-trail-line").evaluate((line: SVGPathElement) => line.getTotalLength() - Number.parseFloat(getComputedStyle(line).strokeDashoffset));
+        if (Math.abs(shown - range.midpoint) < 2) break;
+        if (shown < range.midpoint) low = position; else high = position;
+      }
+      const middleY = await page.evaluate(() => scrollY);
+      const opacity = () => pitch.evaluate(el => Number(getComputedStyle(el).opacity));
+      const middle = await opacity();
+      expect(middle).toBeGreaterThan(0.35);
+      expect(middle).toBeLessThan(0.85);
+
+      await page.waitForTimeout(650);
+      expect(await opacity()).toBeCloseTo(middle, 2);
+      for (const delta of [25, -25, 0]) {
+        await page.evaluate(y => window.scrollTo(0, y), middleY + delta);
+        await settleTrail(page);
+        const value = await opacity();
+        if (delta > 0) expect(value).toBeGreaterThan(middle);
+        else if (delta < 0) expect(value).toBeLessThan(middle);
+        else expect(value).toBeCloseTo(middle, 2);
+        // A small scroll can cross an endpoint where the trail is nearly horizontal.
+        expect(value).toBeGreaterThanOrEqual(0.22);
+        expect(value).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+}
+
+for (const width of [390, 1440]) {
+  for (const reducedMotion of ["no-preference", "reduce"] as const) {
+    for (const key of ["ArrowRight", "ArrowLeft"]) {
+      test(`ring keeps focus from the video poster at ${width}px with ${reducedMotion} and ${key}`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ reducedMotion });
+        await page.goto("./#about");
+        const ring = page.getByRole("region", { name: "Hackathon projects" });
+        await expect(ring).toHaveAttribute("data-ring-ready", "true");
+        await ring.getByRole("button", { name: "Show project 3: Veritas" }).focus();
+        await page.keyboard.press("Enter");
+        await expect(ring.locator(".ring-count")).toHaveText("03 / 05");
+        const stage = ring.locator(".ring-stage");
+        await ring.locator(".ring-poster").focus();
+        await expect(ring.locator(".ring-poster")).toBeFocused();
+
+        await page.keyboard.press(key);
+        await expect(ring.locator(".ring-count")).toHaveText(key === "ArrowRight" ? "04 / 05" : "02 / 05");
+        await expect(stage).toBeFocused();
+        await expect(ring.locator(".ring-card").nth(2)).toHaveAttribute("inert", "");
+        await page.keyboard.press(key);
+        await expect(ring.locator(".ring-count")).toHaveText(key === "ArrowRight" ? "05 / 05" : "01 / 05");
+        await expect(stage).toBeFocused();
+
+        const next = ring.getByRole("button", { name: "Next project", exact: true });
+        await next.focus();
+        await page.keyboard.press("Enter");
+        await expect(ring.locator(".ring-count")).toHaveText(key === "ArrowRight" ? "01 / 05" : "02 / 05");
+        await expect(next).toBeFocused();
+      });
+    }
+  }
+
   test(`About pitches and rings work with buttons, dots and keyboard at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("./#about");

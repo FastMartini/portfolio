@@ -2,7 +2,7 @@
 .mountain-journey .about { padding-bottom: 8rem; }
 .about-top { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr); gap: clamp(2rem, 8vw, 8rem); margin-top: clamp(5rem, 12vh, 9rem); position: relative; }
 .about-pitches { column-gap: 1.5rem; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); list-style: none; margin: clamp(5rem, 13vw, 12rem) 0 0; padding: 0; position: relative; row-gap: clamp(3rem, 10vw, 9rem); }
-.about-pitch { grid-column: 1 / span 5; max-width: 34rem; position: relative; transition: opacity 500ms ease, transform 500ms ease; }
+.about-pitch { grid-column: 1 / span 5; max-width: 34rem; position: relative; }
 .about-pitch-copy { display: flex; flex-direction: column; gap: 0.7rem; min-width: 0; }
 .about-pitch h3 { color: #e0a07a; font-family: var(--font-newsreader), serif; font-size: 1.3rem; font-style: italic; font-weight: 400; margin: 0; width: fit-content; }
 .about-stat { font-family: var(--font-newsreader), serif; font-size: clamp(2.3rem, 3.4vw, 3rem); letter-spacing: -0.03em; line-height: 1; margin: 0; }
@@ -91,7 +91,7 @@ html[data-theme="dark"] [data-theme-root] { --trail: #e3a983; }
 .has-journey-trail .about-pin { visibility: hidden; }
 .trail-pin { fill: rgba(255,251,237,0.28); stroke: var(--deep); stroke-width: 2; transition: fill 300ms ease; }
 .trail-pin.is-lit { fill: var(--trail); }
-.journey-trail-motion .about-pitch:not(.is-shown) { opacity: 0.22; transform: translateY(14px); transition: none; }
+.journey-trail-motion .about-pitch:not(.is-shown) { opacity: calc(0.22 + 0.78 * var(--pitch-progress, 0)); transform: translateY(calc(14px * (1 - var(--pitch-progress, 0)))); }
 .journey-trail-motion .about-pitch:focus-within { opacity: 1; transform: none; }
 .waypoint-marker.is-reached { background: #173f35; border-color: #173f35; color: #fffbed; }
 /* The solid trail arrives at 01; its dotted continuation begins under the

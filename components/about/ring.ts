@@ -19,7 +19,11 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
     const index = ((Math.round(-angle / step) % cards.length) + cards.length) % cards.length;
     if (index !== current) {
       current = index;
-      cards.forEach((card, i) => { card.inert = i !== index; card.setAttribute("aria-hidden", String(i !== index)); });
+      cards.forEach((card, i) => {
+        const hidden = i !== index;
+        if (hidden && card.contains(document.activeElement)) stage.focus({ preventScroll: true });
+        card.inert = hidden; card.setAttribute("aria-hidden", String(hidden));
+      });
       onFront(index);
     }
   }

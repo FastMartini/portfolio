@@ -66,7 +66,13 @@ export function mountJourneyTrail(main: HTMLElement, svg: SVGSVGElement) {
     head.setAttribute("opacity", !reduce.matches && ready && shown > 2 && shown < geo.length - 2 ? "1" : "0");
     head.setAttribute("cx", String(p.x)); head.setAttribute("cy", String(p.y));
     pins.forEach((pin, i) => pin.classList.toggle("is-lit", reduce.matches || shown >= geo!.pins[i].length - 1));
-    geo.pitches.forEach((pitch, i) => pitch.classList.toggle("is-shown", reduce.matches || shown >= geo!.pins[i].length - geo!.length * 0.035));
+    const revealRange = geo.length * 0.035;
+    geo.pitches.forEach((pitch, i) => {
+      // Use the same trail lead-in in either direction, without a timed reveal.
+      const progress = reduce.matches ? 1 : clamp((shown - geo!.pins[i].length + revealRange) / revealRange);
+      pitch.style.setProperty("--pitch-progress", String(progress));
+      pitch.classList.toggle("is-shown", progress === 1);
+    });
     geo.marker.classList.toggle("is-reached", shown >= geo.length - 2);
     braid?.paint(shown, reduce.matches);
   }
@@ -87,7 +93,7 @@ export function mountJourneyTrail(main: HTMLElement, svg: SVGSVGElement) {
     stopped = true;
     for (const stop of [() => abort.abort(), () => resize?.disconnect(), () => theme?.disconnect(), () => splash?.disconnect(), () => cancelAnimationFrame(frame), () => cancelAnimationFrame(rebuildFrame)]) { try { stop(); } catch { /* Release the other resources after an optional API failure. */ } }
     main.classList.remove("has-journey-trail", "journey-trail-motion");
-    geo?.pitches.forEach(pitch => pitch.classList.remove("is-shown")); geo?.marker.classList.remove("is-reached");
+    geo?.pitches.forEach(pitch => { pitch.classList.remove("is-shown"); pitch.style.removeProperty("--pitch-progress"); }); geo?.marker.classList.remove("is-reached");
     group.replaceChildren(); line.removeAttribute("d");
   };
   try {
