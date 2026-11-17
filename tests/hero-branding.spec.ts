@@ -176,17 +176,14 @@ test("an idle guitar keeps the native output ready without starting another soun
   await page.goto("./#trailhead"); await expect(page.locator(".hero-strings")).toHaveCount(1);
   const point = await contourPoint(page); await page.mouse.click(point.x, point.y);
   await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(5000);
   const finished = new Promise<void>(resolve => session.once("Tracing.tracingComplete", () => resolve()));
   await session.send("Tracing.end"); await finished;
   // This is the browser's actual idle-device decision, rather than an assertion
   // about a particular graph implementation or a flaky hardware timing limit.
-  expect(events.some(event => {
-    const args = event.args;
-    return event.name === "AudioDestination::SetDetectSilence" && typeof args === "object" && args !== null
-      && "detect_silence" in args && args.detect_silence === false;
-  })).toBe(true);
-  await page.waitForTimeout(4500);
+  const decision = events.filter(event => event.name === "AudioDestination::SetDetectSilence").at(-1);
+  const args = decision?.args;
+  expect(typeof args === "object" && args !== null && "detect_silence" in args && args.detect_silence === false).toBe(true);
   expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
 });
 
