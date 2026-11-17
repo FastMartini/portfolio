@@ -38,3 +38,5 @@ The supplied Teacher images contain other people's names and faces, including th
 - Without a project base path, all 32 About cases passed; after fixing Safari's deferred back-facing images, all 28 metadata/asset/routing checks passed.
 - The real Veritas iframe returned HTTP 200, created its video player and advanced to two seconds inside the card. Automated checks also verify that turning away unloads the iframe.
 - Local Firefox cannot launch because its installed browser reports “Could not find profile folder”; the full GitHub Actions run includes Firefox. The PR's current check status remains the authority for merge readiness.
+
+Linux visual references were captured on commit `8202fe8` by [run 44062248483](https://github.com/FastMartini/portfolio/actions/runs/44062248483): **22 passed**. Only the four changed List View hero/Waypoint references were copied from that artifact; other visual references are retained.
