@@ -39,9 +39,6 @@ export function revealGreeting(paper: HTMLElement, page: HTMLElement, add: Add, 
     lines.forEach(line => add(line,
       [{ opacity: 1 }, { opacity: 0 }], { delay: end, duration: 1, fill: "forwards" }));
   }
-  document.querySelectorAll(".trailhead-trail").forEach(trail => add(trail,
-    [{ strokeDasharray: "1", strokeDashoffset: 1 }, { strokeDasharray: "1", strokeDashoffset: 0 }],
-    { delay: end, duration: 750, fill: "both", easing: "cubic-bezier(0.3, 0, 0.2, 1)" }));
   document.querySelectorAll("#trailhead .trailhead-lead, #trailhead .trailhead-actions").forEach(target => add(target,
     [{ opacity: 0, translate: "0 5px" }, { opacity: 1, translate: "0 0" }],
     { delay: end, duration: 320, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" }));

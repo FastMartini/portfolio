@@ -7,7 +7,7 @@ test("external links preserve the portfolio in its tab without JavaScript", asyn
   const page = await context.newPage();
   await page.goto("./#summit");
   const originalURL = page.url();
-  const devpost = page.getByRole("link", { name: /Devpost/ });
+  const devpost = page.locator("#summit, [data-card=\"9\"]").getByRole("link", { name: /Devpost/ });
   await expect(devpost).toHaveAttribute("target", "_blank");
   const popupPromise = page.waitForEvent("popup");
   await devpost.click();
@@ -40,7 +40,7 @@ test("Climb contact links open a new tab without losing the Summit", async ({ pa
   await openClimb(page);
   await scrollToClimbStop(page, 9);
   const originalURL = page.url();
-  const devpost = page.getByRole("link", { name: /Devpost/ });
+  const devpost = page.locator("#summit, [data-card=\"9\"]").getByRole("link", { name: /Devpost/ });
   await expect(devpost).toHaveAttribute("target", "_blank");
   const popupPromise = page.waitForEvent("popup");
   await devpost.click();

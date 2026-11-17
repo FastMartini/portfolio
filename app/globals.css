@@ -63,9 +63,9 @@ a:focus-visible { outline: 3px solid var(--copper); outline-offset: 5px; }
   opacity: 0.16; position: absolute;
 }
 .trailhead-route { fill: none; height: 100%; inset: 0; position: absolute; width: 100%; }
-.trailhead-trail { opacity: 0.72; stroke: var(--ink-accent); stroke-dasharray: none; stroke-dashoffset: 0; stroke-linecap: round; stroke-width: 1.5; }
+.trailhead-trail { opacity: 1; stroke: var(--trail, var(--ink-accent)); stroke-dasharray: none; stroke-dashoffset: 0; stroke-linecap: round; stroke-width: 1.5; }
 .trailhead-route--phone, .trailhead-route--compact { display: none; }
-html[data-splash="active"] .trailhead-trail { stroke-dasharray: 1; stroke-dashoffset: 1; }
+
 @media (max-width: 600px) {
   .trailhead-route--wide { display: none; }
   .trailhead-route--phone { bottom: 0; display: block; height: clamp(8rem, 26svh, 14rem); top: auto; }

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { openClimb } from "./helpers/climb";
-import { holdNextTransition, imageDifference, seekIntro } from "./helpers/splash";
+import { holdNextTransition, seekIntro } from "./helpers/splash";
 import { OPEN, LIST } from "../components/splash/controller";
 import type { SplashElement } from "../components/splash/controller";
 
@@ -52,7 +52,7 @@ function browserTab(project: string) { return project.startsWith("webkit") && pr
 
 for (const width of [1440, 390]) {
   for (const entry of ["opening", "return"] as const) {
-    test(`${entry} brands the fixed greeting and completes the trail once at ${width}px`, async ({ page }, info) => {
+    test(`${entry} brands the fixed greeting before starting the continuous scroll trail at ${width}px`, async ({ page }, info) => {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ reducedMotion: "no-preference" });
       await page.addInitScript(() => { Reflect.set(window, "trailDraws", 0); document.addEventListener("portfolio:hero-ready", () => Reflect.set(window, "trailDraws", Reflect.get(window, "trailDraws") + 1)); });
@@ -70,9 +70,7 @@ for (const width of [1440, 390]) {
       expect(await page.locator(`${selector} .splash-greeting--page`).boundingBox()).toEqual(final);
       await seekIntro(page, OPEN.swap - 20 - offset, selector);
       expect(await page.locator(`${selector} .splash-greeting--page`).boundingBox()).toEqual(final);
-      const routeProgress = await page.locator(".trailhead-route:visible .trailhead-trail").evaluate(el => Number.parseFloat(getComputedStyle(el).strokeDashoffset));
-      expect(routeProgress).toBeGreaterThan(0);
-      expect(routeProgress).toBeLessThan(1);
+      await expect(page.locator(".journey-trail-tip")).toHaveAttribute("opacity", "0");
       await page.screenshot({ path: info.outputPath("greeting-before-trail.png") });
       if (entry === "opening") await page.locator(selector).evaluate((el: SplashElement) => {
         el.splashController!.seek(7550);
@@ -80,13 +78,13 @@ for (const width of [1440, 390]) {
       });
       else await seekIntro(page, LIST.end + 1, selector);
       await expect.poll(() => page.evaluate(() => Reflect.get(window, "trailDraws"))).toBe(1);
-      await expect.poll(() => page.locator(".trailhead-route:visible .trailhead-trail").evaluate(el => Number.parseFloat(getComputedStyle(el).strokeDashoffset))).toBe(0);
-      await expect.poll(() => page.locator(".trailhead-route:visible .trailhead-trail").evaluate(el => el.getAnimations().length)).toBe(0);
-      const before = await page.screenshot();
-      const style = await page.addStyleTag({ content: ".trailhead-trail {stroke-dasharray:none!important;}" });
-      const after = await page.screenshot();
-      expect((await imageDifference(page, before, after)).max, "the entire route must be painted when drawing ends").toBeLessThanOrEqual(1);
-      await style.evaluate(el => el.parentNode?.removeChild(el));
+      const trail = page.locator(".journey-trail-line");
+      if (width < 600) await page.evaluate(() => window.scrollBy(0, 200));
+      await expect.poll(() => trail.evaluate(el => { const path = el as SVGPathElement; return Number.parseFloat(getComputedStyle(el).strokeDashoffset) < path.getTotalLength() - 10; })).toBe(true);
+      await expect(page.locator(".journey-trail-tip")).toHaveAttribute("opacity", "1");
+      await page.locator("#momentumx").scrollIntoViewIfNeeded();
+      await expect.poll(() => trail.evaluate(el => Number.parseFloat(getComputedStyle(el).strokeDashoffset))).toBe(0);
+      await expect(page.locator("#momentumx .waypoint-marker")).toHaveClass(/is-reached/);
       await page.mouse.wheel(0, 100);
       expect(await page.evaluate(() => Reflect.get(window, "trailDraws"))).toBe(1);
       await expect(heading).toHaveCSS("opacity", "1");

@@ -7,5 +7,5 @@ export const trailheadIntro = {
 // List View's opening is concise; Climb retains its existing introduction.
 export const listTrailheadIntro = {
   heading: "Howdy, I'm Diego.",
-  lead: "Software engineer building intelligent, data-driven products. I turn ambitious ideas into useful, thoughtful experiences.",
+  lead: "I’m Diego, a software engineer and a teacher. I build with other people, and I help other people learn to build.",
 } as const;

@@ -9,16 +9,16 @@ test("Summit offers the resume and Devpost alongside contact links in both views
   await openClimb(page);
   await scrollToClimbStop(page, 9);
   await expect(page.locator('[data-card="9"]').getByRole("link", { name: resumeName })).toHaveAttribute("href", resumePath);
-  await expect(page.getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
+  await expect(page.locator("#summit, [data-card=\"9\"]").getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
   await page.getByRole("button", { name: "List view", exact: true }).click();
   await expect(page.locator("#summit").getByRole("link", { name: resumeName })).toHaveAttribute("href", resumePath);
-  await expect(page.getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
+  await expect(page.locator("#summit, [data-card=\"9\"]").getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
 
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
   const staticPage = await context.newPage();
   await staticPage.goto("./#summit");
   await expect(staticPage.locator("#summit").getByRole("link", { name: resumeName })).toHaveAttribute("href", resumePath);
-  await expect(staticPage.getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
+  await expect(staticPage.locator("#summit").getByRole("link", { name: /Devpost/ })).toHaveAttribute("href", devpost);
   await context.close();
 });
 
@@ -77,7 +77,7 @@ test("the logo-free navigation stays usable without JavaScript or mountain capab
   await page.goto("./#about");
   await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Contact", exact: true }).click();
   await expect(page).toHaveURL(/#summit$/);
-  await expect(page.getByRole("link", { name: /Devpost/ })).toBeVisible();
+  await expect(page.locator("#summit, [data-card=\"9\"]").getByRole("link", { name: /Devpost/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Climb view", exact: true })).toHaveCount(0);
 });
 
@@ -95,5 +95,5 @@ test("shared header navigation closes an open reading panel and reaches the requ
   await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true");
   await expect(contact).toBeFocused();
   await expect(contact).toHaveAttribute("aria-current", "location");
-  await expect(page.getByRole("link", { name: /Devpost/ })).toBeVisible();
+  await expect(page.locator("#summit, [data-card=\"9\"]").getByRole("link", { name: /Devpost/ })).toBeVisible();
 });

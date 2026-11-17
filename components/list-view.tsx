@@ -7,6 +7,7 @@ import { TrailheadArt } from "./trailhead-art";
 import { contactLinks } from "../content/contact";
 import { PortfolioLink } from "./portfolio-link";
 import { ResumeLink } from "./resume-link";
+import { About } from "./about/About";
 import { listTrailheadIntro } from "../content/trailhead";
 
 function ArrowIcon() {
@@ -78,29 +79,7 @@ export function ListView() {
         </a>
       </section>
 
-      <section className="about" id="about" aria-labelledby="about-title">
-        <JourneyRidge />
-        <div className="section-kicker">
-          <span>01</span>
-          <span>About</span>
-        </div>
-        <div className="about-copy">
-          <h2 id="about-title">Engineering with intent.</h2>
-          <div className="about-details">
-            <p>
-              I’m Diego, a software engineer who likes turning ambitious ideas
-              into useful, understandable products. I work across research,
-              systems, and interfaces—wherever the problem needs me.
-            </p>
-            <p>
-              I care about thoughtful systems, clear experiences, and the small
-              decisions that make software feel considered from end to end.
-              I also enjoy teaching others how to code.
-            </p>
-          </div>
-        </div>
-        <p className="section-coordinate">Base camp · Beginning the ascent</p>
-      </section>
+      <About />
 
       <section className="work" id="work" aria-labelledby="work-title">
         <JourneyRidge />

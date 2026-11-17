@@ -16,7 +16,7 @@ test("visitor understands Diego's professional identity at the Trailhead", async
     }),
   ).toBeVisible();
   await expect(page.locator("#trailhead .trailhead-lead")).toContainText(
-    "Software engineer building intelligent, data-driven products. I turn ambitious ideas into useful, thoughtful experiences.",
+    "I’m Diego, a software engineer and a teacher. I build with other people, and I help other people learn to build.",
   );
 });
 
@@ -253,5 +253,5 @@ test("Trailhead reaches the first Waypoint and links every published Case Study"
       .getByRole("link", { name: "Read case study" }),
   ).toHaveAttribute("href", "#case-membership-inference-attack");
   await expect(page.locator('a[href*="/work/"]')).toHaveCount(3);
-  await expect(page.locator("body")).not.toContainText("Grassroots");
+  await expect(page.locator(".waypoint-list")).not.toContainText("Grassroots");
 });

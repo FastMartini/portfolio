@@ -1,3 +1,4 @@
+import { aboutTitle, baseCampStats } from "../../content/about";
 import { TrailheadPhoto } from "../trailhead-photo";
 import { contactLinks } from "../../content/contact";
 import { PortfolioLink } from "../portfolio-link";
@@ -23,9 +24,8 @@ export function StopCards() {
       </figure>
       <article className="climb-card" data-card="1" inert aria-hidden="true">
         <p className="climb-card-place">Base camp</p>
-        <h2>Engineering with intent.</h2>
-        <p className="climb-card-lead">I’m Diego, a software engineer who likes turning ambitious ideas into useful, understandable products. I work across research, systems, and interfaces—wherever the problem needs me.</p>
-        <p>I care about thoughtful systems, clear experiences, and the small decisions that make software feel considered from end to end.</p>
+        <h2>{aboutTitle}</h2>
+        <ul className="base-camp-stats">{baseCampStats.map(stat => <li key={stat.value}><span>{stat.value}</span><span>{stat.label}</span></li>)}</ul>
       </article>
       <article className="climb-card" data-card="8" inert aria-hidden="true">
         <p className="climb-card-place">A quiet overlook</p>

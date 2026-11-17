@@ -215,6 +215,13 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   let tap: { id: number; x: number; y: number; started: number; si: number; i: number } | null = null;
   const TAP_SLOP = 10, TAP_DURATION = 700;
   const CELL = 48;
+  const artwork = new Map<string, NonNullable<Awaited<ReturnType<typeof loadStrings>>>>();
+  const loading = new Map<string, Promise<Awaited<ReturnType<typeof loadStrings>>>>();
+  function preload(src: string) {
+    let pending = loading.get(src);
+    if (!pending) { pending = loadStrings(src).then(value => { if (value) artwork.set(src, value); return value; }).catch(() => null); loading.set(src, pending); }
+    return pending;
+  }
 
   const busy = () => doc.documentElement.dataset.splash === "active" || !!doc.querySelector("body > .splash--list, body > .splash--climb");
 
@@ -230,9 +237,9 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     if (themeRoot) observer?.observe(themeRoot, { attributes: true, attributeFilter: ["style"] });
     const style = getComputedStyle(contours), src = cssUrl(style.maskImage || style.getPropertyValue("-webkit-mask-image"));
     if (!src) return;
-    const token = ++building, loaded = await loadStrings(src).catch(() => null);
+    const token = ++building, loaded = artwork.get(src) ?? await preload(src);
     if (!loaded || token !== building || section !== next || !active) return;
-    strings = loaded.strings; view = loaded;
+    strings = loaded.strings; strings.forEach(s => { s.plucks = []; s.last = 0; }); view = loaded;
     canvas = doc.createElement("canvas"); canvas.className = "hero-strings"; canvas.setAttribute("aria-hidden", "true");
     ctx = canvas.getContext("2d");
     if (!ctx) { release(); return; }
@@ -244,8 +251,9 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     if (!section || !canvas) return;
     cancelTap();
     const w = section.clientWidth, h = section.clientHeight, dpr = Math.min(win.devicePixelRatio || 1, 2);
-    const scale = Math.max(w / view.vw, h / view.vh);
-    size = { w, h, dpr, scale, ox: (w - view.vw * scale) / 2, oy: (h - view.vh * scale) / 2 };
+    const bottom = contours?.dataset.fit === "width-bottom";
+    const scale = bottom ? w / view.vw : Math.max(w / view.vw, h / view.vh);
+    size = { w, h, dpr, scale, ox: (w - view.vw * scale) / 2, oy: bottom ? h - view.vh * scale : (h - view.vh * scale) / 2 };
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     // Screen positions and a coarse grid of segments for crossing tests.
     grid = new Map();
@@ -279,11 +287,13 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     // The artwork's own horizontal fade: quiet on the left, full on the right.
     const x0 = size.ox, x1 = size.ox + view.vw * size.scale;
     const stroke = (alpha: number) => {
+      if (contours?.dataset.fade === "none") return `rgba(${color},${alpha})`;
       const g = ctx!.createLinearGradient(x0, 0, x1, 0);
       g.addColorStop(0, `rgba(${color},${0.12 * alpha})`); g.addColorStop(0.6, `rgba(${color},${0.2 * alpha})`); g.addColorStop(1, `rgba(${color},${alpha})`);
       return g;
     };
-    const base = stroke(Math.min(1, STRUM.opacity));
+    const opacity = contours?.dataset.fade === "none" ? 0.16 : STRUM.opacity;
+    const base = stroke(Math.min(1, opacity));
     let ringing = false;
     const { hz, wavelength, spread, decay, life } = STRUM;
     for (const s of strings) {
@@ -310,7 +320,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
         if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
       }
       for (const p of live) energy = Math.max(energy, Math.exp(-decay * ((now - p.t0) / 1000)));
-      ctx.strokeStyle = energy > 0.01 ? stroke(Math.min(1, STRUM.opacity * (1 + STRUM.ringDarken * energy))) : base;
+      ctx.strokeStyle = energy > 0.01 ? stroke(Math.min(1, opacity * (1 + STRUM.ringDarken * energy))) : base;
       ctx.stroke();
       if (s.plucks.length) ringing = true;
     }
@@ -362,8 +372,8 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
 
   // ---------------------------------------------------------------- events
   function sectionFor(target: EventTarget | null) {
-    if (!(target instanceof Element) || target.closest(".site-header")) return null;
-    return target.closest<HTMLElement>(".trailhead");
+    if (!(target instanceof Element) || target.closest(".site-header, .photo-ring, .journey-trail")) return null;
+    return target.closest<HTMLElement>(".trailhead, .about");
   }
   const local = (x: number, y: number) => { const r = section!.getBoundingClientRect(); return { x: x - r.left, y: y - r.top }; };
   function cancelTap() { tap = null; }
@@ -382,6 +392,9 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     cancelTap();
     if (!event.isPrimary || event.button !== 0) return;
     const next = busy() ? null : sectionFor(event.target);
+    // Both assets are preloaded, so the first direct tap in About can select
+    // a string synchronously without requiring a hover to mount its canvas.
+    if (next && next !== section) void build(next).catch(() => release());
     if (!next || next !== section || !strings.length) return;
     if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea, [role='button']")) return;
     // Select a candidate only. A touch may become a native scroll and cancel.
@@ -426,12 +439,14 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
       () => win.removeEventListener("pointercancel", cancelTap),
       () => win.removeEventListener("scroll", cancelTap, true),
       () => win.removeEventListener("blur", cancelTap),
+      () => doc.removeEventListener("portfolio:braid-pluck", onBraid),
       () => reduce.removeEventListener("change", onMotion),
       () => observer?.disconnect(), unsubscribeSound, release, () => sound.close(),
     ]) { try { stop(); } catch { /* Attempt every release after an API failure. */ } }
     frame = 0;
   }
   function onMotion() { if (reduce.matches) dispose(); }
+  function onBraid() { if (!busy() && !reduce.matches && active && heroSound.get()) { sound.wake(); sound.play(7, 0.75, 0, 0); } }
   try {
     observer = new MutationObserver(() => draw(performance.now()));
     observer.observe(doc.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -442,7 +457,12 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     win.addEventListener("pointercancel", cancelTap, { passive: true });
     win.addEventListener("scroll", cancelTap, { passive: true, capture: true });
     win.addEventListener("blur", cancelTap);
+    doc.addEventListener("portfolio:braid-pluck", onBraid);
     reduce.addEventListener("change", onMotion);
+    for (const layer of doc.querySelectorAll<HTMLElement>(".trailhead-contours")) {
+      const style = getComputedStyle(layer), src = cssUrl(style.maskImage || style.getPropertyValue("-webkit-mask-image"));
+      if (src) void preload(src);
+    }
     const first = doc.querySelector<HTMLElement>(".trailhead");
     if (first) void build(first).catch(() => release());
   } catch { dispose(); }
