@@ -46,6 +46,8 @@ html[data-reveal-variant="branding-iron"][data-theme="dark"] { --brand-deboss: 0
 html[data-reveal-variant="branding-iron"] .splash-greeting--paper { --brand-deboss: 0 -0.012em 0 rgba(40, 15, 5, 0.42), 0 0.016em 0 rgba(255, 250, 235, 0.7), 0 0 0 transparent; }
 html[data-reveal-variant="branding-iron"] :is(#trailhead-title, .splash-greeting--page) { text-shadow: var(--brand-deboss); }
 .hero-strings { height: 100%; inset: 0; pointer-events: none; position: absolute; width: 100%; }
+.trailhead-surprise { display: none; }
+html[data-reveal-variant="branding-iron"] .trailhead-surprise { color: var(--ink-label); display: block; font-size: 0.875rem; line-height: 1.5; margin-top: 0.75rem; }
 .site-header-controls .hero-sound-toggle {
   align-items: center; background: transparent; border: 1px solid transparent; border-radius: 999px; color: var(--btn-ink); cursor: pointer;
   display: inline-flex; flex: none; height: 44px; justify-content: center; min-width: 44px; padding: 0;
@@ -58,4 +60,6 @@ html[data-reveal-variant="branding-iron"] :is(#trailhead-title, .splash-greeting
    in the Climb, the ambient control owns the slot again. */
 html[data-reveal-variant="branding-iron"] .site-header-controls:has(.hero-sound-toggle) .climb-sound-control[aria-hidden="true"] { display: none; }
 .site-header-controls:has(.climb-sound-control:not([aria-hidden="true"])) .hero-sound-toggle { display: none; }
-@media (prefers-reduced-motion: reduce) { .hero-strings { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hero-strings, html[data-reveal-variant="branding-iron"] .trailhead-surprise { display: none; }
+}

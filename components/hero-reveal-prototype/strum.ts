@@ -5,7 +5,8 @@
 //   - Each string has its own note — shorter contours sound higher — from an
 //     E blues scale through a small overdriven amp with a room tail. Bends and
 //     a fifth on hard strums give it a late-60s blues-rock bite.
-//   - A quick swipe across several lines strums them in order.
+//   - A quick swipe vibrates several lines in order, silently. Only a click or
+//     tap on a line plays its note.
 // Native cursor. Reduced motion: nothing mounts. Browsers keep audio silent
 // until the visitor's first click, tap or key press.
 import { heroSound } from "./sound";
@@ -306,16 +307,17 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   }
 
   // ---------------------------------------------------------------- plucking
-  function pluck(si: number, i: number, frac: number, speed: number, dx: number, dy: number, order: number) {
+  function pluck(si: number, i: number, frac: number, speed: number, dx: number, dy: number, order: number, playSound = false) {
     const s = strings[si], now = performance.now();
+    const t = Math.min(1, speed / 2.2);
+    // A click still sounds if a recent hover pluck is throttling the visual.
+    if (playSound && heroSound.get()) sound.play(s.note, t, (s.screen[i * 2] / (size.w || 1)) * 1.2 - 0.6, order * STRUM.strumGap);
     if (now - s.last < STRUM.repluck) return;
     s.last = now;
     const along = (s.lengths[i] + (s.lengths[i + 1] - s.lengths[i]) * frac) * size.scale;
     const dir = s.normals[i * 2] * dx + s.normals[i * 2 + 1] * dy < 0 ? -1 : 1;
-    const t = Math.min(1, speed / 2.2);
     s.plucks.push({ s: along, t0: now + order * STRUM.strumGap, amp: STRUM.amp[0] + (STRUM.amp[1] - STRUM.amp[0]) * t, dir });
     if (s.plucks.length > 4) s.plucks.shift();
-    if (heroSound.get()) sound.play(s.note, t, (s.screen[i * 2] / (size.w || 1)) * 1.2 - 0.6, order * STRUM.strumGap);
     wake();
   }
   function crossings(ax: number, ay: number, bx: number, by: number, dt: number) {
@@ -376,7 +378,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
       }
     });
     const found = best as { si: number; i: number; d: number } | null;
-    if (found) pluck(found.si, found.i, 0, 1.4, 0, 1, 0);
+    if (found) pluck(found.si, found.i, 0, 1.4, 0, 1, 0, true);
   }
   const onKey = () => sound.wake();
 
