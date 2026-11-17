@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 import { holdNextTransition, imageDifference, seekIntro } from "./helpers/splash";
-import { LIST } from "../components/splash/controller";
+import { LIST, OPEN } from "../components/splash/controller";
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
   for (const theme of ["light", "dark"] as const) {
@@ -54,14 +54,16 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await expect(overlay.locator(".splash-world")).toBeHidden();
       const heading = page.locator("#trailhead-title");
       const box = (await heading.boundingBox())!;
-      await seekIntro(page, 4135, ".splash--list");
+      await seekIntro(page, OPEN.swap - 1820 - 5, ".splash--list");
       await expect(heading).toHaveCSS("opacity", "0");
       const before = await page.screenshot();
-      await seekIntro(page, 4145, ".splash--list");
+      await seekIntro(page, OPEN.swap - 1820 + 5, ".splash--list");
       await expect(heading).toHaveCSS("opacity", "1");
       const after = await page.screenshot();
       const difference = await imageDifference(page, before, after, { x: Math.floor(box.x), y: Math.floor(box.y), width: Math.ceil(box.width), height: Math.ceil(box.height) });
-      expect(difference.max).toBeLessThanOrEqual(1);
+      // Deboss edges can round by 2/255 between the decorative and real layers.
+      expect(difference.max).toBeLessThanOrEqual(2);
+      expect(difference.mean).toBeLessThan(0.001);
       await seekIntro(page, LIST.end + 1, ".splash--list");
       await expect(overlay).toHaveCount(0);
       await expect(page.locator("#list-view")).toBeFocused();
@@ -93,7 +95,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await scrollToClimbStop(page, 3);
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await expect(page.locator(".splash--list")).toBeVisible();
-    await expect(page.locator(".splash--list")).toHaveCount(0, { timeout: 5500 });
+    await expect(page.locator(".splash--list")).toHaveCount(0, { timeout: 7000 });
     await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
     await expect(page.getByRole("banner")).toHaveCSS("opacity", "1");
     await context.close();

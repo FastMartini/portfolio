@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { OPEN } from "../components/splash/controller";
 import { imageDifference, seekIntro } from "./helpers/splash";
 
 async function tabToLink(page: Page, browserName: string) {
@@ -48,7 +49,7 @@ test("the full intro exits naturally without console or hydration errors", async
   await expect(splash.locator(".splash-hand")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego.");
   await expect(splash.locator(".wordmark-mark")).toHaveCount(0);
-  await expect(splash).toBeHidden({ timeout: 7000 });
+  await expect(splash).toBeHidden({ timeout: 9000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -123,7 +124,7 @@ test("the failsafe dismisses the intro if its CSS animation cannot complete", as
   await page.goto("./");
   await page.addStyleTag({ content: ".splash { animation: none !important; }" });
   await expect(page.locator(".splash")).toBeVisible();
-  await expect(page.locator(".splash")).toBeHidden({ timeout: 8000 });
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 9500 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
@@ -214,7 +215,7 @@ test.describe("rendered map opening recordings", () => {
       const page = await context.newPage();
       await page.goto("./");
       await expect(page.locator(".splash")).toBeVisible();
-      await expect(page.locator(".splash")).toBeHidden({ timeout: 7000 });
+      await expect(page.locator(".splash")).toBeHidden({ timeout: 9000 });
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego.");
       await expect(page.getByRole("heading", { level: 1 })).toHaveCSS("opacity", "1");
       await context.close();
@@ -270,7 +271,7 @@ test("an eligible intro still exits in CSS when client bundles cannot hydrate", 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("./");
   await expect(page.locator(".splash")).toBeVisible();
-  await expect(page.locator(".splash")).toBeHidden({ timeout: 7000 });
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 9000 });
   await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true }).click();
   await expect(page).toHaveURL(/#work$/);
 });
@@ -293,7 +294,7 @@ for (const theme of ["light", "dark"] as const) {
     test(`${theme} ${motion} heading swaps in one frame at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
       await page.setViewportSize(viewport);
       await page.emulateMedia({ reducedMotion: motion });
-      const swap = 5960;
+      const swap = OPEN.swap;
       await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
       await page.goto("./");
       await seekIntro(page, swap - 5);
@@ -316,13 +317,18 @@ for (const theme of ["light", "dark"] as const) {
           return ctx.getImageData(Math.round(clip.x * scale), Math.round(clip.y * scale), Math.round(clip.width * scale), Math.round(clip.height * scale)).data;
         };
         const a = await read(before), b = await read(after);
-        let max = 0; for (let i = 0; i < a.length; i++) max = Math.max(max, Math.abs(a[i] - b[i]));
-        return max;
+        let max = 0, total = 0;
+        for (let i = 0; i < a.length; i++) {
+          const delta = Math.abs(a[i] - b[i]); max = Math.max(max, delta); total += delta;
+        }
+        return { max, mean: total / a.length };
       }, { before: before.toString("base64"), after: after.toString("base64"), clip, viewport });
       await testInfo.attach("Before heading swap", { body: before, contentType: "image/png" });
       await testInfo.attach("After heading swap", { body: after, contentType: "image/png" });
-      expect(difference).toBeLessThanOrEqual(1);
-      await seekIntro(page, 6399);
+      // Permit subpixel rounding of the deboss while rejecting any heading jump.
+      expect(difference.max).toBeLessThanOrEqual(2);
+      expect(difference.mean).toBeLessThan(0.001);
+      await seekIntro(page, OPEN.end - 1);
       await page.keyboard.press("Escape");
       await expect(page.locator("body > .splash")).toBeHidden();
       await expect(page.locator("html")).toHaveAttribute("data-splash", "seen");

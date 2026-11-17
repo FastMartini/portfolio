@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Manrope, Newsreader } from "next/font/google";
-import { HeroRevealPreview } from "../components/hero-reveal-prototype/Preview";
 import { Splash } from "../components/splash/Splash";
 import { SPLASH_GATE_SCRIPT } from "../components/splash/gate";
 import { professionalDescription, siteUrl } from "../content/site";
@@ -12,6 +11,7 @@ import "./theme.css";
 import "../components/theme/theme.css";
 import "../components/splash/splash.css";
 import "../components/splash/motion.generated.css";
+import "../components/hero/hero.css";
 
 const newsreader = Newsreader({
   subsets: ["latin"],
@@ -46,7 +46,6 @@ export default function RootLayout({
       <body>
         <Splash />
         <ThemeProvider>{children}</ThemeProvider>
-        {process.env.NODE_ENV === "development" && <HeroRevealPreview />}
       </body>
     </html>
   );

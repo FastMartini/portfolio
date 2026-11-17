@@ -1,4 +1,4 @@
-// THROWAWAY: one shared on/off for the hero's string sound, used by the nav icon
+// one shared on/off for the hero's string sound, used by the nav icon
 // and the strum engine. On by default; an explicit choice persists like the theme.
 const KEY = "hero-strum-sound";
 let on = read();

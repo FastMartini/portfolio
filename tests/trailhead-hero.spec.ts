@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { openClimb } from "./helpers/climb";
 import { holdNextTransition, imageDifference, seekIntro } from "./helpers/splash";
+import { OPEN, LIST } from "../components/splash/controller";
 import type { SplashElement } from "../components/splash/controller";
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
@@ -51,7 +52,7 @@ function browserTab(project: string) { return project.startsWith("webkit") && pr
 
 for (const width of [1440, 390]) {
   for (const entry of ["opening", "return"] as const) {
-    test(`${entry} reveals the fixed greeting then draws the trail once at ${width}px`, async ({ page }, info) => {
+    test(`${entry} brands the fixed greeting and completes the trail once at ${width}px`, async ({ page }, info) => {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ reducedMotion: "no-preference" });
       await page.addInitScript(() => { Reflect.set(window, "trailDraws", 0); document.addEventListener("portfolio:hero-ready", () => Reflect.set(window, "trailDraws", Reflect.get(window, "trailDraws") + 1)); });
@@ -64,18 +65,20 @@ for (const width of [1440, 390]) {
         await seekIntro(page, 1100, selector);
       }
       const offset = entry === "opening" ? 0 : 1820;
-      await seekIntro(page, 5200 - offset, selector);
+      await seekIntro(page, OPEN.handoff[0] - offset, selector);
       const heading = page.locator("#trailhead-title"), final = await heading.boundingBox();
       expect(await page.locator(`${selector} .splash-greeting--page`).boundingBox()).toEqual(final);
-      await seekIntro(page, 5900 - offset, selector);
+      await seekIntro(page, OPEN.swap - 20 - offset, selector);
       expect(await page.locator(`${selector} .splash-greeting--page`).boundingBox()).toEqual(final);
-      await expect(page.locator(".trailhead-route:visible .trailhead-trail")).toHaveCSS("stroke-dashoffset", "1px");
+      const routeProgress = await page.locator(".trailhead-route:visible .trailhead-trail").evaluate(el => Number.parseFloat(getComputedStyle(el).strokeDashoffset));
+      expect(routeProgress).toBeGreaterThan(0);
+      expect(routeProgress).toBeLessThan(1);
       await page.screenshot({ path: info.outputPath("greeting-before-trail.png") });
       if (entry === "opening") await page.locator(selector).evaluate((el: SplashElement) => {
-        el.splashController!.seek(6400);
+        el.splashController!.seek(7550);
         el.dispatchEvent(new AnimationEvent("animationend", { animationName: "splash-exit", bubbles: true }));
       });
-      else await seekIntro(page, 4581, selector);
+      else await seekIntro(page, LIST.end + 1, selector);
       await expect.poll(() => page.evaluate(() => Reflect.get(window, "trailDraws"))).toBe(1);
       await expect.poll(() => page.locator(".trailhead-route:visible .trailhead-trail").evaluate(el => Number.parseFloat(getComputedStyle(el).strokeDashoffset))).toBe(0);
       await expect.poll(() => page.locator(".trailhead-route:visible .trailhead-trail").evaluate(el => el.getAnimations().length)).toBe(0);

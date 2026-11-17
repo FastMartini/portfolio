@@ -1,4 +1,4 @@
-// THROWAWAY: the hero's contour lines as guitar strings ("Branding iron" direction).
+// the hero's contour lines as guitar strings ("Branding iron" direction).
 //   - Each contour in hero-contours.svg is its own string, redrawn as vectors on
 //     a canvas. Crossing one plucks only that line: a fluid, damped wave runs
 //     along it from the crossing point, and the line darkens while it rings.
@@ -7,8 +7,8 @@
 //     a fifth on hard strums give it a late-60s blues-rock bite.
 //   - A quick swipe vibrates several lines in order, silently. Only a click or
 //     tap on a line plays its note.
-// Native cursor. Reduced motion: nothing mounts. Browsers keep audio silent
-// until the visitor's first click, tap or key press.
+// Native cursor. Reduced motion: nothing mounts. Audio starts only on a
+// click or tap on a contour, or when the sound toggle is explicitly enabled.
 import { heroSound } from "./sound";
 
 export const STRUM = {
@@ -69,7 +69,7 @@ function resample(raw: number[], step: number) {
   return new Float32Array(out);
 }
 async function loadStrings(src: string): Promise<{ strings: Str[]; vw: number; vh: number } | null> {
-  const text = await fetch(src).then(r => r.text());
+    const text = await fetch(src).then(r => { if (!r.ok) throw new Error("Contour artwork unavailable"); return r.text(); });
   const svg = new DOMParser().parseFromString(text, "image/svg+xml").documentElement;
   const box = (svg.getAttribute("viewBox") ?? "0 0 1000 700").split(/[\s,]+/).map(Number);
   const strings: Str[] = [...svg.querySelectorAll("path")].map(path => {
@@ -179,8 +179,13 @@ function amp(win: Window) {
   return {
     wake() {
       if (!heroSound.get()) return;
-      if (!ctx && Ctor) { const created = new Ctor(); input = build(created); ctx = created; }
-      if (ctx?.state === "suspended") unlocking = ctx.resume().catch(() => {});
+      try {
+        if (!ctx && Ctor) { ctx = new Ctor(); input = build(ctx); }
+        if (ctx?.state === "suspended") unlocking = ctx.resume().catch(() => {});
+      } catch {
+        void ctx?.close().catch(() => {});
+        ctx = null; input = null; output = null; unlocking = null;
+      }
     },
     setEnabled(enabled: boolean) {
       if (ctx && output) output.gain.setTargetAtTime(enabled ? 0.32 : 0, ctx.currentTime, 0.01);
@@ -209,7 +214,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   const pointer = { x: 0, y: 0, has: false, t: 0 };
   const CELL = 48;
 
-  const busy = () => doc.documentElement.dataset.splash === "active" || !!doc.querySelector("body > .splash--list, body > .splash--climb, body > .splash--prototype");
+  const busy = () => doc.documentElement.dataset.splash === "active" || !!doc.querySelector("body > .splash--list, body > .splash--climb");
 
   function cssUrl(value: string) { const m = /url\((['"]?)(.*?)\1\)/.exec(value); return m ? m[2] : null; }
   async function build(next: HTMLElement) {
@@ -220,7 +225,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     // The theme provider pins palette tokens on this UI root while blending.
     // Repaint quiet strings too, including the final removal of inline tokens.
     const themeRoot = next.closest<HTMLElement>("[data-theme-root]");
-    if (themeRoot) observer.observe(themeRoot, { attributes: true, attributeFilter: ["style"] });
+    if (themeRoot) observer?.observe(themeRoot, { attributes: true, attributeFilter: ["style"] });
     const style = getComputedStyle(contours), src = cssUrl(style.maskImage || style.getPropertyValue("-webkit-mask-image"));
     if (!src) return;
     const token = ++building, loaded = await loadStrings(src).catch(() => null);
@@ -228,6 +233,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     strings = loaded.strings; view = loaded;
     canvas = doc.createElement("canvas"); canvas.className = "hero-strings"; canvas.setAttribute("aria-hidden", "true");
     ctx = canvas.getContext("2d");
+    if (!ctx) { release(); return; }
     contours.after(canvas); contours.style.visibility = "hidden";
     resize = new ResizeObserver(fit); resize.observe(next);
     fit();
@@ -251,10 +257,11 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   }
   function release() {
     building++;
-    resize?.disconnect(); resize = null;
+    const previousResize = resize; resize = null;
     canvas?.remove(); canvas = null; ctx = null;
     if (contours) contours.style.visibility = "";
     section = contours = null; strings = []; grid = new Map();
+    try { previousResize?.disconnect(); } catch { /* The canvas is already released. */ }
   }
 
   // ---------------------------------------------------------------- drawing
@@ -351,20 +358,19 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
 
   // ---------------------------------------------------------------- events
   function sectionFor(target: EventTarget | null) {
-    if (!(target instanceof Element) || target.closest("[data-hero-reveal-controls], .site-header")) return null;
+    if (!(target instanceof Element) || target.closest(".site-header")) return null;
     return target.closest<HTMLElement>(".trailhead");
   }
   const local = (x: number, y: number) => { const r = section!.getBoundingClientRect(); return { x: x - r.left, y: y - r.top }; };
   function onMove(event: PointerEvent) {
     const next = busy() ? null : sectionFor(event.target);
     if (!next) { pointer.has = false; return; }
-    if (section !== next || !next.isConnected) { void build(next); pointer.has = false; return; }
+    if (section !== next || !next.isConnected) { void build(next).catch(() => release()); pointer.has = false; return; }
     const at = local(event.clientX, event.clientY), now = performance.now();
     if (pointer.has && strings.length) crossings(pointer.x, pointer.y, at.x, at.y, now - pointer.t);
     pointer.x = at.x; pointer.y = at.y; pointer.t = now; pointer.has = true;
   }
   function onDown(event: PointerEvent) {
-    sound.wake();
     const next = busy() ? null : sectionFor(event.target);
     if (!next || next !== section || !strings.length) return;
     if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea, [role='button']")) return;
@@ -378,34 +384,36 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
       }
     });
     const found = best as { si: number; i: number; d: number } | null;
-    if (found) pluck(found.si, found.i, 0, 1.4, 0, 1, 0, true);
+    if (found) { sound.wake(); pluck(found.si, found.i, 0, 1.4, 0, 1, 0, true); }
   }
-  const onKey = () => sound.wake();
 
   function wake() { if (!frame && active) frame = win.requestAnimationFrame(tick); }
   function tick(now: number) { frame = 0; if (draw(now)) wake(); }
 
   // ---------------------------------------------------------------- lifecycle
-  const observer = new MutationObserver(() => draw(performance.now()));
-  observer.observe(doc.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  let observer: MutationObserver | null = null;
   function dispose() {
     if (!active) return;
     active = false;
-    win.cancelAnimationFrame(frame); frame = 0;
-    win.removeEventListener("pointermove", onMove);
-    win.removeEventListener("pointerdown", onDown);
-    win.removeEventListener("keydown", onKey);
-    reduce.removeEventListener("change", onMotion);
-    observer.disconnect(); unsubscribeSound(); release(); sound.close();
+    for (const stop of [
+      () => win.cancelAnimationFrame(frame),
+      () => win.removeEventListener("pointermove", onMove),
+      () => win.removeEventListener("pointerdown", onDown),
+      () => reduce.removeEventListener("change", onMotion),
+      () => observer?.disconnect(), unsubscribeSound, release, () => sound.close(),
+    ]) { try { stop(); } catch { /* Attempt every release after an API failure. */ } }
+    frame = 0;
   }
   function onMotion() { if (reduce.matches) dispose(); }
-  if (reduce.matches) { observer.disconnect(); unsubscribeSound(); active = false; return { dispose }; }
-  win.addEventListener("pointermove", onMove, { passive: true });
-  win.addEventListener("pointerdown", onDown, { passive: true });
-  win.addEventListener("keydown", onKey);
-  reduce.addEventListener("change", onMotion);
-  // Draw the strings as soon as the hero exists, so the first pass already plucks.
-  const first = doc.querySelector<HTMLElement>(".trailhead");
-  if (first) void build(first);
+  try {
+    observer = new MutationObserver(() => draw(performance.now()));
+    observer.observe(doc.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    if (reduce.matches) { dispose(); return { dispose }; }
+    win.addEventListener("pointermove", onMove, { passive: true });
+    win.addEventListener("pointerdown", onDown, { passive: true });
+    reduce.addEventListener("change", onMotion);
+    const first = doc.querySelector<HTMLElement>(".trailhead");
+    if (first) void build(first).catch(() => release());
+  } catch { dispose(); }
   return { dispose };
 }

@@ -1,4 +1,4 @@
-/* Continuous feather entrance and physical gatefolds share one 6400ms clock.
+/* The physical map keeps its 6400ms clock; the branded hero finishes at 7550ms.
    The last sway overlaps the first fold. Paper is always the Light navbar color. */
 
 html[data-splash="active"] .splash { display: block; }
@@ -12,7 +12,7 @@ html[data-splash="active"] .splash { display: block; }
   --paper-back: var(--paper);
 
   --print: var(--print-wide);
-  animation: splash-exit 6400ms linear both;
+  animation: splash-exit 7550ms linear both;
   contain: strict;
   display: none;
   inset: 0;
@@ -27,7 +27,7 @@ html[data-splash="active"] .splash { display: block; }
   .splash { --w: min(43vw, 30vh); --ph: calc(var(--w) * 1.25); --rig-top: 50vh; --zoom-fallback: 3.4; --print: var(--print-tall); }
 }
 html[data-splash] .splash.splash--skipped { animation: none; display: none; }
-/* The overlay never fades as a whole: by 6.4 s nothing in it is visible, so it
+/* The overlay never fades as a whole: by 7.55 s nothing in it is visible, so it
    is simply removed. (A fade here would show the decorative greeting and the
    real heading at once.) */
 @keyframes splash-exit { 0%, 99.99% { visibility: visible; } 100% { visibility: hidden; } }

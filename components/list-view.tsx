@@ -60,9 +60,7 @@ export function ListView() {
           </h1>
           <p className="trailhead-lead">
             {listTrailheadIntro.lead}
-            {process.env.NODE_ENV === "development" && (
-              <span className="trailhead-surprise">Click the contour lines for a little surprise.</span>
-            )}
+            <span className="trailhead-surprise">Click the contour lines for a little surprise.</span>
           </p>
           <div className="trailhead-actions">
             <ResumeLink className="button button-primary">

@@ -1,4 +1,4 @@
-// THROWAWAY: "Branding iron" greeting. Two presses — "Howdy," then "I'm Diego." —
+// "Branding iron" greeting. Two presses — "Howdy," then "I'm Diego." —
 // each lands white-hot, sinks into the paper, throws sparks and a smoke wisp,
 // then cools to ink and stays debossed. Heat, sparks, smoke and scorch fade
 // before the settle; the deboss is kept, and the real <h1> carries the same
@@ -10,18 +10,16 @@ export const BRAND = {
   cool: 720,           // hot → ink, per letter
   stagger: 26,         // cooling sweeps left → right
   settle: 2150,        // every glow, spark and halo is gone; only the deboss remains
-  lead: 2150,          // intro + actions rise as the paper hands off (they sit under the sheet before that)
-  shift: 1150,         // later wipe / swap / overlay end, so the brand finishes on paper
 };
 
 const HOT = ["#ffe3a0", "#ffb24d", "#e8661f", "#9a3412", "#5a2312"];
 // A tight orange rim keeps the white-hot first frame legible on cream paper.
 const GLOW = "0 0 0.015em rgba(235,110,30,0.95), 0 0 0.12em rgba(255,140,40,0.7), 0 0 0.4em rgba(255,90,20,0.38)";
 const WARM = "0 0 0.03em rgba(255,170,80,0.35), 0 0 0.12em rgba(230,90,30,0.22), 0 0 0.3em rgba(200,60,20,0.08)";
-// Fallback only: prototype.css defines --brand-deboss per surface (paper, light page, dark page).
+// Fallback only: hero.css defines --brand-deboss per surface (paper, light page, dark page).
 const DEBOSS = "0 -0.012em 0 rgba(40,15,5,0.42), 0 0.016em 0 rgba(255,250,235,0.7), 0 0 0 transparent";
 
-// Same sparks and smoke on every replay, so variants compare like for like.
+// Same sparks and smoke on every replay, so the two map entries render consistently.
 function seeded(seed: number) {
   return () => {
     seed = (seed + 0x6d2b79f5) | 0;
@@ -41,7 +39,7 @@ function piece(line: HTMLElement, className: string, box: { left: number; top: n
 }
 
 /**
- * copy: a greeting copy already split into `.prototype-reveal-letter` spans
+ * copy: a greeting copy already split into `.hero-reveal-letter` spans
  * inside `.trailhead-title-line`s. decorate: add heat, scorch, sparks and smoke
  * (only the visible paper copy needs them).
  */
@@ -52,7 +50,7 @@ export function brandGreeting(copy: HTMLElement, start: number, add: Add, decora
   const lines = [...copy.querySelectorAll<HTMLElement>(".trailhead-title-line")];
   lines.forEach((line, index) => {
     const press = start + BRAND.presses[index];
-    const letters = [...line.querySelectorAll<HTMLElement>(".prototype-reveal-letter")];
+    const letters = [...line.querySelectorAll<HTMLElement>(".hero-reveal-letter")];
     const sink = index === 0 ? 0.985 : 0.98;
     letters.forEach((letter, i) => {
       letter.style.transformOrigin = "50% 80%";
@@ -84,10 +82,10 @@ export function brandGreeting(copy: HTMLElement, start: number, add: Add, decora
     const minX = Math.min(...spots.map(s => s.x)), maxX = Math.max(...spots.map(s => s.x + s.w));
     const width = maxX - minX;
 
-    const heat = piece(line, "prototype-brand-heat", { left: minX - h * 0.3, top: -h * 0.15, width: width + h * 0.6, height: h * 1.3 });
+    const heat = piece(line, "hero-brand-heat", { left: minX - h * 0.3, top: -h * 0.15, width: width + h * 0.6, height: h * 1.3 });
     add(heat, [{ opacity: 0 }, { opacity: 1, offset: 120 / 380 }, { opacity: 0 }], { delay: press - 120, duration: 380, easing: "ease-out", fill: "both" });
 
-    const scorch = piece(line, "prototype-brand-scorch", { left: minX - h * 0.2, top: -h * 0.05, width: width + h * 0.4, height: h * 1.1 });
+    const scorch = piece(line, "hero-brand-scorch", { left: minX - h * 0.2, top: -h * 0.05, width: width + h * 0.4, height: h * 1.1 });
     const life = end - press;
     add(scorch, [
       { opacity: 0, transform: "scale(0.92)" }, { opacity: 1, transform: "scale(1)", offset: 220 / life },
@@ -99,7 +97,7 @@ export function brandGreeting(copy: HTMLElement, start: number, add: Add, decora
     for (let k = 0; k < 34; k++) {
       const spot = spots[Math.floor(random() * spots.length)];
       const big = k % 6 === 0, size = big ? 3.5 + random() * 2 : 1.5 + random() * 2.4;
-      const spark = piece(line, "prototype-brand-spark", {
+      const spark = piece(line, "hero-brand-spark", {
         left: spot.x + spot.w * (0.1 + random() * 0.8), top: h * (0.25 + random() * 0.6), width: size, height: size,
       });
       const reach = big ? 1.6 : 1.1, dx = (random() - 0.5) * h * reach, dy = -h * (0.15 + random() * (big ? 0.7 : 0.45));
@@ -111,7 +109,7 @@ export function brandGreeting(copy: HTMLElement, start: number, add: Add, decora
     }
     for (let k = 0; k < 9; k++) {
       const size = h * (0.75 + random() * 0.5);
-      const smoke = piece(line, "prototype-brand-smoke", {
+      const smoke = piece(line, "hero-brand-smoke", {
         left: minX + width * (0.05 + k * 0.11) - size / 2 + (random() - 0.5) * h * 0.25, top: -h * (0.1 + random() * 0.2), width: size, height: size * 1.4,
       });
       const drift = (random() - 0.3) * h * 0.35;

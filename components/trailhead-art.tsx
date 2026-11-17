@@ -1,31 +1,54 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
+
+import { ViewContext } from "./climb/ViewToggle";
+import { mountHeroInteraction, type HeroInteraction } from "./hero/strings";
 
 export const HERO_READY_EVENT = "portfolio:hero-ready";
 
 export function TrailheadArt() {
   const root = useRef<HTMLDivElement>(null);
+  const listMode = useContext(ViewContext)?.listMode ?? true;
   useEffect(() => {
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    let animations: Animation[] = [];
-    const finish = () => { animations.forEach(animation => animation.cancel()); animations = []; };
-    const draw = () => {
-      finish();
-      if (motion.matches || (process.env.NODE_ENV === "development" && document.documentElement.dataset.revealVariant)) return;
-      animations = [...root.current!.querySelectorAll(".trailhead-trail")].map(path =>
-        path.animate([{ strokeDasharray: "1", strokeDashoffset: 1 }, { strokeDasharray: "1", strokeDashoffset: 0 }], { duration: 1200, easing: "cubic-bezier(0.3, 0, 0.2, 1)" }));
+    if (typeof matchMedia !== "function" || typeof MutationObserver !== "function"
+      || typeof ResizeObserver !== "function" || typeof requestAnimationFrame !== "function") return;
+    let motion: MediaQueryList;
+    try { motion = matchMedia("(prefers-reduced-motion: reduce)"); } catch { return; }
+    let interaction: HeroInteraction | null = null;
+    let observer: MutationObserver | undefined;
+    const finish = () => {
+      const current = interaction; interaction = null;
+      try { current?.dispose(); } catch { /* Keep the durable List View available. */ }
     };
-    document.addEventListener(HERO_READY_EVENT, draw);
-    motion.addEventListener("change", finish);
-    window.addEventListener("pagehide", finish);
-    return () => {
-      finish();
-      document.removeEventListener(HERO_READY_EVENT, draw);
-      motion.removeEventListener("change", finish);
-      window.removeEventListener("pagehide", finish);
+    const sync = () => {
+      try {
+        if (!listMode || motion.matches || document.documentElement.dataset.splash === "active"
+          || document.querySelector("body > .splash--list, body > .splash--climb")) { finish(); return; }
+        if (!interaction) interaction = mountHeroInteraction(document);
+      } catch { finish(); }
     };
-  }, []);
+    const cleanup = () => {
+      for (const stop of [
+        () => observer?.disconnect(), finish,
+        () => document.removeEventListener(HERO_READY_EVENT, sync),
+        () => motion.removeEventListener("change", sync),
+        () => window.removeEventListener("pagehide", finish),
+        () => window.removeEventListener("pageshow", sync),
+      ]) { try { stop(); } catch { /* An optional API must not block other releases. */ } }
+    };
+    try {
+      observer = new MutationObserver(sync);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-splash"] });
+      observer.observe(document.body, { childList: true });
+      document.addEventListener(HERO_READY_EVENT, sync);
+      motion.addEventListener("change", sync);
+      window.addEventListener("pagehide", finish);
+      window.addEventListener("pageshow", sync);
+      sync();
+    } catch { cleanup(); }
+    return cleanup;
+  }, [listMode]);
   return <div className="trailhead-art" ref={root} aria-hidden="true">
     <div className="trailhead-contours" />
     <svg className="trailhead-route trailhead-route--wide" viewBox="0 0 1000 1000" preserveAspectRatio="none">

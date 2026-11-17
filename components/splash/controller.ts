@@ -1,6 +1,6 @@
 import { mapAssetStyles, mapOverlayMarkup } from "./map/markup";
 import { listTrailheadIntro } from "../../content/trailhead";
-import { activeReveal, prototypeReveal } from "../hero-reveal-prototype/motion";
+import { revealGreeting } from "../hero/reveal";
 import { HERO_READY_EVENT } from "../trailhead-art";
 
 type Options = { rate?: number; failsafe?: boolean; remember?: boolean; allowSeen?: boolean; seekCss?: boolean; preserveFragment?: boolean; onDone?: (skipped: boolean) => void };
@@ -32,9 +32,9 @@ const animationTime = (animation?: Animation | null) => typeof animation?.curren
  */
 
 
-export const OPEN = { zoom: [3420, 1000], handoff: [5420, 480], fade: [5420, 340], swap: 5960, end: 6400 };
+export const OPEN = { zoom: [3420, 1000], greeting: 4420, handoff: [6570, 480], fade: [6570, 340], swap: 7110, end: 7550 };
 export const CLIMB = { cover: 380, pull: [380, 870], tilt: [1150, 1000], end: 2600 };
-export const LIST = { tilt: 1100, hold: 500, zoom: 1600, end: 4580 };
+export const LIST = { tilt: 1100, hold: 500, zoom: 1600, end: 5730 };
 const LIST_OPEN_OFFSET = OPEN.zoom[0] - LIST.zoom;
 const EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"];
 
@@ -69,7 +69,11 @@ function copyType(target: HTMLElement, heading: HTMLElement) {
   target.dataset.aligned = "";
   // Clone the real line structure so intentional breaks survive every handoff.
   target.replaceChildren(...[...heading.childNodes].map(node => node.cloneNode(true)));
-  if (target.classList.contains("splash-greeting--page")) return { rect: r, style: cs };
+  if (target.classList.contains("splash-greeting--page")) {
+    target.style.textShadow = cs.textShadow;
+    target.style.setProperty("--brand-deboss", cs.getPropertyValue("--brand-deboss"));
+    return { rect: r, style: cs };
+  }
   const readText = (element: HTMLElement) => {
     const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT), nodes: Text[] = [];
     while (walker.nextNode()) nodes.push(walker.currentNode as Text);
@@ -210,8 +214,7 @@ function lifecycle(el: HTMLElement, options: Options, onEnd: (skipped: boolean) 
       return controller;
     },
   };
-  const skip = (event?: Event) => {
-    if (process.env.NODE_ENV === "development" && event?.target instanceof Element && event.target.closest("[data-hero-reveal-controls]")) return;
+  const skip = () => {
     api.finish(true);
   };
   // Browser navigation owns its reading destination. Cancelling a view
@@ -239,10 +242,6 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
   const cancelCss = (target: HTMLElement | null, name: string) => target && target.getAnimations().forEach((a) => { if (a instanceof CSSAnimation && a.animationName === name) a.cancel(); });
 
   const paper = part(el, ".splash-greeting--paper"), page = part(el, ".splash-greeting--page");
-  // A longer development reveal pushes every later handoff cue back by the same amount.
-  // splash-exit only toggles visibility, so stretching it just moves the overlay's end.
-  const shift = (process.env.NODE_ENV === "development" && activeReveal()?.shift) || 0;
-  if (shift) el.style.animationDuration = `${OPEN.end + shift}ms`;
   const sheet = part(el, ".splash-paper-stage"), camera = part(el, ".splash-camera");
   const life = lifecycle(el, options, (skipped) => {
     root.dataset.splash = "seen";
@@ -284,33 +283,25 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
       });
 
       // One heading at a time: the real <h1> is hidden until the frame the page copy disappears.
-      add(heading, [{ opacity: 0 }, { opacity: 0 }], { duration: OPEN.swap + shift, fill: "none" });
-      const preview = process.env.NODE_ENV === "development" && activeReveal();
-      if (preview) prototypeReveal(paper, page, add);
-      else add(paper, [{ opacity: 0 }, { opacity: 1 }], { delay: 4300, duration: 440, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)", fill: "both" });
-      add(page, [{ visibility: "visible" }, { visibility: "visible" }], { delay: 5000 + shift, duration: OPEN.swap - 5000, fill: "none" });
+      add(heading, [{ opacity: 0 }, { opacity: 0 }], { duration: OPEN.swap, fill: "none" });
+      revealGreeting(paper, page, add, OPEN.greeting);
+      add(page, [{ visibility: "visible" }, { visibility: "visible" }], { delay: 6150, duration: OPEN.swap - 6150, fill: "none" });
 
       const theme = root.dataset.theme === "light" ? "light" : "dark";
       if (theme === "light") {
-        add(sheet, [{ opacity: 1 }, { opacity: 0 }], { delay: OPEN.fade[0] + shift, duration: OPEN.fade[1], easing: "ease-in-out", fill: "forwards" });
+        add(sheet, [{ opacity: 1 }, { opacity: 0 }], { delay: OPEN.fade[0], duration: OPEN.fade[1], easing: "ease-in-out", fill: "forwards" });
       } else {
         // Dusk passes over the paper, left to right; only a narrow band is ever between states.
         const vw = win.innerWidth, M = vw * 3.2, image = "linear-gradient(100deg, transparent 0 46%, #000 54% 100%)";
         const at = (x: number) => ({ maskImage: image, webkitMaskImage: image, maskSize: `${M}px 100%`, webkitMaskSize: `${M}px 100%`,
           maskRepeat: "no-repeat", webkitMaskRepeat: "no-repeat", maskPosition: `${x}px 0`, webkitMaskPosition: `${x}px 0` });
-        add(sheet, [at(-0.2 * vw - M / 2), at(1.2 * vw - M / 2)], { delay: OPEN.handoff[0] + shift, duration: OPEN.handoff[1], easing: "cubic-bezier(0.45, 0, 0.4, 1)", fill: "forwards" });
+        add(sheet, [at(-0.2 * vw - M / 2), at(1.2 * vw - M / 2)], { delay: OPEN.handoff[0], duration: OPEN.handoff[1], easing: "cubic-bezier(0.45, 0, 0.4, 1)", fill: "forwards" });
       }
       const rise = (target: Element | null, delay: number, duration: number, distance = 6) => add(target, [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
         { delay, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-      add(doc.querySelector<HTMLElement>(".site-header"), [{ opacity: 0, translate: "0 -8px" }, { opacity: 1, translate: "0 0" }], { delay: 5500 + shift, duration: 500, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-      // The trail draws once after the overlay is gone, on its own short clock.
-      // Until then this hold prevents an already-open return from exposing it.
-      if (!preview) section.querySelectorAll(".trailhead-trail").forEach(trail =>
-        add(trail, [{ strokeDasharray: "1", strokeDashoffset: 1 }, { strokeDasharray: "1", strokeDashoffset: 1 }], { duration: OPEN.end, fill: "none" }));
-      rise(section.querySelector<HTMLElement>(".eyebrow"), 5700 + shift, 420);
-      if (!preview) rise(section.querySelector<HTMLElement>(".trailhead-lead"), 5760, 440);
-      if (!preview) rise(section.querySelector<HTMLElement>(".trailhead-actions"), 5880, 440);
-      rise(section.querySelector<HTMLElement>(".scroll-cue"), 5960 + shift, 420);
+      add(doc.querySelector<HTMLElement>(".site-header"), [{ opacity: 0, translate: "0 -8px" }, { opacity: 1, translate: "0 0" }], { delay: 6650, duration: 500, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
+      rise(section.querySelector<HTMLElement>(".eyebrow"), 6850, 420);
+      rise(section.querySelector<HTMLElement>(".scroll-cue"), OPEN.swap, 420);
     }
 
   }
@@ -325,7 +316,7 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
   const waitForLayout = () => {
     if (!life.active) return;
     const heading = doc.getElementById("trailhead-title");
-    if (process.env.NODE_ENV === "development" && activeReveal() && doc.fonts?.status === "loading") {
+    if (doc.fonts?.status === "loading") {
       void doc.fonts.ready.then(() => { if (life.active) waitForLayout(); });
       return;
     }
@@ -334,7 +325,7 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
   };
   life.cleanup(() => cancelAnimationFrame(layoutFrame));
   waitForLayout();
-  life.arm(Math.max(0, 7000 + shift - elapsed()));
+  life.arm(Math.max(0, 8150 - elapsed()));
   return life.review(undefined, options.seekCss !== false);
 }
 
@@ -350,7 +341,6 @@ function toListTransition(el: HTMLElement, switchView: () => void, options: Opti
     if (!skipped) doc.dispatchEvent(new Event(HERO_READY_EVENT));
   });
   life.t0 = Number(doc.timeline.currentTime);
-  const listEnd = LIST.end + ((process.env.NODE_ENV === "development" && activeReveal()?.shift) || 0);
   const screenTracks: Animation[] = [];
   let clock: Animation | undefined;
   for (const animation of el.getAnimations({ subtree: true })) {
@@ -402,12 +392,12 @@ function toListTransition(el: HTMLElement, switchView: () => void, options: Opti
       // look-down sequence, including review seeks and interruption cleanup.
       (el as SplashElement).splashController = controller;
     }
-    if (time >= listEnd) life.finish(false);
+    if (time >= LIST.end) life.finish(false);
   };
   const tick = () => { advance(); if (life.active) frame = requestAnimationFrame(tick); };
   life.cleanup(() => { cancelAnimationFrame(frame); landing?.dispose(); el.remove(); });
   frame = requestAnimationFrame(tick);
-  life.arm(listEnd + 1500);
+  life.arm(LIST.end + 1500);
   (el as SplashElement).splashController = controller;
   return controller;
 }

@@ -3,20 +3,8 @@
 import { useSyncExternalStore } from "react";
 import { heroSound } from "./sound";
 
-// THROWAWAY: nav icon for the hero's guitar-string sound, beside the theme toggle.
-// Only in development with ?variant=branding-iron. In the Climb, the existing
-// ambient-sound control takes this slot (see prototype.css).
-function watchVariant(onChange: () => void) {
-  const observer = new MutationObserver(onChange);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-reveal-variant"] });
-  return () => observer.disconnect();
-}
-const isBrandingIron = () => process.env.NODE_ENV === "development" && document.documentElement.dataset.revealVariant === "branding-iron";
-
 export function HeroSoundToggle() {
-  const shown = useSyncExternalStore(watchVariant, isBrandingIron, () => false);
   const on = useSyncExternalStore(heroSound.subscribe, heroSound.get, () => true);
-  if (!shown) return null;
   return <button type="button" className="hero-sound-toggle" aria-label="Guitar sound" aria-pressed={on}
     title={on ? "Mute the guitar strings" : "Turn on the guitar strings"} onClick={() => heroSound.set(!on)}>
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
