@@ -19,7 +19,8 @@ export function mountJourneyTrail(main: HTMLElement, svg: SVGSVGElement) {
     else if (!ready) { ready = true; introAt = performance.now(); }
     kick();
   }
-  function rebuild() {
+  function rebuild() { try { rebuildLayout(); } catch { cleanup(); } }
+  function rebuildLayout() {
     rebuildFrame = 0;
     if (stopped) return;
     svg.setAttribute("width", String(main.clientWidth)); svg.setAttribute("height", String(main.scrollHeight));
@@ -69,7 +70,8 @@ export function mountJourneyTrail(main: HTMLElement, svg: SVGSVGElement) {
     geo.marker.classList.toggle("is-reached", shown >= geo.length - 2);
     braid?.paint(shown, reduce.matches);
   }
-  function tick(now: number) {
+  function tick(now: number) { try { renderFrame(now); } catch { cleanup(); } }
+  function renderFrame(now: number) {
     frame = 0;
     const dt = Math.min(64, now - (last || now - 16)); last = now;
     const goal = target(now), tau = shown < floor - 4 ? 35 : 90;

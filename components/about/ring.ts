@@ -4,10 +4,12 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
   const stage = root.querySelector<HTMLElement>(".ring-stage")!, track = root.querySelector<HTMLElement>(".ring-track")!;
   const cards = [...root.querySelectorAll<HTMLElement>(".ring-card")], orbit = root.querySelector<HTMLElement>(".ring-orbit")!;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)"), step = 360 / cards.length;
+  let active = true;
   let angle = 0, target: number | null = null, velocity = 0, radius = 0, frame = 0, lastFrame = 0, current = -1;
   let drag: { id: number; x: number; y: number; last: number; time: number; moved: number } | null = null;
   let suppressClick = false, wheelIdle = 0;
   function render() {
+    if (!active) return;
     cards.forEach((card, i) => {
       const a = i * step + angle, face = Math.max(0, Math.cos(a * Math.PI / 180));
       card.style.transform = `rotateY(${a}deg) translateZ(${radius}px)`;
@@ -22,6 +24,7 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
     }
   }
   function measure() {
+    if (!active) return;
     if (!root.offsetWidth) onTurn();
     const width = cards[0].offsetWidth;
     radius = width / 2 / Math.tan(Math.PI / cards.length) + width * 0.12;
@@ -54,6 +57,7 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
   const abort = new AbortController(), signal = abort.signal;
   let resize: ResizeObserver | undefined;
   const cleanup = () => {
+    active = false;
     for (const stop of [() => abort.abort(), () => resize?.disconnect(), () => cancelAnimationFrame(frame), () => clearTimeout(wheelIdle)]) { try { stop(); } catch { /* Release the other optional resources as well. */ } }
     delete root.dataset.ringReady;
     cards.forEach(card => { card.removeAttribute("aria-hidden"); card.inert = false; for (const property of ["transform", "opacity", "filter"]) card.style.removeProperty(property); });
@@ -105,7 +109,7 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
     }, { passive: false, signal });
     root.querySelectorAll<HTMLElement>(".ring-nav").forEach(button => button.addEventListener("click", () => stepBy(Number(button.dataset.dir)), { signal }));
     root.querySelectorAll<HTMLElement>(".ring-dot").forEach((button, i) => button.addEventListener("click", () => face(i), { signal }));
-    reduce.addEventListener("change", () => { if (reduce.matches) { cancelAnimationFrame(frame); frame = 0; settle(target ?? Math.round(angle / step) * step); } }, { signal });
+    reduce.addEventListener("change", () => { try { if (reduce.matches) { cancelAnimationFrame(frame); frame = 0; settle(target ?? Math.round(angle / step) * step); } } catch { cleanup(); } }, { signal });
     root.dataset.ringReady = "true";
     resize = new ResizeObserver(measure); resize.observe(stage); measure();
   } catch { cleanup(); onFront(0); return () => {}; }

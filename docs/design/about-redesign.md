@@ -14,7 +14,7 @@ The About section now has three pitches: The Design Idea, The Builder, and The T
 
 The measured trail includes parent borders when accumulating layout offsets. Two gap anchors keep the Builder controls and Teacher side cards clear without changing the hero geometry. Nearly vertical stretches have a gentle bow. A running maximum of sampled heights prevents backward jumps over the hero wiggles. Reduced motion draws the finished trail and braid; without JavaScript the original hero route stays visible and the About pitches and fallback lists remain readable.
 
-The existing contour engine handles About's width-fitted, bottom-anchored four ridges using the same amp, blues scale, click/tap validation, and persisted mute setting. Both contour assets preload; the canvas changes section as needed. Photo rings and the braid are excluded from contour hit testing. Browser capability failures release enhancements and preserve the static content.
+The existing contour engine handles About's width-fitted, bottom-anchored four ridges using the same amp, blues scale, click/tap validation, and persisted mute setting. Both contour assets preload; the canvas changes section as needed. The initial observer notification preserves a first held tap; an explicit native 150ms touch regression covers it. Photo rings and the braid are excluded from contour hit testing. Browser capability failures, including a live motion-preference query failure, release enhancements and preserve the static content.
 
 ## Visual reference
 
