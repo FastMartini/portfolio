@@ -1,9 +1,10 @@
+import { summitStopIndex } from "../content/journey";
 import { expect, test } from "@playwright/test";
-import { openClimb } from "./helpers/climb";
+import { openClimb, scrollToClimbStop } from "./helpers/climb";
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
   for (const theme of ["light", "dark"] as const) {
-    for (const [index, name] of [[0, "trailhead"], [4, "waypoint-03"], [7, "waypoint-06"], [9, "summit"]] as const) {
+    for (const [index, name] of [[0, "trailhead"], [4, "waypoint-03"], [7, "waypoint-06"], [summitStopIndex, "summit"]] as const) {
       test(`illustrated Climb ${theme} snapshot: ${name} at ${viewport.width}px`, async ({ page }) => {
         await page.setViewportSize(viewport);
         // Choose the application theme explicitly; device preference is independent.
@@ -11,8 +12,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
         await openClimb(page, theme);
         await expect(page.locator("#climb")).toBeVisible();
         await page.evaluate(() => document.fonts.ready);
-        await page.locator("#climb").evaluate((element, stop) =>
-          window.scrollTo(0, stop / 9 * ((element as HTMLElement).offsetHeight - innerHeight)), index);
+        await scrollToClimbStop(page, index);
         await expect(page.locator("#climb")).toHaveAttribute("data-stop", String(index));
         await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true");
         // Freeze SVG SMIL at a named frame; CSS animation disabling doesn't seek
@@ -20,7 +20,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
         await page.locator("svg.climb-layer-svg").evaluateAll((nodes) => {
           nodes.forEach((node) => { const svg = node as SVGSVGElement; svg.pauseAnimations(); svg.setCurrentTime(0); });
         });
-        if (index === 0 || index === 9) {
+        if (index === 0 || index === summitStopIndex) {
           await expect(page.locator(`[data-card="${index}"]`)).toBeVisible();
           await expect(page.locator(`[data-card="${index}"]`)).toHaveCSS("background-color", theme === "light" ? "rgb(255, 251, 237)" : "rgb(37, 47, 41)");
         }

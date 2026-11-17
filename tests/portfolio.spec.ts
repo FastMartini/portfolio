@@ -30,7 +30,7 @@ test("visitor follows the Mountain Journey and reaches direct contact options", 
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 2, name: "Beyond the build." }),
-  ).toBeVisible();
+  ).toHaveCount(0);
 
   await page.getByRole("link", { name: "Contact me" }).click();
 
@@ -75,11 +75,11 @@ test("portfolio remains complete without client-side JavaScript", async ({
     page.getByRole("heading", { name: "Built, tested, and learned in public." }),
   ).toBeVisible();
   await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
-  await expect(page.getByRole("heading", { name: "Beyond the build." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Beyond the build." })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Let's build what comes next." })).toBeVisible();
 
   const resumes = page.getByRole("link", { name: "View résumé (PDF, opens in a new tab)" });
-  await expect(resumes).toHaveCount(2);
+  await expect(resumes).toHaveCount(3);
   for (const resume of await resumes.all()) {
     await expect(resume).toBeVisible();
     await expect(resume).toHaveAttribute("href", /\/resume\/Martinez_Diego_2026\.pdf$/);

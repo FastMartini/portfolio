@@ -1,3 +1,4 @@
+import { summitStopIndex } from "../content/journey";
 import { expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 test("List View has a portrait-free typographic opening without JavaScript", async ({ browser, baseURL }) => {
@@ -43,9 +44,9 @@ test("Climb shows Diego to the right of Trailhead and fades the photo with its i
   const titleBounds = await intro.boundingBox();
   expect(imageBounds!.x).toBeGreaterThan(titleBounds!.x + titleBounds!.width);
 
-  await page.locator("#climb").evaluate((element: HTMLElement) => {
-    window.scrollTo(0, 0.32 / 9 * (element.offsetHeight - innerHeight));
-  });
+  await page.locator("#climb").evaluate((element: HTMLElement, intervals) => {
+    window.scrollTo(0, 0.32 / intervals * (element.offsetHeight - innerHeight));
+  }, summitStopIndex);
   // Observe the same rendered fade on both reading surfaces, not a second timer.
   await expect(page.locator('[data-card="0"]')).toHaveCSS("opacity", /^0\.3[0-5]\d*$/);
   const opacity = await page.locator('[data-card="0"]').evaluate((element) => getComputedStyle(element).opacity);

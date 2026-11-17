@@ -194,7 +194,7 @@ for (const samplingDelay of [0, 900]) {
 // Give each resize/travel case its own test budget. Combining six stops and
 // panel interactions can exhaust the test timeout on WebKit's software painter.
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 700 }]) {
-  for (const stop of [0, 3, 9]) {
+  for (const stop of [0, 3, 8]) {
     test(`climber and hit targets align at stop ${stop} after resizing to ${viewport.width}px`, async ({ page }) => {
       await openClimb(page);
       await page.setViewportSize(viewport);

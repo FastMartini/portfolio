@@ -2,16 +2,16 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { openClimb } from "./helpers/climb";
 import type { Page } from "@playwright/test";
-import { journeyStops } from "../content/journey";
+import { journeyStops, summitStopIndex } from "../content/journey";
 import { readClimbProgress } from "../components/climb/progress";
 import { colorCss, weather } from "../components/climb/weather";
 import { settledScrollY } from "./helpers/native-scroll";
 
 async function scrollToStop(page: Page, index: number) {
-  await page.locator("#climb").evaluate((element, stop) => {
+  await page.locator("#climb").evaluate((element, { stop, intervals }) => {
     const top = element.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo(0, top + stop / 9 * ((element as HTMLElement).offsetHeight - window.innerHeight));
-  }, index);
+    window.scrollTo(0, top + stop / intervals * ((element as HTMLElement).offsetHeight - window.innerHeight));
+  }, { stop: index, intervals: summitStopIndex });
   await expect(page.locator("#climb")).toHaveAttribute("data-stop", String(index));
   await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true");
 }
@@ -20,11 +20,11 @@ test("scroll mapping preserves equal shares, exact stops, and the reference dwel
   expect(readClimbProgress(-1).position).toBe(0);
   expect(readClimbProgress(2).position).toBe(1);
   journeyStops.forEach((stop, index) => {
-    expect(readClimbProgress(index / 9).position).toBeCloseTo(stop.trailPosition, 12);
-    if (index < 9) {
-      expect(readClimbProgress((index + 0.17) / 9).position).toBe(stop.trailPosition);
-      expect(readClimbProgress((index + 0.83) / 9).position).toBe(journeyStops[index + 1].trailPosition);
-      expect(readClimbProgress((index + 0.5) / 9).position).toBeCloseTo((stop.trailPosition + journeyStops[index + 1].trailPosition) / 2, 12);
+    expect(readClimbProgress(index / summitStopIndex).position).toBeCloseTo(stop.trailPosition, 12);
+    if (index < summitStopIndex) {
+      expect(readClimbProgress((index + 0.17) / summitStopIndex).position).toBe(stop.trailPosition);
+      expect(readClimbProgress((index + 0.83) / summitStopIndex).position).toBe(journeyStops[index + 1].trailPosition);
+      expect(readClimbProgress((index + 0.5) / summitStopIndex).position).toBeCloseTo((stop.trailPosition + journeyStops[index + 1].trailPosition) / 2, 12);
     }
   });
 });
@@ -41,7 +41,7 @@ test("altitude weather preserves morning, snowfall, white-out, and clear summit 
   expect(colorCss(weather(1).top)).toBe("rgb(43,120,204)");
 });
 
-test("all ten stops show their card or Waypoint marker and update the bottom-to-top Trail Rail without corner boxes", async ({ page }) => {
+test("all nine stops show their card or Waypoint marker and update the bottom-to-top Trail Rail without corner boxes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page, "light");
   const root = page.locator("#climb");
@@ -50,15 +50,15 @@ test("all ten stops show their card or Waypoint marker and update the bottom-to-
   await expect(page.locator('[data-card="0"] .trailhead-lead')).toHaveText("Software engineer, problem solver, and lifelong learner passionate about building technology that makes an impact.");
   await expect(page.locator(".climb-stage")).toHaveCSS("position", "sticky");
   const rail = page.getByRole("navigation", { name: "Trail stops" });
-  expect(await rail.locator("button").evaluateAll((buttons) => buttons.map((button) => Number((button as HTMLElement).dataset.rail)))).toEqual([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+  expect(await rail.locator("button").evaluateAll((buttons) => buttons.map((button) => Number((button as HTMLElement).dataset.rail)))).toEqual(journeyStops.map((_, index) => index).reverse());
   const svg = await page.locator("svg.mtn").elementHandle();
-  for (let index = 0; index < 10; index++) {
+  for (let index = 0; index < journeyStops.length; index++) {
     await scrollToStop(page, index);
     await expect(page.locator(".climb-trail-sign")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Open Waypoint →", exact: true })).toHaveCount(0);
     await expect(rail.locator('[aria-current="step"]')).toHaveAttribute("data-rail", String(index));
     expect(Number(await root.getAttribute("data-position"))).toBeCloseTo(journeyStops[index].trailPosition, 4);
-    if ([0, 1, 8, 9].includes(index)) {
+    if ([0, 1, summitStopIndex].includes(index)) {
       await expect(page.locator(`[data-card="${index}"]`)).toBeVisible();
       await expect(page.locator('.climb-card[data-active="true"]')).toHaveCount(1);
     } else {
@@ -152,7 +152,7 @@ test("snow starts at altitude, clears on live reduced-motion changes, and stops 
 });
 
 for (const width of [390, 1440]) {
-  for (const index of [0, 1, 8, 9]) {
+  for (const index of [0, 1, summitStopIndex]) {
     test(`${journeyStops[index].label} card keeps its dark-green appearance at ${width}px with either browser preference`, async ({ page }) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });

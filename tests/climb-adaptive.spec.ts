@@ -572,7 +572,7 @@ test("reduced-motion visitors start in the complete List View", async ({ page })
   await expect(page.locator("#list-view")).toBeVisible();
   await expect(page.locator("#climb")).toBeHidden();
   await expect(page.locator("[data-waypoint-slug]")).toHaveCount(6);
-  await expect(page.getByRole("heading", { name: "Beyond the build." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Let's build what comes next." })).toBeVisible();
   await page.getByRole("link", { name: "Contact me" }).click();
   await expect(page).toHaveURL(/#summit$/);
   await expect(page.getByRole("link", { name: "Email Diego" })).toHaveAttribute("href", "mailto:diegommart2004@gmail.com");

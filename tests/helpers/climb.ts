@@ -1,3 +1,4 @@
+import { summitStopIndex } from "../../content/journey";
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
@@ -27,8 +28,8 @@ export async function scrollToClimbStop(page: Page, index: number) {
   // Wait for the first rendered frame before scrolling so restoration cannot
   // race the test's navigation and send it back to Trailhead.
   await expect(page.locator("#climb")).toHaveAttribute("data-settled", "true", { timeout: 15000 });
-  await page.locator("#climb").evaluate((element, i) =>
-    window.scrollTo(0, i / 9 * ((element as HTMLElement).offsetHeight - innerHeight)), index);
+  await page.locator("#climb").evaluate((element, { index, intervals }) =>
+    window.scrollTo(0, index / intervals * ((element as HTMLElement).offsetHeight - innerHeight)), { index, intervals: summitStopIndex });
   await expect(page.locator("#climb")).toHaveAttribute("data-stop", String(index));
   // Normal-motion and controlled-clock checks still need real paint frames on
   // a busy multi-browser runner; wait for the observable settled state.

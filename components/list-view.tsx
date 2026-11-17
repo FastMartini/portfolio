@@ -106,46 +106,10 @@ export function ListView() {
         </div>
       </section>
 
-      <section
-        className="personal-interlude"
-        id="beyond-work"
-        aria-labelledby="beyond-work-title"
-      >
-        <JourneyRidge />
-        <div className="section-kicker section-kicker-dark">
-          <span>03</span>
-          <span>Beyond Work</span>
-        </div>
-        <div className="interlude-grid">
-          <div className="interlude-visual" aria-hidden="true">
-            <span className="string string-one" />
-            <span className="string string-two" />
-            <span className="string string-three" />
-            <span className="string string-four" />
-            <span className="string string-five" />
-            <span className="string string-six" />
-            <span className="fret fret-one" />
-            <span className="fret fret-two" />
-            <span className="fret fret-three" />
-            <span className="fret fret-four" />
-            <span className="interlude-stamp">Six strings · endless phrasing</span>
-          </div>
-          <div className="interlude-copy">
-            <p className="handwritten">A personal interlude</p>
-            <h2 id="beyond-work-title">Beyond the build.</h2>
-            <p>
-              Outside software, I spend time playing blues and electric guitar.
-              It’s a different way to practice listening, timing, and leaving
-              room for what comes next.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <section className="summit" id="summit" aria-labelledby="summit-title">
         <JourneyRidge summit />
         <div className="section-kicker">
-          <span>04</span>
+          <span>03</span>
           <span>Contact</span>
         </div>
         <div className="summit-heading">

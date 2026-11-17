@@ -23,7 +23,7 @@
 .mountain-journey .trailhead-actions .button-secondary { border-color: var(--ink-label); }
 .mountain-journey .trailhead-actions .button:focus-visible { outline: 3px solid var(--ink-accent); outline-offset: 5px; }
 .mountain-journey .scroll-cue { bottom: 3rem; min-height: 1.5rem; }
-.mountain-journey :is(.about, .work, .personal-interlude, .summit) {
+.mountain-journey :is(.about, .work, .summit) {
   isolation: isolate;
   overflow: hidden;
   position: relative;
@@ -40,7 +40,6 @@
 .about .ridge-contours { stroke: var(--cream); opacity: 0.12; }
 .about .ridge-route { stroke: var(--copper-text-dark); }
 .work { background-image: linear-gradient(to bottom, var(--bg-alt), var(--bg-alt-2)); }
-.personal-interlude { background-image: linear-gradient(to bottom, var(--bg-alt-2), var(--bg)); }
 .summit { background-image: radial-gradient(ellipse at right bottom, rgba(181, 101, 59, 0.2), transparent 75%); }
 .summit .ridge-distance, .summit .ridge-near { fill: var(--copper); opacity: 0.1; }
 .summit .ridge-contours { stroke: var(--copper-text-dark); opacity: 0.18; }

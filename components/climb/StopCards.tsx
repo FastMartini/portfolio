@@ -4,6 +4,7 @@ import { contactLinks } from "../../content/contact";
 import { PortfolioLink } from "../portfolio-link";
 import { ResumeLink } from "../resume-link";
 import { trailheadIntro } from "../../content/trailhead";
+import { summitStopIndex } from "../../content/journey";
 
 export function StopCards() {
   return (
@@ -16,7 +17,7 @@ export function StopCards() {
         <p className="climb-card-hint">Scroll to start climbing. Each Waypoint on the trail is a project you can open.</p>
         <div className="climb-card-actions">
           <ResumeLink />
-          <button className="button button-secondary" type="button" data-goto="9">Contact me</button>
+          <button className="button button-secondary" type="button" data-goto={summitStopIndex}>Contact me</button>
         </div>
       </article>
       <figure className="climb-portrait" data-photo-stop="0" inert aria-hidden="true">
@@ -27,12 +28,7 @@ export function StopCards() {
         <h2>{aboutTitle}</h2>
         <ul className="base-camp-stats">{baseCampStats.map(stat => <li key={stat.value}><span>{stat.value}</span><span>{stat.label}</span></li>)}</ul>
       </article>
-      <article className="climb-card" data-card="8" inert aria-hidden="true">
-        <p className="climb-card-place">A quiet overlook</p>
-        <h2>Beyond the build.</h2>
-        <p>Outside software, I spend time playing blues and electric guitar. It’s a different way to practice listening, timing, and leaving room for what comes next.</p>
-      </article>
-      <article className="climb-card" data-card="9" inert aria-hidden="true">
+      <article className="climb-card" data-card={summitStopIndex} inert aria-hidden="true">
         <p className="climb-card-place">Summit</p>
         <h2>Let&apos;s build what comes next.</h2>
         <p>If you’re assembling a team, shaping an ambitious product, or want to compare notes, I’d be glad to hear from you.</p>

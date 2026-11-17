@@ -19,7 +19,7 @@
   .climb-sound-toggle { justify-content: center; padding: 0.65rem; }
   .climb-sound-toggle span { display: none; }
 }
-.climb { height: 1000vh; position: relative; }
+.climb { position: relative; }
 .climb-scene { inset: 0; position: absolute; transition: transform 500ms cubic-bezier(.2,.7,.2,1); }
 .climb-navigation { inset: 0; pointer-events: none; position: absolute; }
 .climb-navigation .climb-rail { pointer-events: auto; }

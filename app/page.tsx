@@ -20,7 +20,7 @@ export const metadata = homeMetadata;
 const homeNavigation = [
   { href: "#about", label: "About" },
   { href: "#work", label: "Work" },
-  { href: "#beyond-work", label: "Beyond Work" },
+  { kind: "resume", label: "Resume" },
   { href: "#summit", label: "Contact" },
 ] as const;
 

@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 import { journeyStops } from "../content/journey";
 import { waypoints } from "../content/waypoints";
 
-test("the ten Climb stops preserve the reference STOP_T and canonical Waypoint order", () => {
+test("the nine Climb stops preserve the retained reference STOP_T and canonical Waypoint order", () => {
   const reference = readFileSync(
     "docs/handoff/reference/climb.js",
     "utf8",
@@ -13,17 +13,17 @@ test("the ten Climb stops preserve the reference STOP_T and canonical Waypoint o
   const positions = reference.match(/var STOP_T = (\[[^\]]+\]);/);
   if (!positions) throw new Error("The handoff reference must define STOP_T");
   expect(journeyStops.map((stop) => stop.trailPosition)).toEqual(
-    JSON.parse(positions[1]),
+    JSON.parse(positions[1]).filter((position: number) => position !== 0.81),
   );
-  expect(journeyStops).toHaveLength(10);
+  expect(journeyStops).toHaveLength(9);
   expect(journeyStops.map((stop) => stop.label)).toEqual([
     "Trailhead", "Base camp", ...waypoints.map((waypoint) => waypoint.name),
-    "A quiet overlook", "Summit",
+    "Summit",
   ]);
   expect(journeyStops.slice(2, 8).map((stop) => stop.id)).toEqual(
     waypoints.map((waypoint) => waypoint.slug),
   );
-  expect(new Set(journeyStops.map((stop) => stop.id)).size).toBe(10);
+  expect(new Set(journeyStops.map((stop) => stop.id)).size).toBe(9);
   for (let index = 1; index < journeyStops.length; index++) {
     expect(journeyStops[index].trailPosition).toBeGreaterThan(journeyStops[index - 1].trailPosition);
   }

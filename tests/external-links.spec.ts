@@ -7,7 +7,7 @@ test("external links preserve the portfolio in its tab without JavaScript", asyn
   const page = await context.newPage();
   await page.goto("./#summit");
   const originalURL = page.url();
-  const devpost = page.locator("#summit, [data-card=\"9\"]").getByRole("link", { name: /Devpost/ });
+  const devpost = page.locator("#summit, [data-card=\"8\"]").getByRole("link", { name: /Devpost/ });
   await expect(devpost).toHaveAttribute("target", "_blank");
   const popupPromise = page.waitForEvent("popup");
   await devpost.click();
@@ -38,16 +38,16 @@ test("Climb contact links open a new tab without losing the Summit", async ({ pa
   await context.route("https://devpost.com/**", (route) => route.fulfill({ contentType: "text/html", body: "<title>Devpost profile</title>" }));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);
-  await scrollToClimbStop(page, 9);
+  await scrollToClimbStop(page, 8);
   const originalURL = page.url();
-  const devpost = page.locator("#summit, [data-card=\"9\"]").getByRole("link", { name: /Devpost/ });
+  const devpost = page.locator("#summit, [data-card=\"8\"]").getByRole("link", { name: /Devpost/ });
   await expect(devpost).toHaveAttribute("target", "_blank");
   const popupPromise = page.waitForEvent("popup");
   await devpost.click();
   const popup = await popupPromise;
   await expect(popup).toHaveURL(/devpost\.com\/FastMartini/);
   await expect(page).toHaveURL(originalURL);
-  await expect(page.locator("#climb")).toHaveAttribute("data-stop", "9");
+  await expect(page.locator("#climb")).toHaveAttribute("data-stop", "8");
   expect(await popup.evaluate(() => window.opener)).toBeNull();
   await popup.close();
 });

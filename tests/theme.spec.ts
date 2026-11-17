@@ -159,7 +159,7 @@ test("stationary snow-stage toggles finish, cloud hides celestial light, and fou
   expect(await page.locator(".climb-card").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).backgroundColor))).toEqual(Array(4).fill("rgb(255, 251, 237)"));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
-  await scrollToClimbStop(page, 9);
+  await scrollToClimbStop(page, 8);
   await select(page, "dark");
   await expect(page.locator(".climb-moon")).toHaveCSS("opacity", "1");
   expect(await page.locator(".climb-moon").boundingBox()).toEqual(await page.locator(".climb-sun").boundingBox());

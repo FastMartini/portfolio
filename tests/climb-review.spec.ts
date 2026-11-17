@@ -43,7 +43,7 @@ test("offscreen Landmarks are excluded from keyboard navigation and the accessib
   await visible.first().focus();
   await page.keyboard.press("Tab");
   await expect(visible.nth(1)).toBeFocused();
-  await stop(page, 9);
+  await stop(page, 8);
   for (const landmark of await page.locator(".lm").all()) {
     await expect(landmark).toHaveAttribute("tabindex", "-1");
     await expect(landmark).toHaveAttribute("aria-hidden", "true");
@@ -74,7 +74,7 @@ for (const width of [390, 1440]) {
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: "Skip to full text", exact: true })).toBeFocused();
     const header = page.getByRole("banner");
-    for (const name of ["Diego Martinez, home", "About", "Work", "Beyond Work", "Contact"]) {
+    for (const name of ["Diego Martinez, home", "About", "Work", "View résumé (PDF, opens in a new tab)", "Contact"]) {
       await page.keyboard.press("Tab");
       await expect(header.getByRole("link", { name, exact: true })).toBeFocused();
     }
@@ -102,7 +102,7 @@ for (const dismissal of ["Escape", "Close"] as const) {
       await expect(page.getByRole("dialog")).toBeVisible();
       await page.mouse.move(400, 450);
       await page.mouse.wheel(0, 10000);
-      await expect(page.locator("#climb")).toHaveAttribute("data-stop", "9");
+      await expect(page.locator("#climb")).toHaveAttribute("data-stop", "8");
       await expect(marker).toBeHidden();
       if (dismissal === "Escape") await page.keyboard.press("Escape");
       else await page.getByRole("button", { name: "Close panel" }).click();

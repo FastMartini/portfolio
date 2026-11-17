@@ -49,9 +49,9 @@ for (const viewport of [{ width: 1280, height: 600 }, { width: 1280, height: 640
     await expect(climb).toHaveAttribute("data-settled", "true");
     const sound = page.getByRole("button", { name: "Ambient sound", exact: true });
     const buttons = page.getByRole("navigation", { name: "Trail stops" }).getByRole("button");
-    await expect(buttons).toHaveCount(10);
+    await expect(buttons).toHaveCount(9);
 
-    for (let index = 0; index < 10; index++) {
+    for (let index = 0; index < 9; index++) {
       const button = buttons.nth(index), stop = (await button.getAttribute("data-rail"))!;
       const box = (await button.boundingBox())!;
       // Raw pointer input reproduces overlays intercepting the actual target.
@@ -156,7 +156,7 @@ test("the storm reaches the output and the summit is completely silent even with
   await scrollToClimbStop(page, 8);
   await page.getByRole("button", { name: "Ambient sound", exact: true }).click();
   await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
-  await scrollToClimbStop(page, 9);
+  await scrollToClimbStop(page, 8);
   await expect.poll(() => outputLevel(page)).toBe(0);
   await scrollToClimbStop(page, 8);
   await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
