@@ -100,6 +100,56 @@ for (const width of [1440, 390]) {
   });
 }
 
+test("a native mobile scroll beginning on a contour stays silent, then a tap plays", async ({ browser, browserName, baseURL }) => {
+  test.skip(browserName !== "chromium", "Native touch scrolling uses the Chromium input protocol; pointer cancellation is also covered across engines.");
+  const context = await browser.newContext({ baseURL, hasTouch: true, isMobile: true, viewport: { width: 390, height: 900 } });
+  const page = await context.newPage();
+  await probeAudio(page);
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const point = await contourPoint(page);
+  await page.evaluate(() => {
+    Reflect.set(window, "cancelledTouches", 0);
+    window.addEventListener("pointercancel", () => Reflect.set(window, "cancelledTouches", Reflect.get(window, "cancelledTouches") + 1));
+  });
+  const input = await context.newCDPSession(page);
+  await input.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
+  for (let step = 1; step <= 8; step++) {
+    await input.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: point.x, y: point.y - step * 30 }] });
+    await page.waitForTimeout(20);
+  }
+  await input.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
+  expect(await page.evaluate(() => Reflect.get(window, "cancelledTouches"))).toBeGreaterThan(0);
+  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(0);
+  await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+  await page.touchscreen.tap(point.x, point.y);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBeGreaterThan(0);
+  await context.close();
+});
+
+test("contour presses stay silent until release and reject dragging, cancellation and secondary clicks", async ({ page }) => {
+  await probeAudio(page);
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const point = await contourPoint(page);
+  await page.mouse.move(point.x, point.y);
+  await page.mouse.down();
+  expect(await page.evaluate(() => Reflect.get(window, "guitarContexts").length)).toBe(0);
+  await page.mouse.move(point.x, point.y - 40, { steps: 4 });
+  await page.mouse.move(point.x, point.y, { steps: 4 });
+  await page.mouse.up();
+  await page.mouse.click(point.x, point.y, { button: "right" });
+  await page.keyboard.press("Escape");
+  await page.mouse.down();
+  await page.evaluate(() => window.dispatchEvent(new PointerEvent("pointercancel")));
+  await page.mouse.up();
+  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(0);
+  await page.mouse.click(point.x, point.y);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBeGreaterThan(0);
+});
+
 test("reduced motion keeps the deboss but skips strings and the discovery note", async ({ page }) => {
   await probeAudio(page);
   await page.emulateMedia({ reducedMotion: "reduce" });

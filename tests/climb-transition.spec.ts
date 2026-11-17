@@ -60,11 +60,17 @@ test("reduced motion crossfades without paper movement and leaves no script anim
   expect(await page.locator(".climb-enhancement").evaluate((el) => el.getAnimations().filter((a) => !(a instanceof CSSAnimation)).length)).toBe(0);
 });
 
-test("the transition completes naturally by 2.7 seconds", async ({ page }) => {
+test("the transition completes naturally on its 2.6-second animation clock", async ({ page }) => {
   await page.goto("./#list-view");
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
-  await expect(page.locator("#climb")).toBeVisible({ timeout: 1000 });
-  await expect(page.locator(".splash--climb")).toHaveCount(0, { timeout: 2700 });
+  const overlay = page.locator(".splash--climb");
+  await expect(overlay).toBeAttached();
+  expect(await overlay.evaluate(el => el.getAnimations().some(animation =>
+    !(animation instanceof CSSAnimation) && animation.effect?.getTiming().duration === 2600))).toBe(true);
+  // Software-rendered WebKit can take more wall time than its animation clock.
+  // Keep the authored duration strict, while allowing the natural finish to run.
+  await expect(overlay).toHaveCount(0, { timeout: 5000 });
+  await expect(page.locator("#climb")).toBeVisible();
   expect(await page.locator(".climb-stage").evaluate((el) => el.getAnimations({ subtree: true }).filter((a) => !(a instanceof CSSAnimation)).length)).toBe(0);
 });
 

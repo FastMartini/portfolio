@@ -212,6 +212,8 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   let resize: ResizeObserver | null = null, frame = 0, active = true, building = 0;
   let size = { w: 0, h: 0, dpr: 1, scale: 1, ox: 0, oy: 0 };
   const pointer = { x: 0, y: 0, has: false, t: 0 };
+  let tap: { id: number; x: number; y: number; started: number; si: number; i: number } | null = null;
+  const TAP_SLOP = 10, TAP_DURATION = 700;
   const CELL = 48;
 
   const busy = () => doc.documentElement.dataset.splash === "active" || !!doc.querySelector("body > .splash--list, body > .splash--climb");
@@ -240,6 +242,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   }
   function fit() {
     if (!section || !canvas) return;
+    cancelTap();
     const w = section.clientWidth, h = section.clientHeight, dpr = Math.min(win.devicePixelRatio || 1, 2);
     const scale = Math.max(w / view.vw, h / view.vh);
     size = { w, h, dpr, scale, ox: (w - view.vw * scale) / 2, oy: (h - view.vh * scale) / 2 };
@@ -256,6 +259,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     draw(performance.now());
   }
   function release() {
+    cancelTap();
     building++;
     const previousResize = resize; resize = null;
     canvas?.remove(); canvas = null; ctx = null;
@@ -362,7 +366,11 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     return target.closest<HTMLElement>(".trailhead");
   }
   const local = (x: number, y: number) => { const r = section!.getBoundingClientRect(); return { x: x - r.left, y: y - r.top }; };
+  function cancelTap() { tap = null; }
+  function moved(event: PointerEvent) { return !!tap && Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > TAP_SLOP; }
   function onMove(event: PointerEvent) {
+    // Remember the entire gesture, including a drag that returns to its start.
+    if (tap?.id === event.pointerId && moved(event)) cancelTap();
     const next = busy() ? null : sectionFor(event.target);
     if (!next) { pointer.has = false; return; }
     if (section !== next || !next.isConnected) { void build(next).catch(() => release()); pointer.has = false; return; }
@@ -371,10 +379,12 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     pointer.x = at.x; pointer.y = at.y; pointer.t = now; pointer.has = true;
   }
   function onDown(event: PointerEvent) {
+    cancelTap();
+    if (!event.isPrimary || event.button !== 0) return;
     const next = busy() ? null : sectionFor(event.target);
     if (!next || next !== section || !strings.length) return;
     if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea, [role='button']")) return;
-    // Tap or click: pluck the nearest string within reach.
+    // Select a candidate only. A touch may become a native scroll and cancel.
     const at = local(event.clientX, event.clientY);
     let best: { si: number; i: number; d: number } | null = null;
     strings.forEach((s, si) => {
@@ -384,7 +394,20 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
       }
     });
     const found = best as { si: number; i: number; d: number } | null;
-    if (found) { sound.wake(); pluck(found.si, found.i, 0, 1.4, 0, 1, 0, true); }
+    if (found) tap = { id: event.pointerId, x: event.clientX, y: event.clientY, started: performance.now(), si: found.si, i: found.i };
+  }
+  function onUp(event: PointerEvent) {
+    const selected = tap;
+    if (!selected || selected.id !== event.pointerId) return;
+    const valid = event.isPrimary && event.button === 0 && !moved(event)
+      && performance.now() - selected.started <= TAP_DURATION && !busy()
+      && sectionFor(event.target) === section && section?.isConnected
+      && !(event.target instanceof Element && event.target.closest("a, button, input, select, textarea, [role='button']"));
+    cancelTap();
+    if (valid) {
+      // Pointer-up is the completed gesture, including the first Safari tap.
+      sound.wake(); pluck(selected.si, selected.i, 0, 1.4, 0, 1, 0, true);
+    }
   }
 
   function wake() { if (!frame && active) frame = win.requestAnimationFrame(tick); }
@@ -399,6 +422,10 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
       () => win.cancelAnimationFrame(frame),
       () => win.removeEventListener("pointermove", onMove),
       () => win.removeEventListener("pointerdown", onDown),
+      () => win.removeEventListener("pointerup", onUp),
+      () => win.removeEventListener("pointercancel", cancelTap),
+      () => win.removeEventListener("scroll", cancelTap, true),
+      () => win.removeEventListener("blur", cancelTap),
       () => reduce.removeEventListener("change", onMotion),
       () => observer?.disconnect(), unsubscribeSound, release, () => sound.close(),
     ]) { try { stop(); } catch { /* Attempt every release after an API failure. */ } }
@@ -411,6 +438,10 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     if (reduce.matches) { dispose(); return { dispose }; }
     win.addEventListener("pointermove", onMove, { passive: true });
     win.addEventListener("pointerdown", onDown, { passive: true });
+    win.addEventListener("pointerup", onUp, { passive: true });
+    win.addEventListener("pointercancel", cancelTap, { passive: true });
+    win.addEventListener("scroll", cancelTap, { passive: true, capture: true });
+    win.addEventListener("blur", cancelTap);
     reduce.addEventListener("change", onMotion);
     const first = doc.querySelector<HTMLElement>(".trailhead");
     if (first) void build(first).catch(() => release());
