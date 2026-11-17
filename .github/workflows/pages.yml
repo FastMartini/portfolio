@@ -38,12 +38,14 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        timeout-minutes: 10
         run: |
-          # Avoid intermittent multi-minute package downloads from the Azure mirror.
+          # Runner-selected EC2/Azure mirrors can stream packages for many minutes.
           if [ -f /etc/apt/apt-mirrors.txt ]; then
-            sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/apt-mirrors.txt
+            printf '%s\n' 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
           fi
-          npx playwright install --with-deps chromium firefox webkit
+          browser="${{ matrix.project }}"
+          npx playwright install --with-deps "${browser%-adaptive}"
 
       - name: Start a virtual audio output for native playback tests
         run: |
