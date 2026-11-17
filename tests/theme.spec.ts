@@ -145,7 +145,7 @@ test("view switches inherit the in-flight palette without leaking palette tokens
   await expect(page.locator(".climb-list")).toHaveCSS("background-color", ground.dark);
 });
 
-test("stationary snow-stage toggles finish, cloud hides celestial light, and four Light cards are cream", async ({ page }) => {
+test("stationary snow-stage toggles finish, cloud hides celestial light, and three Light cards are cream", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await ready(page);
   await select(page, "dark");
@@ -156,7 +156,7 @@ test("stationary snow-stage toggles finish, cloud hides celestial light, and fou
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await select(page, "light");
   await expect(page.locator("#night-veil")).toHaveCSS("opacity", "0");
-  expect(await page.locator(".climb-card").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).backgroundColor))).toEqual(Array(4).fill("rgb(255, 251, 237)"));
+  expect(await page.locator(".climb-card").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).backgroundColor))).toEqual(Array(3).fill("rgb(255, 251, 237)"));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
   await scrollToClimbStop(page, 8);

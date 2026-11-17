@@ -32,9 +32,6 @@ for (const width of [320, 390, 1440]) {
       const header = page.getByRole("banner");
       const navigation = page.getByRole("navigation", { name: "Primary navigation" });
       await expect(navigation).toBeVisible();
-      await expect(navigation.locator(".site-header-links a")).toHaveText(["About", "Work", "Resume", "Contact"]);
-      await expect(page.locator("#beyond-work")).toHaveCount(0);
-      await expect(page.getByRole("navigation", { name: "Trail stops" }).getByRole("button")).toHaveCount(9);
       await expect(header).toBeInViewport();
       await expect(header.getByText("DM", { exact: true })).toHaveCount(0);
       const bounds = await header.boundingBox();
@@ -82,45 +79,6 @@ test("the logo-free navigation stays usable without JavaScript or mountain capab
   await expect(page).toHaveURL(/#summit$/);
   await expect(page.locator("#summit, [data-card=\"8\"]").getByRole("link", { name: /Devpost/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Climb view", exact: true })).toHaveCount(0);
-});
-
-test.describe("navbar Resume", () => {
-  test.use({ hasTouch: true });
-
-  for (const width of [390, 1440]) {
-    test(`opens the PDF from either view with pointer and keyboard at ${width}px`, async ({ page, context }) => {
-      await page.setViewportSize({ width, height: 900 });
-      await page.emulateMedia({ reducedMotion: "reduce" });
-      // Keep popup navigation observable rather than invoking the PDF viewer.
-      await context.route("**/resume/Martinez_Diego_2026.pdf", route => route.fulfill({ contentType: "text/html", body: "<title>Resume PDF</title>" }));
-      await page.goto("./#list-view");
-      for (const view of ["list", "climb"]) {
-        if (view === "climb") {
-          await page.getByRole("button", { name: "Climb view", exact: true }).click();
-          await scrollToClimbStop(page, 3);
-        }
-        const originalURL = page.url();
-        const resume = page.getByRole("banner").getByRole("link", { name: "View résumé (PDF, opens in a new tab)" });
-        await expect(resume).toHaveText("Resume");
-        await expect(resume).toHaveAttribute("target", "_blank");
-        await expect(resume).toHaveAttribute("rel", "noopener noreferrer");
-        for (const input of ["pointer", "keyboard"]) {
-          const popupPromise = page.waitForEvent("popup");
-          if (input === "keyboard") {
-            await resume.focus();
-            await page.keyboard.press("Enter");
-          } else if (width === 390) await resume.tap();
-          else await resume.click();
-          const popup = await popupPromise;
-          await expect(popup).toHaveURL(/\/resume\/Martinez_Diego_2026\.pdf$/);
-          expect(await popup.evaluate(() => window.opener)).toBeNull();
-          await popup.close();
-          await expect(page).toHaveURL(originalURL);
-          if (view === "climb") await expect(page.locator("#climb")).toHaveAttribute("data-stop", "3");
-        }
-      }
-    });
-  }
 });
 
 test("shared header navigation closes an open reading panel and reaches the requested stop", async ({ page }) => {

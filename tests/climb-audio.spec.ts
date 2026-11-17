@@ -153,12 +153,12 @@ test("the storm reaches the output and the summit is completely silent even with
   await probeAudio(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openClimb(page);
-  await scrollToClimbStop(page, 8);
+  await scrollToClimbStop(page, 7);
   await page.getByRole("button", { name: "Ambient sound", exact: true }).click();
   await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
   await scrollToClimbStop(page, 8);
   await expect.poll(() => outputLevel(page)).toBe(0);
-  await scrollToClimbStop(page, 8);
+  await scrollToClimbStop(page, 7);
   await expect.poll(() => outputLevel(page)).toBeGreaterThan(0.005);
   expect(await page.evaluate(() => Reflect.get(window, "ambientContexts").length)).toBe(1);
 });
