@@ -12,7 +12,7 @@
 import { heroSound } from "./sound";
 
 export const STRUM = {
-  opacity: 0.22,        // base line strength (the CSS layer is 0.16): a little darker
+  opacity: 0.22,        // matches the static contours before interaction mounts
   ringDarken: 2.6,      // extra strength on a ringing string, at full energy
   amp: [5, 14],         // px, slow → fast crossing
   hz: 6,                // visible vibration rate: slow enough to read as a wave
@@ -20,7 +20,7 @@ export const STRUM = {
   spread: [36, 520],    // wave packet: start width (px) and growth (px/s)
   decay: 1.5,           // per second
   life: 2.6,            // s
-  strumGap: 16,         // ms between notes of one swipe
+  strumGap: 16,         // ms between visual plucks of one swipe
   repluck: 90,          // ms before the same string can be plucked again
   volume: 0.5,
 };
@@ -69,7 +69,7 @@ function resample(raw: number[], step: number) {
   return new Float32Array(out);
 }
 async function loadStrings(src: string): Promise<{ strings: Str[]; vw: number; vh: number } | null> {
-    const text = await fetch(src).then(r => { if (!r.ok) throw new Error("Contour artwork unavailable"); return r.text(); });
+  const text = await fetch(src).then(r => { if (!r.ok) throw new Error("Contour artwork unavailable"); return r.text(); });
   const svg = new DOMParser().parseFromString(text, "image/svg+xml").documentElement;
   const box = (svg.getAttribute("viewBox") ?? "0 0 1000 700").split(/[\s,]+/).map(Number);
   const strings: Str[] = [...svg.querySelectorAll("path")].map(path => {

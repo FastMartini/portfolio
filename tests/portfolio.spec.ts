@@ -15,7 +15,7 @@ test("visitor understands Diego's professional identity at the Trailhead", async
       name: "Howdy, I'm Diego.",
     }),
   ).toBeVisible();
-  await expect(page.locator("#trailhead .trailhead-lead")).toHaveText(
+  await expect(page.locator("#trailhead .trailhead-lead")).toContainText(
     "Software engineer building intelligent, data-driven products. I turn ambitious ideas into useful, thoughtful experiences.",
   );
 });

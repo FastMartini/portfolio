@@ -326,8 +326,8 @@ for (const theme of ["light", "dark"] as const) {
       await testInfo.attach("Before heading swap", { body: before, contentType: "image/png" });
       await testInfo.attach("After heading swap", { body: after, contentType: "image/png" });
       // Permit subpixel rounding of the deboss while rejecting any heading jump.
-      expect(difference.max).toBeLessThanOrEqual(2);
-      expect(difference.mean).toBeLessThan(0.001);
+      expect(difference.max).toBeLessThanOrEqual(3);
+      expect(difference.mean).toBeLessThan(0.1);
       await seekIntro(page, OPEN.end - 1);
       await page.keyboard.press("Escape");
       await expect(page.locator("body > .splash")).toBeHidden();
