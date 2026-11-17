@@ -23,8 +23,18 @@ Current rendered About sections, including the continuous trail:
 - [Desktop, Light](about-redesign/1440-light.png)
 - [Mobile, Dark](about-redesign/390-dark.png)
 
-The four List View hero/Waypoint visual references are refreshed for the new lead and route. Other section and Climb references remain unchanged. CI's verification budget is 45 minutes to accommodate the added cross-browser coverage.
+The four List View hero/Waypoint visual references are refreshed for the new lead and route. Other section and Climb references remain unchanged. CI's verification budget is 45 minutes to accommodate the added cross-browser coverage. The manually requested baseline-refresh job runs the two visual specs directly; normal PR verification runs the full suite.
 
 ## Before publication
 
 The supplied Teacher images contain other people's names and faces, including the cohort, LinkedIn message, and session chat. As requested in the handoff, confirm their permission or redact/crop identifying details before publishing. This branch and PR do not deploy the site.
+
+## Verification
+
+- TypeScript, ESLint and production static export pass.
+- Chromium and WebKit cover the three pitches, both rings, nine responsive sizes (including short landscape), both themes, clearance, fast-scroll catch-up, reduced motion, no JavaScript, DPR 2, native scrolling, first held touch, and both map handoffs.
+- The broad regression run passed 160 cases initially. Its live preference-query failures were fixed; those cases and the resource-sensitive accessibility/landmark checks passed isolated reruns (7 passed, 1 Chromium-input-only skip).
+- Final hero, link, navigation and canonical-content checks: 39 passed, 1 Chromium-input-only skip.
+- Without a project base path, all 32 About cases passed; after fixing Safari's deferred back-facing images, all 28 metadata/asset/routing checks passed.
+- The real Veritas iframe returned HTTP 200, created its video player and advanced to two seconds inside the card. Automated checks also verify that turning away unloads the iframe.
+- Local Firefox cannot launch because its installed browser reports “Could not find profile folder”; the full GitHub Actions run includes Firefox. The PR's current check status remains the authority for merge readiness.
