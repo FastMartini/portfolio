@@ -55,10 +55,10 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
   const stepBy = (direction: number) => settle((target ?? Math.round(angle / step) * step) - direction * step);
   const face = (i: number) => { const base = -i * step, from = target ?? angle; settle(base + 360 * Math.round((from - base) / 360)); };
   const abort = new AbortController(), signal = abort.signal;
-  let resize: ResizeObserver | undefined;
+  let resize: ResizeObserver | undefined, preload: IntersectionObserver | undefined;
   const cleanup = () => {
     active = false;
-    for (const stop of [() => abort.abort(), () => resize?.disconnect(), () => cancelAnimationFrame(frame), () => clearTimeout(wheelIdle)]) { try { stop(); } catch { /* Release the other optional resources as well. */ } }
+    for (const stop of [() => abort.abort(), () => resize?.disconnect(), () => preload?.disconnect(), () => cancelAnimationFrame(frame), () => clearTimeout(wheelIdle)]) { try { stop(); } catch { /* Release the other optional resources as well. */ } }
     delete root.dataset.ringReady;
     cards.forEach(card => { card.removeAttribute("aria-hidden"); card.inert = false; for (const property of ["transform", "opacity", "filter"]) card.style.removeProperty(property); });
     track.style.transform = ""; stage.classList.remove("is-dragging");
@@ -112,6 +112,13 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
     reduce.addEventListener("change", () => { try { if (reduce.matches) { cancelAnimationFrame(frame); frame = 0; settle(target ?? Math.round(angle / step) * step); } } catch { cleanup(); } }, { signal });
     root.dataset.ringReady = "true";
     resize = new ResizeObserver(measure); resize.observe(stage); measure();
+    // WebKit can indefinitely defer lazy images on a back-facing 3D card.
+    // Load the whole ring nearby, before a visitor turns one into view.
+    const loadImages = () => { root.querySelectorAll("img").forEach(image => { image.loading = "eager"; }); preload?.disconnect(); };
+    try {
+      if (typeof IntersectionObserver !== "function") loadImages();
+      else { preload = new IntersectionObserver(entries => { if (entries.some(entry => entry.isIntersecting)) loadImages(); }, { rootMargin: "800px" }); preload.observe(root); }
+    } catch { loadImages(); }
   } catch { cleanup(); onFront(0); return () => {}; }
   return cleanup;
 }
