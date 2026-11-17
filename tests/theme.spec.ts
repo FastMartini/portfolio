@@ -276,6 +276,11 @@ for (const width of [320, 390, 901, 1280]) {
   test(`controls fit ${width}px in both themes and the standalone header`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await ready(page);
+    // The enhanced view toggle reserves its space only after hydration. Measure
+    // both controls in that final layout, rather than comparing two layouts.
+    const view = page.getByRole("button", { name: "Climb view", exact: true });
+    await expect(view).toBeInViewport();
+    await page.evaluate(() => document.fonts.ready);
     for (const theme of ["light", "dark"] as const) {
       await select(page, theme);
       const control = page.getByRole("button", { name: `Switch to ${theme === "light" ? "dark" : "light"} theme` });
@@ -284,7 +289,6 @@ for (const width of [320, 390, 901, 1280]) {
       expect(bounds.width).toBeGreaterThanOrEqual(44 - 0.01);
       expect(bounds.height).toBeGreaterThanOrEqual(44 - 0.01);
       await expect(control).toBeInViewport();
-      const view = page.getByRole("button", { name: "Climb view", exact: true });
       await expect(view).toBeInViewport();
       expect(bounds.x + bounds.width).toBeLessThanOrEqual((await view.boundingBox())!.x);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);

@@ -1,4 +1,4 @@
-/* Continuous feather entrance and physical gatefolds share one 6400ms clock.
+/* The physical map keeps its 6400ms clock; the branded hero finishes at 7550ms.
    The last sway overlaps the first fold. Paper is always the Light navbar color. */
 
 html[data-splash="active"] .splash { display: block; }
@@ -12,7 +12,7 @@ html[data-splash="active"] .splash { display: block; }
   --paper-back: var(--paper);
 
   --print: var(--print-wide);
-  animation: splash-exit 6400ms linear both;
+  animation: splash-exit 7550ms linear both;
   contain: strict;
   display: none;
   inset: 0;
@@ -27,7 +27,7 @@ html[data-splash="active"] .splash { display: block; }
   .splash { --w: min(43vw, 30vh); --ph: calc(var(--w) * 1.25); --rig-top: 50vh; --zoom-fallback: 3.4; --print: var(--print-tall); }
 }
 html[data-splash] .splash.splash--skipped { animation: none; display: none; }
-/* The overlay never fades as a whole: by 6.4 s nothing in it is visible, so it
+/* The overlay never fades as a whole: by 7.55 s nothing in it is visible, so it
    is simply removed. (A fade here would show the decorative greeting and the
    real heading at once.) */
 @keyframes splash-exit { 0%, 99.99% { visibility: visible; } 100% { visibility: hidden; } }
@@ -103,7 +103,7 @@ html .splash.splash--list { display: block; z-index: 59; }
 .splash-pane .splash-face--back { transform: rotateX(180deg); }
 .splash-door .splash-face--back { transform: rotateY(180deg); }
 .splash-print { animation: splash-print-fade 6400ms linear both; }
-@keyframes splash-print-fade { 0%, 59.0625% { opacity: 1; } 67.5%, 100% { opacity: 0; } }
+@keyframes splash-print-fade { 0%, 59.0625% { opacity: 1; } 69.0625%, 100% { opacity: 0; } }
 .splash-face svg { display: block; height: 100%; left: 0; position: absolute; top: 0; width: 100%; }
 .splash-face .splash-print--tall { display: none; }
 @media (max-aspect-ratio: 4/5) { .splash-face .splash-print--wide { display: none; } .splash-face .splash-print--tall { display: block; } }
@@ -148,7 +148,7 @@ html .splash.splash--list { display: block; z-index: 59; }
 .splash-greeting--page { color: #ece6d2; visibility: hidden; }
 html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
 .splash-word {
-  animation: splash-ink 700ms cubic-bezier(0.3, 0.1, 0.25, 1) both;
+  animation: splash-ink 600ms cubic-bezier(0.3, 0.1, 0.25, 1) both;
   -webkit-mask-image: linear-gradient(90deg, #000 0 42%, rgba(0, 0, 0, 0.45) 50%, transparent 58% 100%);
   mask-image: linear-gradient(90deg, #000 0 42%, rgba(0, 0, 0, 0.45) 50%, transparent 58% 100%);
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
@@ -204,30 +204,9 @@ html[data-theme="light"] .splash-greeting--page { color: #1f2621; }
 .splash .cv-title { fill: #173f35; font-style: italic; }
 .splash .cv-ridge { fill: none; stroke: #173f35; stroke-width: 2.4; stroke-linejoin: round; } .splash .cv-ridge.thin { stroke-width: 1.2; opacity: .6; }
 .splash .cv-route { fill: none; stroke: #b5653b; stroke-width: 2.2; stroke-dasharray: 2 6; stroke-linecap: round; }
-/* ---------- Reduced motion ----------
-   No unfolding, ruffling or zoom. The greeting sits still on a surface of the
-   page's own colour, at the real heading's position; the rest of the
-   Trailhead fades in around it (opacity only, driven by JS) and the surface
-   fades away. ~1.4 s. Destination is the List View, as on the live site. */
-html { --splash-rm-bg: #1a211d; --splash-rm-ink: #ece6d2; }
-html[data-theme="light"] { --splash-rm-bg: #f3eedd; --splash-rm-ink: #1f2621; }
-@keyframes splash-rm-exit { 0%, 99.99% { visibility: visible; } 100% { visibility: hidden; } }
-/* Finish the paper fade before the 1190ms heading swap, avoiding a residual
-   second ink layer on the final few frames. */
-@keyframes splash-rm-sheet { 0%, 50% { opacity: 1; } 83.5%, 100% { opacity: 0; } }
+/* Reduced motion opens the complete reading surface on the first frame,
+   including before hydration and with JavaScript disabled. */
 @media (prefers-reduced-motion: reduce) {
-.splash:not(.splash--skipped) { animation: splash-rm-exit 1400ms linear both; }
-.splash-world { display: none; }
-.splash-paper-stage { animation: splash-rm-sheet 1400ms linear both; background: var(--splash-rm-bg); }
-.splash-sheet { animation: none; background: var(--splash-rm-bg); }
-.splash-word { animation: none; -webkit-mask-image: none; mask-image: none; }
-.splash-greeting { color: var(--splash-rm-ink); }
-.splash-sheet::before { display: none; }
+  html .splash { display: none; animation: none; }
 }
-html[data-motion="reduce"] .splash:not(.splash--skipped) { animation: splash-rm-exit 1400ms linear both; }
-html[data-motion="reduce"] .splash-world { display: none; }
-html[data-motion="reduce"] .splash-paper-stage { animation: splash-rm-sheet 1400ms linear both; background: var(--splash-rm-bg); }
-html[data-motion="reduce"] .splash-sheet { animation: none; background: var(--splash-rm-bg); }
-html[data-motion="reduce"] .splash-word { animation: none; -webkit-mask-image: none; mask-image: none; }
-html[data-motion="reduce"] .splash-greeting { color: var(--splash-rm-ink); }
-html[data-motion="reduce"] .splash-sheet::before { display: none; }
+html[data-motion="reduce"] .splash { display: none; animation: none; }

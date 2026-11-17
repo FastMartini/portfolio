@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import type { SplashElement } from "../components/splash/controller";
+import { OPEN } from "../components/splash/controller";
 import { seekIntro } from "./helpers/splash";
 
 for (const variant of ["wide", "tall"] as const) {
@@ -42,7 +43,9 @@ for (const variant of ["wide", "tall"] as const) {
 }
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
-  test(`panels reveal continuously and the greeting overlaps the ink fade at ${viewport.width}px`, async ({ page }, info) => {
+  test(`panels reveal continuously and branding heat follows the ink fade at ${viewport.width}px`, async ({ page }, info) => {
+    // Allow software WebKit to sample the folds and render each evidence frame.
+    if (info.project.name === "webkit-adaptive") test.slow();
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto("./");
@@ -68,7 +71,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await seekIntro(page, time);
       await page.screenshot({ path: info.outputPath(`fold-${time}.png`) });
     }
-    for (const time of [4050, 4200, 4320, 4420, 4600]) {
+    for (const time of [4050, 4200, 4320, OPEN.greeting + 60, 4600]) {
       await seekIntro(page, time);
       const png = await page.screenshot({ path: info.outputPath(`handoff-${time}.png`) });
       const evidence = await page.evaluate(async ({ png }) => {
@@ -77,11 +80,14 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
         const ctx = canvas.getContext("2d")!; ctx.drawImage(image, 0, 0);
         const box = document.querySelector("#trailhead-title")!.getBoundingClientRect(), s = image.width / innerWidth;
         const pixels = ctx.getImageData(box.x * s, box.y * s, box.width * s, box.height * s).data;
-        let ink = 0;
-        for (let i = 0; i < pixels.length; i += 4) if (pixels[i] < 130 && pixels[i + 1] < 140 && pixels[i + 2] < 130) ink++;
-        return { ink, contours: +getComputedStyle(document.querySelector(".splash-print")!).opacity };
+        let ink = 0, heat = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i] < 130 && pixels[i + 1] < 140 && pixels[i + 2] < 130) ink++;
+          if (pixels[i] > pixels[i + 1] + 10 && pixels[i + 1] > pixels[i + 2] + 10) heat++;
+        }
+        return { ink, heat, contours: +getComputedStyle(document.querySelector(".splash-print")!).opacity };
       }, { png: png.toString("base64") });
-      expect(evidence.contours > 0.15 || evidence.ink > 20, `no blank paper beat at ${time}ms`).toBe(true);
+      expect(evidence.contours > 0.15 || evidence.ink > 20 || evidence.heat > 20, `the map ink or branding heat must remain visible at ${time}ms`).toBe(true);
     }
     await page.keyboard.press("Escape");
     await expect(page.locator(".splash")).toBeHidden();

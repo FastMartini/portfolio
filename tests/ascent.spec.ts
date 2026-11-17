@@ -25,12 +25,12 @@ test("conventional navigation reaches sections and keeps Climb view in the mobil
   }
 });
 
-test("Trailhead actions reach MomentumX and the Summit without the removed orientation widget", async ({ page }) => {
+test("Work navigation and Trailhead contact reach their destinations without the removed orientation widget", async ({ page }) => {
   await page.goto("./#list-view");
   await expect(page.getByRole("complementary", { name: "Mountain Journey location" })).toHaveCount(0);
-  await page.getByRole("link", { name: "View selected work" }).click();
-  await expect(page).toHaveURL(/#momentumx$/);
-  await expect(page.getByRole("link", { name: "Go to Waypoint 01: MomentumX" })).toHaveAttribute("aria-current", "location");
+  await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true }).click();
+  await expect(page).toHaveURL(/#work$/);
+  await expect(page.locator("#work")).toBeInViewport();
 
   await page.getByRole("link", { name: "Diego Martinez, home", exact: true }).click();
   await page.getByRole("link", { name: "Contact me" }).click();
@@ -89,6 +89,8 @@ test("the navigation view toggle is keyboard reachable and switches both ways", 
   await page.goto("./#list-view");
   const navigation = page.getByRole("navigation", { name: "Primary navigation" });
   await navigation.getByRole("link", { name: "Contact", exact: true }).focus();
+  await page.keyboard.press("Tab");
+  await expect(navigation.getByRole("button", { name: "Guitar sound", exact: true })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(navigation.getByRole("button", { name: "Switch to dark theme" })).toBeFocused();
   await page.keyboard.press("Tab");
@@ -254,8 +256,9 @@ for (const [width, id, name] of [
     await expect(page.locator(".mountain-journey")).toHaveAttribute("data-enhanced", "true");
     await expect(page.getByRole("navigation", { name: "Primary navigation" }).getByRole("button", { name: "Climb view" })).toBeInViewport();
     if (id === "trailhead") {
-      await expect.poll(() => page.getByRole("img", { name: "Diego Martinez" })
-        .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+      await expect(page.locator("#trailhead .trailhead-portrait")).toHaveCount(0);
+      await expect(page.locator("#trailhead [data-paper-piece]")).toHaveCount(0);
+      await expect(page.locator("#trailhead .resume-link")).toBeInViewport();
     }
     await expect(page).toHaveScreenshot(`${name}.png`, { animations: "disabled" });
   });

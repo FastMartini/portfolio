@@ -6,6 +6,8 @@ const paper = "rgb(243, 238, 221)";
 for (const theme of ["light", "dark"] as const) {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
     test(`${theme} paper stays uniform as the map drifts, settles and unfolds at ${viewport.width}x${viewport.height}`, async ({ page }, info) => {
+      // Software WebKit captures 22 detailed SVG frames in this pixel check.
+      if (info.project.name === "webkit-adaptive") test.slow();
       await page.setViewportSize(viewport);
       await page.emulateMedia({ reducedMotion: "no-preference" });
       await page.addInitScript(theme => localStorage.setItem("portfolio-theme", theme), theme);

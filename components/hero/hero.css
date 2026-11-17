@@ -1,0 +1,34 @@
+/* The paper and page copies must keep their letters inside their own surface. */
+.splash-greeting:has(.hero-reveal-letter) { isolation: isolate; }
+.hero-reveal-letter { will-change: transform, opacity; z-index: 1; }
+/* ---------- Branding iron: decorative pieces on the paper copy only ---------- */
+.hero-brand-heat, .hero-brand-scorch, .hero-brand-spark, .hero-brand-smoke { opacity: 0; pointer-events: none; position: absolute; }
+.hero-brand-heat { background: radial-gradient(closest-side, rgba(255, 170, 90, 0.5), rgba(255, 140, 60, 0.16) 60%, transparent); z-index: 0; }
+.hero-brand-scorch { background: radial-gradient(closest-side, rgba(110, 48, 18, 0.28), rgba(110, 48, 18, 0.1) 55%, transparent); z-index: 0; }
+.hero-brand-spark { background: #ffd27a; border-radius: 50%; box-shadow: 0 0 4px 1px rgba(255, 140, 40, 0.8); z-index: 2; }
+.hero-brand-smoke { background: radial-gradient(closest-side, rgba(95, 85, 75, 0.17), rgba(95, 85, 75, 0.06) 55%, transparent); z-index: 2; }
+
+/* ---------- Branding iron: kept deboss, strummed contours, nav sound icon ---------- */
+/* The letters stay pressed into the page. Three shadows each, so they interpolate. */
+[data-theme-root] { --brand-deboss: 0 -0.012em 0 rgba(40, 15, 5, 0.42), 0 0.016em 0 rgba(255, 250, 235, 0.7), 0 0 0 transparent; }
+html[data-theme="dark"] [data-theme-root] { --brand-deboss: 0 -0.012em 0 rgba(0, 0, 0, 0.6), 0 0.014em 0 rgba(236, 230, 210, 0.12), 0 0 0 transparent; }
+.splash-greeting--paper { --brand-deboss: 0 -0.012em 0 rgba(40, 15, 5, 0.42), 0 0.016em 0 rgba(255, 250, 235, 0.7), 0 0 0 transparent; text-shadow: var(--brand-deboss); }
+#trailhead-title { text-shadow: var(--brand-deboss); }
+.hero-strings { height: 100%; inset: 0; pointer-events: none; position: absolute; width: 100%; }
+/* Keep the paper's line strength stable when the interactive canvas mounts. */
+.trailhead-contours { opacity: 0.22; }
+.trailhead-surprise { color: var(--ink-label); display: block; font-size: 0.875rem; line-height: 1.5; margin-top: 0.75rem; }
+.site-header-controls .hero-sound-toggle {
+  align-items: center; background: transparent; border: 1px solid transparent; border-radius: 999px; color: var(--btn-ink); cursor: pointer;
+  display: inline-flex; flex: none; height: 44px; justify-content: center; min-width: 44px; padding: 0;
+}
+.site-header-controls .hero-sound-toggle:hover { background: var(--btn-hover); }
+.site-header-controls .hero-sound-toggle:active { background: var(--btn-active); }
+.site-header-controls .hero-sound-toggle[aria-pressed="true"] { background: var(--raised); color: var(--ink-accent); }
+.site-header-controls .hero-sound-toggle:focus-visible { outline: 3px solid var(--ink-accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .trailhead-contours { opacity: 0.16; }
+  .hero-strings, .trailhead-surprise { display: none; }
+  .site-header-controls .hero-sound-toggle { visibility: hidden; }
+  .hero-reveal-letter { will-change: auto; }
+}

@@ -5,7 +5,7 @@ const homePaths = JSON.stringify([basePath || "/", `${basePath}/`]);
 
 export const SPLASH_GATE_SCRIPT = `(()=>{
   try{document.documentElement.dataset.motion=matchMedia("(prefers-reduced-motion: reduce)").matches?"reduce":"full"}catch{}
-  if(location.hash||!${homePaths}.includes(location.pathname)){
+  if(document.documentElement.dataset.motion==="reduce"||location.hash||!${homePaths}.includes(location.pathname)){
     document.documentElement.dataset.splash="seen";return;
   }
   try{

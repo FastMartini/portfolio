@@ -108,7 +108,7 @@ test("List View toggle and Waypoint hashes preserve full text, focus, routes, an
   await page.evaluate(() => { location.hash = "veritas"; });
   await expect(page).toHaveURL(/#veritas$/);
   await expect(page.locator("#veritas")).toBeInViewport();
-  await expect(page.locator("#list-view")).toBeFocused();
+  await expect(page.locator("#veritas")).toBeFocused();
   await expect(page.locator("#climb")).toBeHidden();
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
   await expect(page).toHaveURL(/\/portfolio\/$/);

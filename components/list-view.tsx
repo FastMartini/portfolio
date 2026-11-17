@@ -3,11 +3,11 @@ import { InlineCaseStudies } from "./climb/CaseStudies";
 
 import { JourneyRidge, WaypointTrail } from "./journey-ridge";
 import { waypoints } from "../content/waypoints";
-import { TrailheadPhoto } from "./trailhead-photo";
+import { TrailheadArt } from "./trailhead-art";
 import { contactLinks } from "../content/contact";
 import { PortfolioLink } from "./portfolio-link";
 import { ResumeLink } from "./resume-link";
-import { trailheadIntro } from "../content/trailhead";
+import { listTrailheadIntro } from "../content/trailhead";
 
 function ArrowIcon() {
   return (
@@ -44,35 +44,33 @@ function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
 // The durable content layer: keep this component server-rendered and complete
 // without JavaScript while the illustrated Climb is added as an enhancement.
 export function ListView() {
+  const [greeting, name] = listTrailheadIntro.heading.split(", ");
   return (
     <div className="list-view" id="list-view" tabIndex={-1}>
       <div className="list-sections">
       <section className="trailhead" id="trailhead" aria-labelledby="trailhead-title">
+        <TrailheadArt />
         <div className="trailhead-copy">
           <p className="eyebrow">
             <span aria-hidden="true" /> Trailhead
           </p>
           <h1 id="trailhead-title">
-            {trailheadIntro.heading}
+            <span className="trailhead-title-line">{greeting},</span>{" "}
+            <span className="trailhead-title-line">{name}</span>
           </h1>
-          <p className="trailhead-lead">{trailheadIntro.lead}</p>
-          <p className="trailhead-intro">
-            {trailheadIntro.body}
+          <p className="trailhead-lead">
+            {listTrailheadIntro.lead}
+            <span className="trailhead-surprise">Click the contour lines for a little surprise.</span>
           </p>
           <div className="trailhead-actions">
-            <a className="button button-primary" href="#momentumx">
-              View selected work <ArrowIcon />
-            </a>
+            <ResumeLink className="button button-primary">
+              Resume
+            </ResumeLink>
             <a className="button button-secondary" href="#summit">
               Contact me
             </a>
-            <ResumeLink className="resume-note" />
           </div>
         </div>
-
-        <figure className="trailhead-portrait">
-          <TrailheadPhoto />
-        </figure>
 
         <a className="scroll-cue" href="#about">
           <span>Begin the journey</span>
@@ -97,6 +95,7 @@ export function ListView() {
             <p>
               I care about thoughtful systems, clear experiences, and the small
               decisions that make software feel considered from end to end.
+              I also enjoy teaching others how to code.
             </p>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { OPEN } from "../components/splash/controller";
 import { imageDifference, seekIntro } from "./helpers/splash";
 
 async function tabToLink(page: Page, browserName: string) {
@@ -25,16 +26,14 @@ for (const destination of ["./#work", "./#case-veritas", "./work/veritas/"]) {
   });
 }
 
-test("reduced-motion keyboard input stops the intro without trapping focus", async ({ page, browserName }) => {
+test("reduced-motion keyboard input reaches the finished page without trapping focus", async ({ page, browserName }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
   const splash = page.locator(".splash");
-  await expect(splash).toBeVisible();
-  await seekIntro(page, 1200);
+  await expect(splash).toBeHidden();
   await expect(page.getByRole("button", { name: "Climb view", exact: true })).toBeVisible();
   await tabToLink(page, browserName);
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
-  await expect(splash).toHaveCSS("animation-name", "none", { timeout: 750 });
   await expect(splash).toBeHidden({ timeout: 750 });
 });
 
@@ -48,9 +47,9 @@ test("the full intro exits naturally without console or hydration errors", async
   await expect(splash).toBeVisible();
   await expect(splash.locator(".splash-pane")).toHaveCount(2);
   await expect(splash.locator(".splash-hand")).toHaveCount(0);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego:");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego.");
   await expect(splash.locator(".wordmark-mark")).toHaveCount(0);
-  await expect(splash).toBeHidden({ timeout: 7000 });
+  await expect(splash).toBeHidden({ timeout: 9000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -62,9 +61,10 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const page = await context.newPage();
       await page.goto("./");
       const splash = page.locator(".splash");
-      await expect(splash).toBeVisible();
-      // Input must interrupt an active intro, even if navigation setup is slow.
-      await seekIntro(page, 1200);
+      if (reducedMotion === "no-preference") {
+        await expect(splash).toBeVisible();
+        await seekIntro(page, 1200);
+      } else await expect(splash).toBeHidden();
       await expect(page.locator(".climb-view-toggle")).toBeVisible();
       if (input === "pointer") {
         await page.getByRole("navigation", { name: "Primary navigation" })
@@ -77,25 +77,22 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       } else {
         await page.touchscreen.tap(20, 400);
       }
-      await expect(splash).toHaveCSS("animation-name", "none", { timeout: 750 });
+      if (reducedMotion === "no-preference") await expect(splash).toHaveCSS("animation-name", "none", { timeout: 750 });
       await expect(splash).toBeHidden({ timeout: 750 });
       await context.close();
     });
   }
 }
 
-test("reduced motion uses a still card and an opacity-only exit", async ({ page }) => {
+test("reduced motion shows the completed hero immediately", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
-  const splash = page.locator(".splash");
-  await expect(splash).toBeVisible();
-  await expect(splash.locator(".splash-world")).toBeHidden();
-  await expect(splash).toHaveCSS("transform", "none");
-  for (const selector of [".splash-word"]) {
-    for (const element of await splash.locator(selector).all()) await expect(element).toHaveCSS("animation-name", "none");
-  }
-  await expect(splash).toBeHidden({ timeout: 3000 });
-  await expect(splash).toHaveCSS("transform", "none");
+  await expect(page.locator("html")).toHaveAttribute("data-splash", "seen");
+  await expect(page.locator(".splash")).toBeHidden();
+  await expect(page.locator("#trailhead-title")).toHaveCSS("opacity", "1");
+  await expect(page.locator("[data-paper-piece]")).toHaveCount(0);
+  await expect(page.locator(".trailhead-trail").first()).toHaveCSS("stroke-dashoffset", "0px");
+  expect(await page.locator("#trailhead").evaluate(el => el.getAnimations({ subtree: true }).length)).toBe(0);
 });
 
 test("input dismisses the intro even when paint-driven transitions cannot advance", async ({ page }) => {
@@ -127,7 +124,7 @@ test("the failsafe dismisses the intro if its CSS animation cannot complete", as
   await page.goto("./");
   await page.addStyleTag({ content: ".splash { animation: none !important; }" });
   await expect(page.locator(".splash")).toBeVisible();
-  await expect(page.locator(".splash")).toBeHidden({ timeout: 8000 });
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 9500 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
@@ -196,7 +193,7 @@ for (const viewport of [
     expect(Math.max(...panes.map((box) => box.right))).toBeGreaterThan(viewport.width);
     expect(Math.min(...panes.map((box) => box.top))).toBeLessThan(0);
     expect(Math.max(...panes.map((box) => box.bottom))).toBeGreaterThan(viewport.height);
-    await seekIntro(page, 5000);
+    await seekIntro(page, 5800);
     const heading = page.locator("#trailhead-title");
     const box = await heading.boundingBox();
     for (const copy of ["paper", "page"]) expect(await page.locator(`.splash-greeting--${copy}`).boundingBox()).toEqual(box);
@@ -218,8 +215,8 @@ test.describe("rendered map opening recordings", () => {
       const page = await context.newPage();
       await page.goto("./");
       await expect(page.locator(".splash")).toBeVisible();
-      await expect(page.locator(".splash")).toBeHidden({ timeout: 7000 });
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego:");
+      await expect(page.locator(".splash")).toBeHidden({ timeout: 9000 });
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego.");
       await expect(page.getByRole("heading", { level: 1 })).toHaveCSS("opacity", "1");
       await context.close();
       await page.video()!.saveAs(testInfo.outputPath("video.webm"));
@@ -241,8 +238,8 @@ test("without JavaScript the homepage and keyboard focus are immediately unobscu
   await tabToLink(page, browserName);
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeInViewport();
-  await page.getByRole("link", { name: "View selected work" }).click();
-  await expect(page).toHaveURL(/#momentumx$/);
+  await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true }).click();
+  await expect(page).toHaveURL(/#work$/);
   await context.close();
 });
 
@@ -274,9 +271,9 @@ test("an eligible intro still exits in CSS when client bundles cannot hydrate", 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("./");
   await expect(page.locator(".splash")).toBeVisible();
-  await expect(page.locator(".splash")).toBeHidden({ timeout: 7000 });
-  await page.getByRole("link", { name: "View selected work" }).click();
-  await expect(page).toHaveURL(/#momentumx$/);
+  await expect(page.locator(".splash")).toBeHidden({ timeout: 9000 });
+  await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true }).click();
+  await expect(page).toHaveURL(/#work$/);
 });
 
 
@@ -291,13 +288,13 @@ test("switching to reduced motion during the zoom restores the reading view imme
   await expect(page.locator(".climb-list")).toBeVisible();
 });
 
-for (const motion of ["no-preference", "reduce"] as const) {
+for (const motion of ["no-preference"] as const) {
 for (const theme of ["light", "dark"] as const) {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
     test(`${theme} ${motion} heading swaps in one frame at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
       await page.setViewportSize(viewport);
       await page.emulateMedia({ reducedMotion: motion });
-      const swap = motion === "reduce" ? 1190 : 5960;
+      const swap = OPEN.swap;
       await page.addInitScript((theme) => localStorage.setItem("portfolio-theme", theme), theme);
       await page.goto("./");
       await seekIntro(page, swap - 5);
@@ -320,13 +317,18 @@ for (const theme of ["light", "dark"] as const) {
           return ctx.getImageData(Math.round(clip.x * scale), Math.round(clip.y * scale), Math.round(clip.width * scale), Math.round(clip.height * scale)).data;
         };
         const a = await read(before), b = await read(after);
-        let max = 0; for (let i = 0; i < a.length; i++) max = Math.max(max, Math.abs(a[i] - b[i]));
-        return max;
+        let max = 0, total = 0;
+        for (let i = 0; i < a.length; i++) {
+          const delta = Math.abs(a[i] - b[i]); max = Math.max(max, delta); total += delta;
+        }
+        return { max, mean: total / a.length };
       }, { before: before.toString("base64"), after: after.toString("base64"), clip, viewport });
       await testInfo.attach("Before heading swap", { body: before, contentType: "image/png" });
       await testInfo.attach("After heading swap", { body: after, contentType: "image/png" });
-      expect(difference).toBeLessThanOrEqual(1);
-      await seekIntro(page, motion === "reduce" ? 1399 : 6399);
+      // Permit subpixel rounding of the deboss while rejecting any heading jump.
+      expect(difference.max).toBeLessThanOrEqual(3);
+      expect(difference.mean).toBeLessThan(0.1);
+      await seekIntro(page, OPEN.end - 1);
       await page.keyboard.press("Escape");
       await expect(page.locator("body > .splash")).toBeHidden();
       await expect(page.locator("html")).toHaveAttribute("data-splash", "seen");

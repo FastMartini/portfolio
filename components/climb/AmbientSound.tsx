@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { ReactNode, Ref } from "react";
+import { HeroSoundToggle } from "../hero/HeroSoundToggle";
 import { createAmbientAudio } from "./audio/controller";
 
 export type AmbientSoundController = { setPosition: (position: number) => void };
@@ -54,6 +55,7 @@ export function AmbientSoundToggle() {
   const sound = useContext(AmbientSoundContext);
   if (!sound) return null;
   const { active, enabled, failed, toggle } = sound;
+  if (!active) return <HeroSoundToggle />;
   return <div className="climb-sound-control" aria-hidden={!active} inert={!active}>
     <button type="button" className="climb-sound-toggle"
       aria-label="Ambient sound" aria-pressed={enabled} onClick={toggle}
