@@ -107,3 +107,22 @@ for (const width of [390, 1440]) {
     await expect(page.locator(".journey-trail-line")).toHaveCSS("stroke-dashoffset", "0px");
   });
 }
+
+for (const width of [390, 1440]) {
+  test(`a curved dotted trail connects Waypoint 01 to 02 without a stub above 01 at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto("./#momentumx");
+    const trail = page.locator("#momentumx .waypoint-trail");
+    await expect(trail).toBeVisible();
+    const connection = await trail.evaluate((svg: SVGSVGElement) => {
+      const path = svg.querySelector("path")!, matrix = path.getScreenCTM()!;
+      const first = document.querySelector("#momentumx .waypoint-marker")!.getBoundingClientRect();
+      const next = document.querySelector("#veritas .waypoint-trail path") as SVGPathElement;
+      const start = path.getPointAtLength(0).matrixTransform(matrix), end = path.getPointAtLength(path.getTotalLength()).matrixTransform(matrix);
+      const join = next.getPointAtLength(0).matrixTransform(next.getScreenCTM()!);
+      return { startGap: Math.hypot(start.x - first.left - first.width / 2, start.y - first.top - first.height / 2), joinGap: Math.hypot(end.x - join.x, end.y - join.y), dashes: getComputedStyle(path).strokeDasharray, curved: (path.getAttribute("d") ?? "").includes("C") };
+    });
+    expect(connection.startGap).toBeLessThan(2); expect(connection.joinGap).toBeLessThan(2);
+    expect(connection.dashes).not.toBe("none"); expect(connection.curved).toBe(true);
+  });
+}

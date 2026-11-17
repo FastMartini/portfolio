@@ -96,6 +96,8 @@ function amp(win: Window) {
   let ctx: AudioContext | null = null, input: AudioNode | null = null, live = 0;
   let output: GainNode | null = null;
   let unlocking: Promise<void> | null = null;
+  let monitor: AnalyserNode | null = null, monitoring = false;
+  let visible = !win.document.hidden, generation = 0;
   const cache = new Map<number, AudioBuffer>();
   const audioWindow = win as Window & { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
   const Ctor = audioWindow.AudioContext ?? audioWindow.webkitAudioContext;
@@ -116,6 +118,7 @@ function amp(win: Window) {
     const dry = c.createGain(), wet = c.createGain(), level = c.createDynamicsCompressor(), out = c.createGain();
     dry.gain.value = 0.85; wet.gain.value = 0.24; level.threshold.value = -20; level.ratio.value = 4; out.gain.value = heroSound.get() ? 0.32 : 0;
     output = out;
+    monitor = c.createAnalyser(); monitor.fftSize = 32;
     pre.connect(drive); drive.connect(mid); mid.connect(cab);
     cab.connect(dry); cab.connect(room); room.connect(wet);
     dry.connect(level); wet.connect(level); level.connect(out); out.connect(c.destination);
@@ -158,15 +161,33 @@ function amp(win: Window) {
     src.onended = () => { live--; lfo.stop(); src.disconnect(); side.disconnect(); depth.disconnect(); };
     src.start(when); lfo.start(when); src.stop(when + 2.6);
   }
+  function keepReady(ready: boolean) {
+    if (!output || !monitor || ready === monitoring) return;
+    if (ready) output.connect(monitor); else output.disconnect(monitor);
+    // This sinkless analyser is an automatic-pull node: it keeps the native
+    // interactive output out of idle standby without generating any samples.
+    monitoring = ready;
+  }
+  function wake() {
+    if (!heroSound.get() || !visible) return;
+    try {
+      if (!ctx && Ctor) { ctx = new Ctor({ latencyHint: "interactive" }); input = build(ctx); }
+      keepReady(true);
+      if (ctx && ctx.state !== "running" && ctx.state !== "closed") unlocking = ctx.resume().catch(() => {});
+    } catch {
+      void ctx?.close().catch(() => {});
+      ctx = null; input = null; output = null; monitor = null; monitoring = false; unlocking = null;
+    }
+  }
   function play(index: number, strength: number, pan: number, delay: number) {
     // Never create the context from hover: it may only start after a gesture.
-    const c = ctx;
-    if (!c) return;
+    const c = ctx, ticket = generation;
+    if (!c || !visible || !heroSound.get()) return;
     if (c.state !== "running") {
       // Safari resumes asynchronously on the first tap. Keep that pluck so
       // the gesture that unlocks the amp also plays the touched string.
       void unlocking?.then(() => {
-        if (ctx === c && c.state === "running" && heroSound.get()) play(index, strength, pan, delay);
+        if (ctx === c && ticket === generation && visible && c.state === "running" && heroSound.get()) play(index, strength, pan, delay);
       });
       return;
     }
@@ -177,21 +198,26 @@ function amp(win: Window) {
     if (strength > 0.65) note(c, f * 1.5, STRUM.volume * 0.4 * strength, pan, when + 0.008, 0);
   }
   return {
-    wake() {
-      if (!heroSound.get()) return;
-      try {
-        if (!ctx && Ctor) { ctx = new Ctor(); input = build(ctx); }
-        if (ctx?.state === "suspended") unlocking = ctx.resume().catch(() => {});
-      } catch {
-        void ctx?.close().catch(() => {});
-        ctx = null; input = null; output = null; unlocking = null;
-      }
-    },
+    wake,
     setEnabled(enabled: boolean) {
+      if (!enabled) generation++;
+      keepReady(enabled && visible);
       if (ctx && output) output.gain.setTargetAtTime(enabled ? 0.32 : 0, ctx.currentTime, 0.01);
     },
+    setVisible(next: boolean) {
+      visible = next;
+      if (next) { if (ctx) wake(); }
+      else {
+        generation++; keepReady(false);
+        const pausing = ctx;
+        void pausing?.suspend().then(() => { if (ctx === pausing && visible) wake(); }).catch(() => {});
+      }
+    },
     play,
-    close() { void ctx?.close().catch(() => {}); ctx = null; input = null; output = null; unlocking = null; },
+    close() {
+      generation++; keepReady(false);
+      void ctx?.close().catch(() => {}); ctx = null; input = null; output = null; monitor = null; monitoring = false; unlocking = null;
+    },
   };
 }
 
@@ -442,12 +468,14 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
       () => win.removeEventListener("scroll", cancelTap, true),
       () => win.removeEventListener("blur", cancelTap),
       () => doc.removeEventListener("portfolio:braid-pluck", onBraid),
+      () => doc.removeEventListener("visibilitychange", onVisibility),
       () => reduce.removeEventListener("change", onMotion),
       () => observer?.disconnect(), unsubscribeSound, release, () => sound.close(),
     ]) { try { stop(); } catch { /* Attempt every release after an API failure. */ } }
     frame = 0;
   }
   function onMotion() { if (reduce.matches) dispose(); }
+  function onVisibility() { sound.setVisible(!doc.hidden); }
   function onBraid() { if (!busy() && !reduce.matches && active && heroSound.get()) { sound.wake(); sound.play(7, 0.75, 0, 0); } }
   try {
     observer = new MutationObserver(() => draw(performance.now()));
@@ -460,6 +488,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     win.addEventListener("scroll", cancelTap, { passive: true, capture: true });
     win.addEventListener("blur", cancelTap);
     doc.addEventListener("portfolio:braid-pluck", onBraid);
+    doc.addEventListener("visibilitychange", onVisibility);
     reduce.addEventListener("change", onMotion);
     for (const layer of doc.querySelectorAll<HTMLElement>(".trailhead-contours")) {
       const style = getComputedStyle(layer), src = cssUrl(style.maskImage || style.getPropertyValue("-webkit-mask-image"));

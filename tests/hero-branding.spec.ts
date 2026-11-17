@@ -165,3 +165,64 @@ test("reduced motion keeps the deboss but skips strings and the discovery note",
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator(".hero-strings")).toHaveCount(0);
 });
+
+test("an idle guitar keeps the native output ready without starting another sound", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "Chromium's native silence-detection trace uses CDP.");
+  await page.setViewportSize({ width: 1440, height: 900 }); await probeAudio(page);
+  const session = await page.context().newCDPSession(page);
+  const events: Record<string, unknown>[] = [];
+  session.on("Tracing.dataCollected", payload => { events.push(...payload.value); });
+  await session.send("Tracing.start", { categories: "webaudio", transferMode: "ReportEvents" });
+  await page.goto("./#trailhead"); await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const point = await contourPoint(page); await page.mouse.click(point.x, point.y);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
+  await page.waitForTimeout(400);
+  const finished = new Promise<void>(resolve => session.once("Tracing.tracingComplete", () => resolve()));
+  await session.send("Tracing.end"); await finished;
+  // This is the browser's actual idle-device decision, rather than an assertion
+  // about a particular graph implementation or a flaky hardware timing limit.
+  expect(events.some(event => {
+    const args = event.args;
+    return event.name === "AudioDestination::SetDetectSilence" && typeof args === "object" && args !== null
+      && "detect_silence" in args && args.detect_silence === false;
+  })).toBe(true);
+  await page.waitForTimeout(4500);
+  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
+});
+
+test("warm guitar output is silent between clicks and pauses with a hidden page", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 }); await probeAudio(page);
+  await page.addInitScript(() => {
+    const connect = AudioNode.prototype.connect;
+    Object.defineProperty(AudioNode.prototype, "connect", { configurable: true, value: function (this: AudioNode, ...args: unknown[]) {
+      if (args[0] === this.context.destination) {
+        const meter = this.context.createAnalyser(); Reflect.set(window, "guitarMeter", meter);
+        Reflect.apply(connect, this, [meter]); Reflect.apply(connect, meter, args); return args[0];
+      }
+      return Reflect.apply(connect, this, args);
+    } });
+  });
+  await page.goto("./#trailhead"); await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const point = await contourPoint(page); await page.mouse.click(point.x, point.y);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
+  // Wait for the pluck and room tail to finish; the readiness node adds no sound.
+  await page.waitForTimeout(5000);
+  const rms = await page.evaluate(() => {
+    const meter: AnalyserNode = Reflect.get(window, "guitarMeter"), data = new Float32Array(meter.fftSize);
+    meter.getFloatTimeDomainData(data); return Math.sqrt(data.reduce((sum, n) => sum + n * n, 0) / data.length);
+  });
+  expect(rms).toBeLessThan(1e-8);
+  await page.evaluate(() => { Object.defineProperty(document, "hidden", { configurable: true, value: true }); document.dispatchEvent(new Event("visibilitychange")); });
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarContexts")[0].state)).toBe("suspended");
+  await page.evaluate(() => { Reflect.deleteProperty(document, "hidden"); document.dispatchEvent(new Event("visibilitychange")); });
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarContexts")[0].state)).toBe("running");
+  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
+  await page.evaluate(() => {
+    Object.defineProperty(document, "hidden", { configurable: true, value: true }); document.dispatchEvent(new Event("visibilitychange"));
+    Reflect.deleteProperty(document, "hidden"); document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await page.waitForTimeout(100);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarContexts")[0].state)).toBe("running");
+  await page.mouse.click(point.x, point.y);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(2);
+});

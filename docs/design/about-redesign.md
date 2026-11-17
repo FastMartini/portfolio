@@ -40,3 +40,11 @@ The supplied Teacher images contain other people's names and faces, including th
 - Local Firefox cannot launch because its installed browser reports “Could not find profile folder”; the full GitHub Actions run includes Firefox. The PR's current check status remains the authority for merge readiness.
 
 Linux visual references were captured on commit `8202fe8` by [run 44062248483](https://github.com/FastMartini/portfolio/actions/runs/44062248483): **22 passed**. Only the four changed List View hero/Waypoint references were copied from that artifact; other visual references are retained.
+
+## Waypoint and idle-audio follow-up
+
+The dotted continuation from Waypoint 01 now begins underneath the marker and joins Waypoint 02’s existing segment. This restores the missing connection without a duplicate stub above 01. Desktop and mobile tests verify the curve, dash pattern, start position, and join.
+
+After the first completed sound gesture, the guitar retains a sinkless analyser on its output while the page is visible and sound is enabled. This keeps Chromium’s interactive output out of its idle-device path without another sound source or an audible loop. Muting disconnects it; hiding suspends the context; returning resumes readiness without replaying an old queued click. The implementation follows [Chromium’s automatic-pull silence-detection behavior](https://chromium.googlesource.com/chromium/src/+/lkgr/third_party/blink/renderer/modules/webaudio/realtime_audio_destination_handler.cc).
+
+The browser-native trace regression failed with the readiness connection removed and passes with it restored. Additional checks verify digital silence after the room tail, click-only notes, native touch scrolling, and hidden-page suspension/recovery.

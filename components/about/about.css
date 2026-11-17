@@ -94,8 +94,12 @@ html[data-theme="dark"] [data-theme-root] { --trail: #e3a983; }
 .journey-trail-motion .about-pitch:not(.is-shown) { opacity: 0.22; transform: translateY(14px); transition: none; }
 .journey-trail-motion .about-pitch:focus-within { opacity: 1; transform: none; }
 .waypoint-marker.is-reached { background: #173f35; border-color: #173f35; color: #fffbed; }
-/* The shared trail terminates here; remove Waypoint 01's detached straight stub. */
-.waypoint:first-child .waypoint-trail { display: none; }
+/* The solid trail arrives at 01; its dotted continuation begins under the
+   marker and meets the existing 02 segment at the next article boundary. */
+.waypoint:first-child .waypoint-trail {
+  top: calc(var(--waypoint-padding) + var(--waypoint-marker-size) / 2);
+  height: calc(100% + 2rem - var(--waypoint-padding) - var(--waypoint-marker-size) / 2);
+}
 .braid-rope { fill: none; stroke: #c8b48a; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.4; }
 .braid-rope-twist { fill: none; stroke: #6f5f40; stroke-dasharray: 2.5 3.5; stroke-width: 3.4; }
 .braid-string { fill: none; stroke: #f2ecd8; stroke-linecap: round; stroke-width: 1.3; }

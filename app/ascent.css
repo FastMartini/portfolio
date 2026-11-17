@@ -48,13 +48,15 @@
 .ridge-sun { fill: var(--copper); opacity: 0.16; }
 .mountain-journey .waypoint {
   --trail-width: 4rem;
+  --waypoint-padding: clamp(2.5rem, 5vw, 4.5rem);
+  --waypoint-marker-size: 2.75rem;
   background: transparent;
   border: 0;
   border-top: 1px solid var(--line);
   gap: clamp(1.5rem, 3vw, 3rem);
   grid-template-columns: var(--trail-width) minmax(0, 1.1fr) minmax(16rem, 0.9fr);
   margin-left: 0;
-  padding: clamp(2.5rem, 5vw, 4.5rem) 0;
+  padding: var(--waypoint-padding) 0;
   position: relative;
 }
 .waypoint-trail { height: calc(100% + 2rem); left: 0; pointer-events: none; position: absolute; top: 0; width: var(--trail-width); }
@@ -66,14 +68,14 @@
   border: 1px solid var(--ink-accent);
   border-radius: 50%;
   display: flex;
-  height: 2.75rem;
+  height: var(--waypoint-marker-size);
   justify-content: center;
   justify-self: center;
   padding: 0;
   position: relative;
   text-decoration: none;
   transition: background 180ms ease, color 180ms ease;
-  width: 2.75rem;
+  width: var(--waypoint-marker-size);
 }
 .waypoint-marker:is(:hover, :focus-visible, [aria-current="location"]) { background: var(--pine); border-color: var(--pine); color: var(--cream); }
 .mountain-journey .waypoint-story h3 { font-size: clamp(2.15rem, 4.4vw, 4.25rem); overflow-wrap: anywhere; }
@@ -97,8 +99,8 @@
   .mountain-journey .trailhead-actions .button { flex: 1; min-width: 0; gap: 0.85rem; padding-inline: 1rem; }
   .mountain-journey .scroll-cue { display: flex; }
 
-  .mountain-journey .waypoint { --trail-width: 2.25rem; column-gap: 0.75rem; }
-  .waypoint-marker { font-size: 0.58rem; height: 2.25rem; width: 2.25rem; }
+  .mountain-journey .waypoint { --trail-width: 2.25rem; --waypoint-marker-size: 2.25rem; column-gap: 0.75rem; }
+  .waypoint-marker { font-size: 0.58rem; height: var(--waypoint-marker-size); width: var(--waypoint-marker-size); }
   .journey-ridge:not(.journey-ridge--summit) { height: 30rem; }
   .waypoint-details { min-width: 0; }
   .waypoint-attribution > div { gap: 0.65rem; grid-template-columns: 3rem minmax(0, 1fr); }
