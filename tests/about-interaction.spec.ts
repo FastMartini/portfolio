@@ -142,3 +142,37 @@ test("ring front cards stay at z=0 and native resolution on a DPR 2 display", as
   expect(dimensions.dpr).toBe(2); expect(dimensions.scale).toBeCloseTo(1, 3); expect(dimensions.z).toBe(0); expect(dimensions.filter).toBe("none"); expect(dimensions.enlargement).toBeLessThanOrEqual(1.35);
   await context.close();
 });
+
+test("the first held touch on About plays without a hover or a previous About canvas", async ({ browserName, browser, baseURL }) => {
+  test.skip(browserName !== "chromium", "A real held touch uses Chromium's CDP input.");
+  const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 900 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage(); await audioProbe(page); await page.goto("./#about");
+  await page.evaluate(() => document.fonts.ready);
+  await page.locator("#about").evaluate(el => window.scrollTo(0, scrollY + el.getBoundingClientRect().bottom - innerHeight + 10));
+  await expect(page.locator(".about-pitch--teacher")).toHaveClass(/is-shown/);
+  await expect(page.locator(".about-pitch--teacher")).toHaveCSS("transform", "none");
+  const point = await page.evaluate(async () => {
+    const layer = document.querySelector(".about-contours")!;
+    const source = /url\(["']?(.*?)["']?\)/.exec(getComputedStyle(layer).maskImage)![1];
+    const sourceSvg = new DOMParser().parseFromString(await fetch(source).then(r => r.text()), "image/svg+xml").documentElement;
+    sourceSvg.setAttribute("style", "position:fixed;left:-9999px;top:0;width:100px;height:100px"); document.body.append(sourceSvg);
+    const about = document.querySelector("#about")!.getBoundingClientRect(), scale = about.width / 1440;
+    const rings = [...document.querySelectorAll(".photo-ring")].map(el => el.getBoundingClientRect());
+    for (const path of sourceSvg.querySelectorAll("path")) for (let i = 0; i <= 400; i++) {
+      const p = path.getPointAtLength(path.getTotalLength() * i / 400), point = { x: about.left + p.x * scale, y: about.bottom - (700 - p.y) * scale };
+      if (point.x < 20 || point.x > innerWidth - 20 || point.y < 130 || point.y > innerHeight - 10) continue;
+      if (rings.some(r => point.x > r.left - 30 && point.x < r.right + 30 && point.y > r.top - 30 && point.y < r.bottom + 30)) continue;
+      sourceSvg.remove(); return point;
+    }
+    sourceSvg.remove(); return null;
+  });
+  expect(point).not.toBeNull(); await expect(page.locator("#about .hero-strings")).toHaveCount(0);
+  const session = await context.newCDPSession(page);
+  await session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point!] });
+  // Allow the canvas's first ResizeObserver notification to run before release.
+  await page.waitForTimeout(150);
+  expect(await page.evaluate(() => Reflect.get(window, "aboutNotes"))).toBe(0);
+  await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "aboutNotes"))).toBeGreaterThan(0);
+  await context.close();
+});

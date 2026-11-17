@@ -249,8 +249,10 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   }
   function fit() {
     if (!section || !canvas) return;
-    cancelTap();
     const w = section.clientWidth, h = section.clientHeight, dpr = Math.min(win.devicePixelRatio || 1, 2);
+    // Observing a newly mounted section sends an initial notification even
+    // when its dimensions did not change. Preserve the first held tap.
+    if (w !== size.w || h !== size.h || dpr !== size.dpr) cancelTap();
     const bottom = contours?.dataset.fit === "width-bottom";
     const scale = bottom ? w / view.vw : Math.max(w / view.vw, h / view.vh);
     size = { w, h, dpr, scale, ox: (w - view.vw * scale) / 2, oy: bottom ? h - view.vh * scale : (h - view.vh * scale) / 2 };
