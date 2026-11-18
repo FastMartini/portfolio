@@ -7,6 +7,7 @@ import { TrailheadArt } from "./trailhead-art";
 import { contactLinks } from "../content/contact";
 import { PortfolioLink } from "./portfolio-link";
 import { ResumeLink } from "./resume-link";
+import { About } from "./about/About";
 import { listTrailheadIntro } from "../content/trailhead";
 
 function ArrowIcon() {
@@ -78,29 +79,7 @@ export function ListView() {
         </a>
       </section>
 
-      <section className="about" id="about" aria-labelledby="about-title">
-        <JourneyRidge />
-        <div className="section-kicker">
-          <span>01</span>
-          <span>About</span>
-        </div>
-        <div className="about-copy">
-          <h2 id="about-title">Engineering with intent.</h2>
-          <div className="about-details">
-            <p>
-              I’m Diego, a software engineer who likes turning ambitious ideas
-              into useful, understandable products. I work across research,
-              systems, and interfaces—wherever the problem needs me.
-            </p>
-            <p>
-              I care about thoughtful systems, clear experiences, and the small
-              decisions that make software feel considered from end to end.
-              I also enjoy teaching others how to code.
-            </p>
-          </div>
-        </div>
-        <p className="section-coordinate">Base camp · Beginning the ascent</p>
-      </section>
+      <About />
 
       <section className="work" id="work" aria-labelledby="work-title">
         <JourneyRidge />
@@ -127,46 +106,10 @@ export function ListView() {
         </div>
       </section>
 
-      <section
-        className="personal-interlude"
-        id="beyond-work"
-        aria-labelledby="beyond-work-title"
-      >
-        <JourneyRidge />
-        <div className="section-kicker section-kicker-dark">
-          <span>03</span>
-          <span>Beyond Work</span>
-        </div>
-        <div className="interlude-grid">
-          <div className="interlude-visual" aria-hidden="true">
-            <span className="string string-one" />
-            <span className="string string-two" />
-            <span className="string string-three" />
-            <span className="string string-four" />
-            <span className="string string-five" />
-            <span className="string string-six" />
-            <span className="fret fret-one" />
-            <span className="fret fret-two" />
-            <span className="fret fret-three" />
-            <span className="fret fret-four" />
-            <span className="interlude-stamp">Six strings · endless phrasing</span>
-          </div>
-          <div className="interlude-copy">
-            <p className="handwritten">A personal interlude</p>
-            <h2 id="beyond-work-title">Beyond the build.</h2>
-            <p>
-              Outside software, I spend time playing blues and electric guitar.
-              It’s a different way to practice listening, timing, and leaving
-              room for what comes next.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <section className="summit" id="summit" aria-labelledby="summit-title">
         <JourneyRidge summit />
         <div className="section-kicker">
-          <span>04</span>
+          <span>03</span>
           <span>Contact</span>
         </div>
         <div className="summit-heading">

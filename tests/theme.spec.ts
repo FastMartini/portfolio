@@ -95,11 +95,14 @@ for (const feature of ["MutationObserver", "requestAnimationFrame"] as const) {
 }
 
 test("rapid reversals keep rendered surfaces and text continuous and honor the last choice", async ({ page }) => {
+  // Install before application timers exist so every frame uses the same clock.
+  const epoch = new Date("2026-01-01T00:00:00Z");
+  await page.clock.install({ time: epoch });
   await ready(page);
   await select(page, "dark");
+  await page.clock.pauseAt(new Date(epoch.getTime() + 60_000));
   // Exercise real browser colors on a reproducible 60 Hz clock. Sparse native
   // software painting is checked separately by the moving-frame paint tests.
-  await page.clock.install();
   await page.evaluate(() => {
     const header = document.querySelector(".site-header")!, heading = document.querySelector(".climb-list h1")!;
     const button = document.querySelector<HTMLButtonElement>(".theme-toggle")!;
@@ -145,7 +148,7 @@ test("view switches inherit the in-flight palette without leaking palette tokens
   await expect(page.locator(".climb-list")).toHaveCSS("background-color", ground.dark);
 });
 
-test("stationary snow-stage toggles finish, cloud hides celestial light, and four Light cards are cream", async ({ page }) => {
+test("stationary snow-stage toggles finish, cloud hides celestial light, and three Light cards are cream", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await ready(page);
   await select(page, "dark");
@@ -156,10 +159,10 @@ test("stationary snow-stage toggles finish, cloud hides celestial light, and fou
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await select(page, "light");
   await expect(page.locator("#night-veil")).toHaveCSS("opacity", "0");
-  expect(await page.locator(".climb-card").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).backgroundColor))).toEqual(Array(4).fill("rgb(255, 251, 237)"));
+  expect(await page.locator(".climb-card").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).backgroundColor))).toEqual(Array(3).fill("rgb(255, 251, 237)"));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.getByRole("button", { name: "Climb view", exact: true }).click();
-  await scrollToClimbStop(page, 9);
+  await scrollToClimbStop(page, 8);
   await select(page, "dark");
   await expect(page.locator(".climb-moon")).toHaveCSS("opacity", "1");
   expect(await page.locator(".climb-moon").boundingBox()).toEqual(await page.locator(".climb-sun").boundingBox());

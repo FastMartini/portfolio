@@ -79,7 +79,7 @@ test("open-panel visibility refreshes through breakpoint changes, camera movemen
   await expect(scene).toHaveCSS("transform", "matrix(1, 0, 0, 1, -272, 0)");
   await scrollToClimbStop(page, 5);
   await expect(page.locator('[data-marker="2"]')).toBeHidden();
-  for (const index of [7, 3, 9]) {
+  for (const index of [7, 3, 8]) {
     await scrollToClimbStop(page, index);
     await expectVisibleTabTargets(page);
   }

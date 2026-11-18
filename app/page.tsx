@@ -1,5 +1,6 @@
 import { PortfolioHeader } from "../components/portfolio-shell";
 import { ListNavigation } from "../components/list-navigation";
+import { JourneyTrail } from "../components/about/JourneyTrail";
 import { ListView } from "../components/list-view";
 import { journeySections } from "../content/journey";
 import { Climb } from "../components/climb/Climb";
@@ -12,13 +13,14 @@ import { waypoints } from "../content/waypoints";
 import { homeMetadata } from "../content/site";
 
 import "./ascent.css";
+import "../components/about/about.css";
 
 export const metadata = homeMetadata;
 
 const homeNavigation = [
   { href: "#about", label: "About" },
   { href: "#work", label: "Work" },
-  { href: "#beyond-work", label: "Beyond Work" },
+  { kind: "resume", label: "Resume" },
   { href: "#summit", label: "Contact" },
 ] as const;
 
@@ -38,6 +40,7 @@ export default function Home() {
       <ListNavigation sections={journeySections}>
         <main id="main-content">
           <ListView />
+          <JourneyTrail />
         </main>
       </ListNavigation>
 

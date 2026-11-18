@@ -31,17 +31,17 @@ export const journeyStops: readonly JourneySection[] = [
     navigation: "work",
     trailPosition: waypointTrailPositions[index],
   })),
-  { id: "beyond-work", label: "A quiet overlook", elevation: "Beyond Work", navigation: "beyond-work", trailPosition: 0.81 },
   { id: "summit", label: "Summit", elevation: "Contact", navigation: "summit", trailPosition: 1 },
 ];
 
-// Full-text section navigation is separate from the ten-stop Trail Rail:
+export const summitStopIndex = journeyStops.length - 1;
+
+// Full-text section navigation is separate from the nine-stop Trail Rail:
 // Selected Work is a List View heading, not an extra illustrated stop.
 export const journeySections: readonly JourneySection[] = [
   journeyStops[0],
   { ...journeyStops[1], label: "About", elevation: "Base camp" },
   { id: "work", label: "Selected Work", elevation: "Lower slopes", navigation: "work", trailPosition: waypointTrailPositions[0] },
-  ...journeyStops.slice(2, -2),
-  { ...journeyStops[8], label: "Beyond Work", elevation: "A quiet overlook" },
-  { ...journeyStops[9], label: "Contact", elevation: "Summit · Looking ahead" },
+  ...journeyStops.slice(2, -1),
+  { ...journeyStops[summitStopIndex], label: "Contact", elevation: "Summit · Looking ahead" },
 ];

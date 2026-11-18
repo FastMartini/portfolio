@@ -15,9 +15,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  browser-tests:
+    name: ${{ matrix.project }} (${{ matrix.shard }}/4)
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && '["chromium"]' || '["chromium", "firefox-adaptive", "webkit-adaptive"]') }}
+        shard: ${{ fromJSON(github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && '[1]' || '[1, 2, 3, 4]') }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,12 +38,14 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        timeout-minutes: 10
         run: |
-          # Avoid intermittent multi-minute package downloads from the Azure mirror.
+          # Runner-selected EC2/Azure mirrors can stream packages for many minutes.
           if [ -f /etc/apt/apt-mirrors.txt ]; then
-            sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/apt-mirrors.txt
+            printf '%s\n' 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
           fi
-          npx playwright install --with-deps chromium firefox webkit
+          browser="${{ matrix.project }}"
+          npx playwright install --with-deps "${browser%-adaptive}"
 
       - name: Start a virtual audio output for native playback tests
         run: |
@@ -55,11 +63,11 @@ jobs:
 
       - name: Test the production static export
         if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
-        run: npm test
+        run: npm test -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}/4
 
       - name: Verify custom-domain metadata and routing without a project base path
-        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
-        run: npm test -- tests/discoverability.spec.ts
+        if: matrix.shard == 1 && (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main')
+        run: npm test -- tests/discoverability.spec.ts --project=${{ matrix.project }}
         env:
           TEST_SITE_BASE_PATH: ""
           TEST_PUBLIC_SITE_URL: "https://portfolio.example"
@@ -67,7 +75,7 @@ jobs:
 
       - name: Refresh Linux visual baselines on a manually selected branch
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
-        run: npm test -- --update-snapshots=all
+        run: npm test -- tests/ascent.spec.ts tests/climb-visual.spec.ts --grep snapshot --update-snapshots=all
 
       - name: Upload refreshed Linux visual baselines
         if: success() && github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
@@ -78,14 +86,25 @@ jobs:
           retention-days: 7
 
       - name: Upload visual test evidence
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-evidence
+          name: playwright-evidence-${{ matrix.project }}-${{ matrix.shard }}
           path: |
             test-results/
             tests/*-snapshots/
           retention-days: 7
+
+  verify:
+    if: always()
+    needs: browser-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every browser shard to pass
+        env:
+          RESULT: ${{ needs.browser-tests.result }}
+        run: test "$RESULT" = success
 
   build-pages:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

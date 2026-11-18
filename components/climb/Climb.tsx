@@ -444,7 +444,7 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
       </div>
       <div data-theme-root="" className="climb-list" hidden={!listMode}>{children}</div>
       {enhanced && <SceneRecovery onFailure={failScene}><div className="climb-enhancement" hidden={listMode} data-quality={quality}>
-        <main className="climb" id="climb" ref={root}
+        <main className="climb" id="climb" ref={root} style={{ height: `${journeyStops.length * 100}vh` }}
           onClick={(event) => sceneTask(failScene, navigate)(event)}
           onKeyDown={(event) => sceneTask(failScene, activateLandmark)(event)}>
           <div className="climb-stage" ref={stage} data-panel-open={selection !== null}

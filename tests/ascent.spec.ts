@@ -12,7 +12,6 @@ test("conventional navigation reaches sections and keeps Climb view in the mobil
   for (const [label, id] of [
     ["About", "about"],
     ["Work", "work"],
-    ["Beyond Work", "beyond-work"],
     ["Contact", "summit"],
   ]) {
     const link = navigation.getByRole("link", { name: label, exact: true });
@@ -241,7 +240,6 @@ for (const [width, id, name] of [
   [390, "trailhead", "trailhead-mobile"],
   [1440, "momentumx", "waypoint-desktop"],
   [390, "momentumx", "waypoint-mobile"],
-  [1440, "beyond-work", "interlude-desktop"],
   [1440, "summit", "summit-desktop"],
 ] as const) {
   test(`stable Editorial Alpine snapshot: ${name}`, async ({ page }) => {

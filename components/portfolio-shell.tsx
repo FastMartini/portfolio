@@ -2,11 +2,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "./theme/ThemeToggle";
 import { AmbientSoundToggle } from "./climb/AmbientSound";
+import { ResumeLink } from "./resume-link";
 
 type ShellLink = {
+  kind?: "section";
   href: string;
   label: string;
-};
+} | { kind: "resume"; label: string };
 
 type PortfolioHeaderProps = {
   homeHref: string;
@@ -47,7 +49,9 @@ export function PortfolioHeader({
       </Link>
       <nav aria-label={navLabel}>
         <div className="site-header-links">
-          {links.map((link) => (
+          {links.map((link) => link.kind === "resume" ? (
+            <ResumeLink className="" key="resume">{link.label}</ResumeLink>
+          ) : (
             <a href={link.href} key={link.href}>
               {link.label}
             </a>

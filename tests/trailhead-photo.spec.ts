@@ -1,3 +1,4 @@
+import { summitStopIndex } from "../content/journey";
 import { expect, test } from "@playwright/test";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 test("List View has a portrait-free typographic opening without JavaScript", async ({ browser, baseURL }) => {
@@ -22,7 +23,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }
     const introBounds = await page.locator('[data-card="0"]').boundingBox();
     expect(photoBounds!.y).toBeGreaterThanOrEqual(72);
     expect(photoBounds!.y + photoBounds!.height).toBeLessThanOrEqual(introBounds!.y);
-    await expect(page.getByRole("link", { name: "View résumé (PDF, opens in a new tab)" })).toBeVisible();
+    await expect(page.locator('[data-card="0"]').getByRole("link", { name: "View résumé (PDF, opens in a new tab)" })).toBeVisible();
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await page.goto("./#trailhead");
     await expect(page.locator("#trailhead img[alt='Diego Martinez']")).toHaveCount(0);
@@ -43,9 +44,9 @@ test("Climb shows Diego to the right of Trailhead and fades the photo with its i
   const titleBounds = await intro.boundingBox();
   expect(imageBounds!.x).toBeGreaterThan(titleBounds!.x + titleBounds!.width);
 
-  await page.locator("#climb").evaluate((element: HTMLElement) => {
-    window.scrollTo(0, 0.32 / 9 * (element.offsetHeight - innerHeight));
-  });
+  await page.locator("#climb").evaluate((element: HTMLElement, intervals) => {
+    window.scrollTo(0, 0.32 / intervals * (element.offsetHeight - innerHeight));
+  }, summitStopIndex);
   // Observe the same rendered fade on both reading surfaces, not a second timer.
   await expect(page.locator('[data-card="0"]')).toHaveCSS("opacity", /^0\.3[0-5]\d*$/);
   const opacity = await page.locator('[data-card="0"]').evaluate((element) => getComputedStyle(element).opacity);
