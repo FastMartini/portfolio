@@ -31,12 +31,12 @@ export default defineConfig({
     },
     {
       name: "firefox-adaptive",
-      testMatch: ["summit-register.spec.ts", "about-redesign.spec.ts", "about-interaction.spec.ts", "theme.spec.ts", "climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "feather-splash.spec.ts", "map-polish.spec.ts", "climb-transition.spec.ts", "list-transition.spec.ts", "discoverability.spec.ts", "trailhead-hero.spec.ts", "hero-branding.spec.ts"],
+      testMatch: ["summit-delivery.spec.ts", "summit-register.spec.ts", "about-redesign.spec.ts", "about-interaction.spec.ts", "theme.spec.ts", "climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "feather-splash.spec.ts", "map-polish.spec.ts", "climb-transition.spec.ts", "list-transition.spec.ts", "discoverability.spec.ts", "trailhead-hero.spec.ts", "hero-branding.spec.ts"],
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit-adaptive",
-      testMatch: ["summit-register.spec.ts", "about-redesign.spec.ts", "about-interaction.spec.ts", "theme.spec.ts", "climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "feather-splash.spec.ts", "map-polish.spec.ts", "climb-transition.spec.ts", "list-transition.spec.ts", "discoverability.spec.ts", "trailhead-hero.spec.ts", "hero-branding.spec.ts"],
+      testMatch: ["summit-delivery.spec.ts", "summit-register.spec.ts", "about-redesign.spec.ts", "about-interaction.spec.ts", "theme.spec.ts", "climb-adaptive.spec.ts", "climb-audio.spec.ts", "climb-trees.spec.ts", "climb-rendering.spec.ts", "climb-mountain.spec.ts", "splash.spec.ts", "feather-splash.spec.ts", "map-polish.spec.ts", "climb-transition.spec.ts", "list-transition.spec.ts", "discoverability.spec.ts", "trailhead-hero.spec.ts", "hero-branding.spec.ts"],
       use: { ...devices["Desktop Safari"] },
     },
   ],
@@ -45,6 +45,8 @@ export default defineConfig({
     url: testBaseUrl,
     env: {
       NEXT_PUBLIC_BASE_PATH: testSite.basePath,
+      // Delivery specs use an explicit fake key and intercept every submission.
+      NEXT_PUBLIC_WEB3FORMS_KEY: process.env.TEST_WEB3FORMS_KEY ?? "",
       NEXT_PUBLIC_SITE_URL: process.env.TEST_PUBLIC_SITE_URL ?? `${testOrigin}${testSite.basePath}`,
       TEST_SITE_BASE_PATH: testSite.basePath,
       TEST_SITE_HOST: testSite.host,

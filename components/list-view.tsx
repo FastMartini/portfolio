@@ -4,7 +4,7 @@ import { InlineCaseStudies } from "./climb/CaseStudies";
 import { JourneyRidge, WaypointTrail } from "./journey-ridge";
 import { waypoints } from "../content/waypoints";
 import { TrailheadArt } from "./trailhead-art";
-import { contactEmail, contactLinks } from "../content/contact";
+import { contactEmail, contactLinks, summitRegister } from "../content/contact";
 import { PortfolioLink } from "./portfolio-link";
 import { ResumeLink } from "./resume-link";
 import { About } from "./about/About";
@@ -124,6 +124,7 @@ export function ListView() {
           </div>
           <SummitRegister />
         </div>
+        {process.env.NEXT_PUBLIC_WEB3FORMS_KEY?.trim() && <p id="summit-sent" className="summit-sent-note" tabIndex={-1}>{summitRegister.sent.native}</p>}
         <aside className="summit-elsewhere" aria-labelledby="summit-elsewhere-title">
           <h3 id="summit-elsewhere-title">Elsewhere on the trail</h3>
           <nav className="contact-list" aria-label="Diego’s profiles and résumé">

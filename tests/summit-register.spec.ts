@@ -37,6 +37,56 @@ test("drafts survive reload, including Unicode and line breaks", async ({ page }
   for (const [key, value] of Object.entries(draft)) await expect(page.locator(`#summit-register [name="${key}"]`)).toHaveValue(value);
 });
 
+test("a valid keyless submit shows the register confirmation visual", async ({ page }) => {
+  await page.goto("./#summit-register");
+  const form = page.locator("#summit-register");
+  await form.getByLabel("Reply to").fill("alex@example.com");
+  await form.getByLabel("Message").fill("Hello Diego");
+  await form.getByRole("button", { name: "Sign & send" }).click();
+  const confirmation = form.locator(".summit-register-confirmation");
+  await expect(confirmation).toBeVisible();
+  await expect(confirmation).toBeFocused();
+  await expect(confirmation.getByRole("heading")).toHaveText("Your note is ready to send.");
+  await expect(confirmation.locator(".summit-register-stamp")).toContainText("Note prepared");
+  await expect(confirmation).toContainText("Finish sending it in your email app.");
+  await expect(confirmation).not.toContainText("in my inbox");
+  await expect(confirmation.locator(".summit-register-stamp")).toHaveCSS("animation-name", "none");
+  await expect(form.getByRole("button", { name: "Sign & send" })).toBeHidden();
+  await confirmation.getByRole("button", { name: "Back to my note" }).click();
+  await expect(form.getByLabel("From", { exact: true })).toBeFocused();
+  await expect(form.getByLabel("Reply to")).toHaveValue("alex@example.com");
+  await expect(form.getByLabel("Message")).toHaveValue("Hello Diego");
+  await expect(form.getByRole("button", { name: "Sign & send" })).toBeVisible();
+});
+
+for (const theme of ["light", "dark"] as const) {
+  test(`prepared confirmation keeps the draft, remains accessible, and fits a phone in ${theme}`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.addInitScript(theme => localStorage.setItem("portfolio-theme", theme), theme);
+    await page.goto("./#summit-register");
+    const form = page.locator("#summit-register");
+    await form.getByLabel("From", { exact: true }).fill("Alex García");
+    await form.getByLabel("Reply to").fill("alex@example.com");
+    await form.getByLabel("Subject").fill("A project & a role?");
+    await form.getByLabel("Message").fill("Hello Diego\nLet’s compare notes.");
+    await form.getByRole("button", { name: "Sign & send" }).click();
+    const confirmation = form.getByRole("status");
+    await expect(confirmation).toBeFocused();
+    await expect(confirmation.getByRole("heading")).toHaveText("Your note is ready, Alex.");
+    await expect(confirmation.getByRole("link", { name: "Open email app" })).toHaveAttribute("href", await form.getAttribute("action") ?? "");
+    await expect(confirmation.getByRole("link", { name: "Open email app" })).not.toHaveAttribute("target");
+    expect(await page.evaluate(() => localStorage.getItem("summit-register-draft"))).not.toBeNull();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+    const results = await new AxeBuilder({ page }).include("#summit").analyze();
+    expect(results.violations).toEqual([]);
+    await testInfo.attach(`prepared-${theme}`, { body: await confirmation.screenshot(), contentType: "image/png" });
+    await confirmation.getByRole("button", { name: "Back to my note" }).click();
+    await form.getByLabel("Message").fill("An updated note.");
+    await form.getByRole("button", { name: "Sign & send" }).click();
+    await expect(confirmation.getByRole("link", { name: "Open email app" })).toHaveAttribute("href", /An%20updated%20note\./);
+  });
+}
+
 test("keyless submit prepares an encoded email and retains the draft without a service request", async ({ page }) => {
   const requests: string[] = [];
   page.on("request", request => { if (request.url().includes("api.web3forms.com")) requests.push(request.url()); });

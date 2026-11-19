@@ -86,6 +86,28 @@ html[data-theme="dark"] .summit-register-contours { opacity: 0.16; }
 }
 .summit-send:hover { background: var(--r-primary-hover); transform: translateY(-2px); }
 .summit-send svg { fill: none; height: 1.15rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; width: 1.15rem; }
+.summit-send[aria-busy="true"] { cursor: progress; transform: none; }
+.summit-send[aria-busy="true"] svg { animation: summit-send-nudge 900ms ease-in-out infinite; }
+@keyframes summit-send-nudge { 50% { transform: translate(3px, -3px); } }
+.summit-register-alert { border-left: 3px solid var(--r-accent); margin-top: 1.4rem; padding: 0.2rem 0 0.2rem 1rem; }
+.summit-register-alert p { font-size: 0.92rem; line-height: 1.55; margin: 0 0 0.75rem; }
+.summit-register-alert strong { font-family: var(--font-newsreader), serif; font-size: 1.1rem; font-weight: 500; }
+.summit-register-alert .summit-confirmation-actions { justify-content: flex-start; }
+.summit-sent-note { display: none; }
+.summit-sent-note:target { border-left: 3px solid var(--copper-text-dark); display: block; line-height: 1.7; margin-top: 2rem; padding: 1rem; scroll-margin-top: calc(var(--home-header-height) + 1rem); }
+
+.summit-register-confirmation { display: grid; min-height: 26rem; padding: 2rem 0; place-content: center; text-align: center; }
+.summit-register-confirmation:focus { outline: none; }
+.summit-register-confirmation h3 { font-family: var(--font-newsreader), serif; font-size: clamp(2rem, 3.4vw, 2.8rem); font-weight: 450; letter-spacing: -0.04em; line-height: 1; margin: 1.6rem 0 0.8rem; overflow-wrap: anywhere; }
+.summit-register-confirmation p { color: var(--r-muted); line-height: 1.7; margin: 0 auto 1.4rem; max-width: 26rem; }
+.summit-confirmation-actions { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+.summit-confirmation-actions .summit-chip { min-height: 44px; text-decoration: none; }
+.summit-register-stamp { border: 2.5px solid currentColor; border-radius: 50%; color: var(--r-accent); display: grid; height: 9.5rem; justify-self: center; margin: 0 auto; place-content: center; position: relative; rotate: -9deg; width: 9.5rem; animation: summit-stamp-press 520ms cubic-bezier(.2, .9, .3, 1.3) both; }
+.summit-register-stamp::before { border: 1px solid currentColor; border-radius: 50%; content: ""; inset: 6px; opacity: 0.7; position: absolute; }
+.summit-register-stamp svg { height: 2.6rem; margin: 0 auto 0.3rem; width: 3.4rem; }
+.summit-register-stamp b { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+.summit-register-stamp small { font-family: var(--font-newsreader), serif; font-size: 0.8rem; font-style: italic; margin-top: 0.2rem; }
+@keyframes summit-stamp-press { from { opacity: 0; scale: 1.5; } 60% { opacity: 1; } to { opacity: 1; scale: 1; } }
 
 .summit-elsewhere { display: grid; gap: 0 clamp(2rem, 5vw, 5.5rem); grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
 .summit-elsewhere h3 { color: rgb(255 251 237 / 72%); font-size: 0.67rem; font-weight: 700; grid-column: 1 / -1; letter-spacing: 0.14em; margin: 0 0 1rem; text-transform: uppercase; }
@@ -126,4 +148,6 @@ html[data-theme="dark"] .summit-register-contours { opacity: 0.16; }
 }
 @media (prefers-reduced-motion: reduce) {
   .summit-send:hover { transform: none; }
+  .summit-register-stamp { animation: none; }
+  .summit-send[aria-busy="true"] svg { animation: none; }
 }
