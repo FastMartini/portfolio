@@ -69,7 +69,7 @@ test("all nine stops show their card or Waypoint marker and update the bottom-to
   expect(await svg!.evaluate((element) => element === document.querySelector("svg.mtn"))).toBe(true);
   await expect(page.locator(".climb-sky")).toHaveCSS("--sky-top", "rgb(43,120,204)");
   await expect(page.locator(".climb-sun")).toHaveCSS("opacity", "1");
-  await expect(page.getByRole("link", { name: "Email Diego" })).toHaveAttribute("href", "mailto:diegommart2004@gmail.com");
+  await expect(page.getByRole("link", { name: "Email diegommart2004@gmail.com" })).toHaveAttribute("href", "mailto:diegommart2004@gmail.com");
   await rail.getByRole("button", { name: "Go to Trailhead", exact: true }).click();
   await expect(root).toHaveAttribute("data-stop", "0");
   await rail.getByRole("button", { name: "Go to Waypoint 02: Veritas", exact: true }).focus();

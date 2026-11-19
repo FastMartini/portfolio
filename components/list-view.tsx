@@ -4,11 +4,12 @@ import { InlineCaseStudies } from "./climb/CaseStudies";
 import { JourneyRidge, WaypointTrail } from "./journey-ridge";
 import { waypoints } from "../content/waypoints";
 import { TrailheadArt } from "./trailhead-art";
-import { contactLinks } from "../content/contact";
+import { contactEmail, contactLinks } from "../content/contact";
 import { PortfolioLink } from "./portfolio-link";
 import { ResumeLink } from "./resume-link";
 import { About } from "./about/About";
 import { listTrailheadIntro } from "../content/trailhead";
+import { SummitRegister } from "./summit/SummitRegister";
 
 function ArrowIcon() {
   return (
@@ -112,30 +113,37 @@ export function ListView() {
           <span>03</span>
           <span>Contact</span>
         </div>
-        <div className="summit-heading">
-          <p className="handwritten">The next ascent</p>
-          <h2 id="summit-title">Let&apos;s build what comes next.</h2>
-          <p>
-            If you’re assembling a team, shaping an ambitious product, or want
-            to compare notes, I’d be glad to hear from you.
-          </p>
+        <div className="summit-top">
+          <div className="summit-heading">
+            <p className="handwritten">The next ascent</p>
+            <h2 id="summit-title">Let&apos;s build what comes next.</h2>
+            <p>
+              If you’re assembling a team, shaping an ambitious product, or want
+              to compare notes, I’d be glad to hear from you.
+            </p>
+          </div>
+          <SummitRegister />
         </div>
-        <div className="contact-list" aria-label="Contact Diego">
-          {contactLinks.map((link, index) => (
-            <PortfolioLink href={link.href} key={link.label}>
-              <span className="contact-number">0{index + 1}</span>
-              <span className="contact-label">{link.label}</span>
-              <span className="contact-detail">{link.detail}</span>
+        <aside className="summit-elsewhere" aria-labelledby="summit-elsewhere-title">
+          <h3 id="summit-elsewhere-title">Elsewhere on the trail</h3>
+          <nav className="contact-list" aria-label="Diego’s profiles and résumé">
+            {contactLinks.map((link, index) => (
+              <PortfolioLink href={link.href} key={link.label}>
+                <span className="contact-number">0{index + 1}</span>
+                <span className="contact-label">{link.label}</span>
+                <span className="contact-detail">{link.detail}</span>
+                <ArrowIcon />
+              </PortfolioLink>
+            ))}
+            <ResumeLink className="">
+              <span className="contact-number">0{contactLinks.length + 1}</span>
+              <span className="contact-label">Resume</span>
+              <span className="contact-detail">PDF résumé</span>
               <ArrowIcon />
-            </PortfolioLink>
-          ))}
-          <ResumeLink className="">
-            <span className="contact-number">0{contactLinks.length + 1}</span>
-            <span className="contact-label">Resume</span>
-            <span className="contact-detail">PDF résumé</span>
-            <ArrowIcon />
-          </ResumeLink>
-        </div>
+            </ResumeLink>
+          </nav>
+          <p className="summit-direct">Prefer your own inbox? Write to <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.</p>
+        </aside>
       </section>
       </div>
       <InlineCaseStudies />
