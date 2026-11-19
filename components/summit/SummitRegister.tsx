@@ -204,7 +204,7 @@ export function SummitRegister() {
           </div>
         </div>}
         <div className="summit-register-foot">
-          <p className="summit-register-note">{accessKey ? summitRegister.note : summitRegister.noteWithoutService}</p>
+          {!accessKey && <p className="summit-register-note">{summitRegister.noteWithoutService}</p>}
           <button className="summit-send" type="submit" disabled={sending} aria-busy={sending}>
             {sending ? summitRegister.sending : sendState === "failed" ? summitRegister.failure.retry : summitRegister.submit}
             <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M4 16 16 4M5 4h11v11" /></svg>

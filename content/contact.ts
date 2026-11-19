@@ -12,7 +12,6 @@ export const contactLinks = [
 
 export const summitRegister = {
   title: "Sign the summit register",
-  note: "Sends straight from this page. No email app needed.",
   noteWithoutService: "Opens your email app.",
   submit: "Sign & send",
   sending: "Sending…",

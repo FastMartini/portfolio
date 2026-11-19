@@ -81,7 +81,7 @@ html[data-theme="dark"] .summit-register-contours { opacity: 0.16; }
   align-items: center; background: var(--r-primary); border: 0; border-radius: 999px;
   color: var(--r-primary-ink); cursor: pointer; display: inline-flex;
   font: 700 0.85rem var(--font-manrope), sans-serif; gap: 1.4rem; letter-spacing: 0.04em;
-  min-height: 3.25rem; padding: 0.85rem 1.2rem 0.85rem 1.5rem;
+  margin-left: auto; min-height: 3.25rem; padding: 0.85rem 1.2rem 0.85rem 1.5rem;
   transition: transform 180ms ease, background 180ms ease;
 }
 .summit-send:hover { background: var(--r-primary-hover); transform: translateY(-2px); }
