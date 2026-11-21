@@ -12,6 +12,8 @@
 # local files
 .DS_Store
 *.tsbuildinfo
+.env*
+!.env.example
 
 # Archived local backups and generated output
 /deprecated/local/

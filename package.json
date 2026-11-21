@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "test:e2e": "playwright test",
+    "test:contact-delivery": "TEST_WEB3FORMS_KEY=00000000-0000-4000-8000-000000000000 playwright test tests/summit-delivery.spec.ts",
     "theme:generate": "node scripts/generate-theme-css.mjs",
     "splash:generate": "node scripts/generate-splash-motion.mjs && node scripts/rasterize-splash-print.mjs"
   },

@@ -14,10 +14,39 @@ export const BRAND = {
 
 const HOT = ["#ffe3a0", "#ffb24d", "#e8661f", "#9a3412", "#5a2312"];
 // A tight orange rim keeps the white-hot first frame legible on cream paper.
-const GLOW = "0 0 0.015em rgba(235,110,30,0.95), 0 0 0.12em rgba(255,140,40,0.7), 0 0 0.4em rgba(255,90,20,0.38)";
-const WARM = "0 0 0.03em rgba(255,170,80,0.35), 0 0 0.12em rgba(230,90,30,0.22), 0 0 0.3em rgba(200,60,20,0.08)";
+// Heat halos as [blur em, r, g, b, alpha]. Always three, always centred, so
+// hot → warm → cold only changes blur and alpha, never the cut edges.
+type Halo = [blur: number, r: number, g: number, b: number, a: number];
+const GLOW: Halo[] = [[0.015, 235, 110, 30, 0.95], [0.12, 255, 140, 40, 0.7], [0.4, 255, 90, 20, 0.38]];
+const WARM: Halo[] = [[0.03, 255, 170, 80, 0.35], [0.12, 230, 90, 30, 0.22], [0.3, 200, 60, 20, 0.08]];
+const COLD: Halo[] = WARM.map(([blur, r, g, b]) => [blur, r, g, b, 0]);
 // Fallback only: hero.css defines --brand-deboss per surface (paper, light page, dark page).
 const DEBOSS = "0 -0.012em 0 rgba(40,15,5,0.42), 0 0.016em 0 rgba(255,250,235,0.7), 0 0 0 transparent";
+// The iron's stroke, in ms after contact: the cut deepens with the sink in the
+// scale track below, bottoms out slightly past final depth, then the paper
+// relaxes onto exactly --brand-deboss while the letters are still hot.
+const PRESS = { bottom: 144, relax: 320, overpress: 1.3 };
+
+type Edge = { lengths: { value: number; unit: string }[]; color: string };
+const splitShadows = (value: string) => value.split(/,(?![^()]*\))/).map(part => part.trim()).filter(Boolean);
+function parseDeboss(value: string): Edge[] | null {
+  const edges = splitShadows(value).map(shadow => {
+    const color = shadow.match(/rgba?\([^)]*\)|hsla?\([^)]*\)|#[0-9a-f]{3,8}\b|transparent/i)?.[0];
+    const lengths = shadow.replace(color ?? "", " ").trim().split(/\s+/).filter(Boolean).map(token => {
+      const match = token.match(/^(-?[\d.]+)([a-z%]*)$/i);
+      return match ? { value: parseFloat(match[1]), unit: match[2] } : null;
+    });
+    return color && lengths.length >= 2 && lengths.length <= 3 && lengths.every(Boolean)
+      ? { lengths: lengths as Edge["lengths"], color } : null;
+  });
+  return edges.length && edges.every(Boolean) ? edges as Edge[] : null;
+}
+// depth 0: edges hidden directly under the glyph. depth 1: the settled deboss.
+const cut = (edges: Edge[], depth: number) => edges.map(({ lengths, color }) =>
+  `${lengths.map(({ value, unit }) => `${+(value * depth).toFixed(5)}${unit || (value ? "px" : "")}`).join(" ")} ${color}`);
+const halos = (list: Halo[]) => list.map(([blur, r, g, b, a]) => `0 0 ${+blur.toFixed(5)}em rgba(${r},${g},${b},${+a.toFixed(4)})`);
+const mixHalos = (from: Halo[], to: Halo[], t: number): Halo[] =>
+  from.map((halo, i) => halo.map((v, k) => v + (to[i][k] - v) * t) as Halo);
 
 // Same sparks and smoke on every replay, so the two map entries render consistently.
 function seeded(seed: number) {
@@ -45,7 +74,7 @@ function piece(line: HTMLElement, className: string, box: { left: number; top: n
  */
 export function brandGreeting(copy: HTMLElement, start: number, add: Add, decorate: boolean) {
   const style = getComputedStyle(copy), ink = style.color;
-  const deboss = style.getPropertyValue("--brand-deboss").trim() || DEBOSS;
+  const edges = parseDeboss(style.getPropertyValue("--brand-deboss").trim()) ?? parseDeboss(DEBOSS)!;
   const end = start + BRAND.settle;
   const lines = [...copy.querySelectorAll<HTMLElement>(".trailhead-title-line")];
   lines.forEach((line, index) => {
@@ -62,12 +91,24 @@ export function brandGreeting(copy: HTMLElement, start: number, add: Add, decora
         { color: HOT[0] }, { color: HOT[1], offset: 0.12 }, { color: HOT[2], offset: 0.32 },
         { color: HOT[3], offset: 0.55 }, { color: HOT[4], offset: 0.75 }, { color: ink },
       ], { delay: press + i * BRAND.stagger, duration: BRAND.cool, easing: "linear", fill: "both" });
+      // One shadow list per frame — cut edges first, heat halos after — with the
+      // same count and order throughout, so each shadow interpolates in place.
+      // Linear overall; offsets are real milliseconds after contact.
+      const warm = cooled * 0.45;
+      const heatAt = (ms: number) => ms <= warm
+        ? mixHalos(GLOW, WARM, ms / warm)
+        : mixHalos(WARM, COLD, Math.min(1, (ms - warm) / (cooled - warm)));
+      const frame = (ms: number, depth: number, easing = "linear"): Keyframe => ({
+        offset: Math.min(1, ms / total), easing, textShadow: [...cut(edges, depth), ...halos(heatAt(ms))].join(", "),
+      });
       add(letter, [
-        { textShadow: GLOW },
-        { textShadow: WARM, offset: Math.min(0.9, (cooled * 0.45) / total) },
-        { textShadow: deboss, offset: Math.min(0.95, cooled / total) },
-        { textShadow: deboss },
-      ], { delay: press, duration: total, easing: "ease-out", fill: "both" });
+        frame(0, 0, "cubic-bezier(0.3, 0, 0.2, 1)"),
+        frame(PRESS.bottom, PRESS.overpress, "ease-out"),
+        frame(PRESS.relax, 1),
+        ...(warm > PRESS.relax ? [frame(warm, 1, "ease-out")] : []),
+        frame(Math.max(cooled, PRESS.relax + 1), 1),
+        { offset: 1, textShadow: [...cut(edges, 1), ...halos(COLD)].join(", ") },
+      ], { delay: press, duration: total, easing: "linear", fill: "both" });
     });
     if (!decorate || !letters.length) return;
 

@@ -575,7 +575,7 @@ test("reduced-motion visitors start in the complete List View", async ({ page })
   await expect(page.getByRole("heading", { name: "Let's build what comes next." })).toBeVisible();
   await page.getByRole("link", { name: "Contact me" }).click();
   await expect(page).toHaveURL(/#summit$/);
-  await expect(page.getByRole("link", { name: "Email Diego" })).toHaveAttribute("href", "mailto:diegommart2004@gmail.com");
+  await expect(page.getByRole("link", { name: "diegommart2004@gmail.com" })).toHaveAttribute("href", "mailto:diegommart2004@gmail.com");
 });
 
 for (const failure of ["null", "throwing"] as const) {

@@ -1,7 +1,40 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { OPEN } from "../components/splash/controller";
+import { BRAND } from "../components/hero/brand";
 import { seekIntro } from "./helpers/splash";
+
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [1440, 390]) {
+    test(`deboss is pressed in and set while hot during both presses in ${theme} at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript(theme => localStorage.setItem("portfolio-theme", theme), theme);
+      await page.goto("./");
+      for (const [line, press] of BRAND.presses.entries()) {
+        // Mid-stroke the cut is still deepening, so it must not match the settled edges yet.
+        await seekIntro(page, OPEN.greeting + press + 60);
+        const copy = page.locator(".splash-greeting--paper");
+        const settled = await copy.evaluate(el => getComputedStyle(el).textShadow.split(/,(?![^()]*\))/).slice(0, 2));
+        const pressing = await copy.locator(".trailhead-title-line").nth(line).locator(".hero-reveal-letter").first()
+          .evaluate(el => getComputedStyle(el).textShadow.split(/,(?![^()]*\))/).slice(0, 2));
+        expect(pressing, `line ${line}, 60ms after contact`).not.toEqual(settled);
+        // From the relax onward the cut sits exactly on --brand-deboss, while the glow is still running.
+        for (const elapsed of [320, 600, 1000]) {
+          await seekIntro(page, OPEN.greeting + press + elapsed);
+          for (const surface of ["paper", "page"]) {
+            const copy = page.locator(`.splash-greeting--${surface}`);
+            // Compare the actual cut edges to the settled surface, while the
+            // hot glow and cooling sweep are still running on the letters.
+            const expected = await copy.evaluate(el => getComputedStyle(el).textShadow.split(/,(?![^()]*\))/).slice(0, 2));
+            const edges = await copy.locator(".trailhead-title-line").nth(line).locator(".hero-reveal-letter").evaluateAll(letters =>
+              letters.map(el => getComputedStyle(el).textShadow.split(/,(?![^()]*\))/).slice(0, 2)));
+            for (const edge of edges) expect(edge, `${surface}, line ${line}, ${elapsed}ms after contact`).toEqual(expected);
+          }
+        }
+      }
+    });
+  }
+}
 
 async function probeAudio(page: Page) {
   await page.addInitScript(() => {
