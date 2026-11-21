@@ -90,7 +90,9 @@ export function SummitRegister() {
 
   function saveDraft(event: FormEvent<HTMLFormElement>) {
     const form = event.currentTarget;
-    try { localStorage.setItem(draftKey, JSON.stringify(readDraft(form))); } catch { /* Keep editing without storage. */ }
+    const draft = readDraft(form);
+    setFallbackUrl(mailto(draft));
+    try { localStorage.setItem(draftKey, JSON.stringify(draft)); } catch { /* Keep editing without storage. */ }
     if (attempted.current) setErrors(validate(form));
   }
 

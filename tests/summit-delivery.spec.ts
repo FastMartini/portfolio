@@ -105,6 +105,24 @@ for (const failure of ["network", "http", "rejected", "malformed", "unconfirmed"
   });
 }
 
+test("the email fallback uses the edited draft after a failed submission", async ({ page }) => {
+  await page.route(contactFormEndpoint, route => route.fulfill({ json: { success: false } }));
+  await page.goto("./#summit-register");
+  const form = await fillNote(page);
+  await form.getByRole("button", { name: "Sign & send" }).click();
+  const fallback = form.getByRole("link", { name: "Open in my email app" });
+  await expect(fallback).toBeVisible();
+  await form.getByLabel("From", { exact: true }).fill("Renée & Alex");
+  await form.getByLabel("Reply to").fill("updated@example.com");
+  await form.getByLabel("Subject").fill("Updated plans & questions?");
+  await form.getByLabel("Message").fill("An updated note.\nLet’s build it together.");
+  await expect(fallback).toHaveAttribute("href", `mailto:${contactEmail}?subject=${encodeURIComponent("Updated plans & questions?")}&body=${encodeURIComponent("An updated note.\nLet’s build it together.\n\n— Renée & Alex\nupdated@example.com")}`);
+  await form.getByLabel("Subject").fill("");
+  await expect(fallback).toHaveAttribute("href", /subject=Hello%20from%20Ren%C3%A9e%20%26%20Alex&/);
+  await form.getByLabel("From", { exact: true }).fill("");
+  await expect(fallback).toHaveAttribute("href", /subject=Hello%20from%20your%20portfolio&/);
+});
+
 test("retry sends the retained draft and removes the failure alert on success", async ({ page }) => {
   let count = 0;
   await page.route(contactFormEndpoint, route => route.fulfill({ json: { success: ++count > 1 } }));

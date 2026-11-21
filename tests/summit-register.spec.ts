@@ -4,6 +4,10 @@ import { summitStopIndex } from "../content/journey";
 import { contactEmail } from "../content/contact";
 import { openClimb, scrollToClimbStop } from "./helpers/climb";
 
+// Keep the OS mail-app picker outside these UI tests: in headless Firefox it
+// swallows later pointer events. The encoded mailto action/links are still checked.
+test.use({ launchOptions: { firefoxUserPrefs: { "network.protocol-handler.external.mailto": false } } });
+
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
 });
