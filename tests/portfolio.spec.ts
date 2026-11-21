@@ -38,7 +38,7 @@ test("visitor follows the Mountain Journey and reaches direct contact options", 
   await expect(
     page.getByRole("heading", { level: 2, name: "Let's build what comes next." }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Email Diego" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "diegommart2004@gmail.com" })).toHaveAttribute(
     "href",
     "mailto:diegommart2004@gmail.com",
   );
@@ -91,7 +91,8 @@ test("portfolio remains complete without client-side JavaScript", async ({
   expect(resumeResponse.headers()["content-type"]).toBe("application/pdf");
   expect((await resumeResponse.body()).subarray(0, 5).toString()).toBe("%PDF-");
   await expect(page.getByRole("button", { name: /résumé/i })).toHaveCount(0);
-  await expect(page.locator("form, audio")).toHaveCount(0);
+  await expect(page.getByRole("form", { name: "Sign the summit register" })).toBeVisible();
+  await expect(page.locator("audio")).toHaveCount(0);
 
   await context.close();
 });
@@ -136,7 +137,7 @@ test("mobile visitor receives a stable, readable layout", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("banner").getByText("Diego Martinez", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Contact", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Email Diego" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "diegommart2004@gmail.com" })).toBeVisible();
 
   const hasHorizontalOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

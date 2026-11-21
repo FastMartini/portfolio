@@ -1,0 +1,153 @@
+.summit-top {
+  align-items: start; display: grid; gap: clamp(2.5rem, 5vw, 5.5rem);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  margin: clamp(5rem, 10vw, 9rem) 0 clamp(4rem, 8vw, 7rem);
+}
+.summit-top .summit-heading { margin: 0; }
+.summit-top h2 { font-size: clamp(3.4rem, 6vw, 6.4rem); }
+.summit-visually-hidden { clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+
+/* This reading surface registers with ThemeProvider, so all palette values
+   animate with the existing UI tokens without restyling the mountain SVG. */
+.summit-register {
+  background: var(--raised); border-radius: 4px;
+  box-shadow: 0 30px 80px -40px rgb(0 0 0 / 75%), 0 2px 0 rgb(0 0 0 / 25%);
+  color: var(--r-ink); isolation: isolate; min-width: 0; overflow: hidden;
+  padding: clamp(1.4rem, 3vw, 2.4rem); position: relative;
+  scroll-margin-top: calc(var(--home-header-height) + 1rem); width: 100%;
+}
+.summit-register::before {
+  background: url("../../public/splash/grain.png") repeat; background-size: 192px;
+  content: ""; inset: 0; mix-blend-mode: multiply; opacity: 0.18;
+  pointer-events: none; position: absolute; z-index: -1;
+}
+html[data-theme="dark"] .summit-register::before { mix-blend-mode: screen; opacity: 0.08; }
+.summit-register::after {
+  border: 1px solid color-mix(in srgb, var(--copper) 55%, transparent); border-radius: 2px;
+  content: ""; inset: 8px; pointer-events: none; position: absolute;
+}
+.summit-register-contours {
+  background: var(--r-accent); height: 120%;
+  mask: url("../../public/hero-contours.svg") right top / cover no-repeat;
+  opacity: 0.25; pointer-events: none; position: absolute; right: -18%; top: -22%; width: 90%; z-index: -1;
+}
+html[data-theme="dark"] .summit-register-contours { opacity: 0.16; }
+.summit-register-top { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; justify-content: space-between; margin-bottom: 1.4rem; }
+.summit-register-top h3 {
+  align-items: center; color: var(--ink-label); display: flex; font-size: 0.67rem;
+  font-weight: 800; gap: 0.65rem; letter-spacing: 0.16em; margin: 0; text-transform: uppercase;
+}
+.summit-register-top h3::before { background: var(--copper); border-radius: 50%; content: ""; flex: none; height: 0.45rem; width: 0.45rem; }
+.summit-register-date { color: var(--r-muted); font-family: var(--font-newsreader), serif; font-size: 0.95rem; font-style: italic; margin: 0; }
+.summit-field {
+  align-items: baseline; border-bottom: 1px solid var(--line); display: grid;
+  gap: 1rem; grid-template-columns: 6.5rem minmax(0, 1fr); padding: 0.55rem 0;
+}
+.summit-field-to { border-top: 1px solid var(--line); }
+.summit-field label, .summit-field-label { color: var(--ink-label); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+.summit-field .summit-optional { color: var(--r-muted); font-weight: 600; letter-spacing: 0.06em; text-transform: none; }
+.summit-field input {
+  background: transparent; border: 0; border-radius: 2px; color: var(--r-ink);
+  font: 500 1.05rem/1.4 var(--font-manrope), sans-serif; min-height: 2.6rem; padding: 0.35rem 0.4rem; width: 100%;
+}
+.summit-register :is(input, textarea)::placeholder { color: var(--r-muted); opacity: 0.85; }
+.summit-register :is(input, textarea):focus-visible { box-shadow: none; outline: 2px solid var(--copper); outline-offset: 0; }
+.summit-to-row { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; justify-content: space-between; min-height: 2.6rem; padding-left: 0.4rem; }
+.summit-to-address { font-size: 1.05rem; font-weight: 600; overflow-wrap: anywhere; }
+.summit-to-address span { color: var(--r-muted); font-weight: 500; }
+.summit-chip {
+  align-items: center; background: transparent; border: 1px solid var(--line); border-radius: 999px;
+  color: var(--ink-label); cursor: pointer; display: inline-flex;
+  font: 700 0.68rem var(--font-manrope), sans-serif; letter-spacing: 0.06em;
+  min-height: 32px; overflow-wrap: anywhere; padding: 0.35rem 0.8rem; position: relative;
+}
+.summit-chip::after { content: ""; inset: -6px; position: absolute; }
+.summit-chip:hover { border-color: var(--ink-label); }
+.summit-message { padding-top: 1rem; }
+.summit-message textarea {
+  background: transparent repeating-linear-gradient(to bottom, transparent 0 calc(2rem - 1px), var(--line) calc(2rem - 1px) 2rem);
+  background-attachment: local; background-position: 0 0.55rem;
+  border: 0; border-radius: 2px; color: var(--r-ink); display: block;
+  font: 400 1.25rem/2rem var(--font-newsreader), serif; min-height: 13.1rem;
+  padding: 0.55rem 0.4rem; resize: vertical; width: 100%;
+}
+.summit-message textarea::placeholder { font-style: italic; }
+.summit-field-error { color: var(--r-accent); font-size: 0.78rem; font-weight: 600; grid-column: 2; margin: 0 0 0.2rem 0.4rem; }
+.summit-message .summit-field-error { margin-top: 0.3rem; }
+.summit-register [aria-invalid="true"] { background-color: color-mix(in srgb, var(--copper) 8%, transparent); }
+.summit-register-foot { align-items: center; display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; justify-content: space-between; margin-top: 1.6rem; }
+.summit-register-note { color: var(--r-muted); font-size: 0.82rem; line-height: 1.5; margin: 0; max-width: 22rem; }
+.summit-send {
+  align-items: center; background: var(--r-primary); border: 0; border-radius: 999px;
+  color: var(--r-primary-ink); cursor: pointer; display: inline-flex;
+  font: 700 0.85rem var(--font-manrope), sans-serif; gap: 1.4rem; letter-spacing: 0.04em;
+  margin-left: auto; min-height: 3.25rem; padding: 0.85rem 1.2rem 0.85rem 1.5rem;
+  transition: transform 180ms ease, background 180ms ease;
+}
+.summit-send:hover { background: var(--r-primary-hover); transform: translateY(-2px); }
+.summit-send svg { fill: none; height: 1.15rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; width: 1.15rem; }
+.summit-send[aria-busy="true"] { cursor: progress; transform: none; }
+.summit-send[aria-busy="true"] svg { animation: summit-send-nudge 900ms ease-in-out infinite; }
+@keyframes summit-send-nudge { 50% { transform: translate(3px, -3px); } }
+.summit-register-alert { border-left: 3px solid var(--r-accent); margin-top: 1.4rem; padding: 0.2rem 0 0.2rem 1rem; }
+.summit-register-alert p { font-size: 0.92rem; line-height: 1.55; margin: 0 0 0.75rem; }
+.summit-register-alert strong { font-family: var(--font-newsreader), serif; font-size: 1.1rem; font-weight: 500; }
+.summit-register-alert .summit-confirmation-actions { justify-content: flex-start; }
+.summit-sent-note { display: none; }
+.summit-sent-note:target { border-left: 3px solid var(--copper-text-dark); display: block; line-height: 1.7; margin-top: 2rem; padding: 1rem; scroll-margin-top: calc(var(--home-header-height) + 1rem); }
+
+.summit-register-confirmation { display: grid; min-height: 26rem; padding: 2rem 0; place-content: center; text-align: center; }
+.summit-register-confirmation:focus { outline: none; }
+.summit-register-confirmation h3 { font-family: var(--font-newsreader), serif; font-size: clamp(2rem, 3.4vw, 2.8rem); font-weight: 450; letter-spacing: -0.04em; line-height: 1; margin: 1.6rem 0 0.8rem; overflow-wrap: anywhere; }
+.summit-register-confirmation p { color: var(--r-muted); line-height: 1.7; margin: 0 auto 1.4rem; max-width: 26rem; }
+.summit-confirmation-actions { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+.summit-confirmation-actions .summit-chip { min-height: 44px; text-decoration: none; }
+.summit-register-stamp { border: 2.5px solid currentColor; border-radius: 50%; color: var(--r-accent); display: grid; height: 9.5rem; justify-self: center; margin: 0 auto; place-content: center; position: relative; rotate: -9deg; width: 9.5rem; animation: summit-stamp-press 520ms cubic-bezier(.2, .9, .3, 1.3) both; }
+.summit-register-stamp::before { border: 1px solid currentColor; border-radius: 50%; content: ""; inset: 6px; opacity: 0.7; position: absolute; }
+.summit-register-stamp svg { height: 2.6rem; margin: 0 auto 0.3rem; width: 3.4rem; }
+.summit-register-stamp b { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+.summit-register-stamp small { font-family: var(--font-newsreader), serif; font-size: 0.8rem; font-style: italic; margin-top: 0.2rem; }
+@keyframes summit-stamp-press { from { opacity: 0; scale: 1.5; } 60% { opacity: 1; } to { opacity: 1; scale: 1; } }
+
+.summit-elsewhere { display: grid; gap: 0 clamp(2rem, 5vw, 5.5rem); grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+.summit-elsewhere h3 { color: rgb(255 251 237 / 72%); font-size: 0.67rem; font-weight: 700; grid-column: 1 / -1; letter-spacing: 0.14em; margin: 0 0 1rem; text-transform: uppercase; }
+.contact-list { border-top: 1px solid rgb(255 251 237 / 25%); display: grid; grid-column: 1 / -1; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 1.4rem; }
+.contact-list a {
+  align-items: center; border-bottom: 1px solid rgb(255 251 237 / 25%); display: grid;
+  gap: 0.25rem 1rem; grid-template-columns: 2rem minmax(0, 1fr) auto;
+  min-height: 5.25rem; padding: 0.75rem 0; text-decoration: none; transition: color 180ms ease, padding 180ms ease;
+}
+.contact-list a + a { border-left: 1px solid rgb(255 251 237 / 25%); padding-left: 1.25rem; }
+.contact-list a:hover { color: var(--copper-text-dark); padding-left: 0.6rem; }
+.contact-list a + a:hover { padding-left: 1.85rem; }
+.contact-number { color: rgb(255 251 237 / 72%); font-size: 0.67rem; grid-row: span 2; }
+.contact-label { font-family: var(--font-newsreader), serif; font-size: clamp(1.45rem, 2vw, 1.9rem); line-height: 1.1; }
+.contact-detail { color: rgb(255 251 237 / 72%); font-size: 0.72rem; grid-column: 2; letter-spacing: 0.03em; overflow-wrap: anywhere; }
+.contact-list svg { fill: none; grid-column: 3; grid-row: 1 / span 2; height: 1.15rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; width: 1.15rem; }
+.summit-direct { color: rgb(255 251 237 / 72%); font-size: 0.82rem; grid-column: 1 / -1; line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
+.summit-direct a { color: var(--copper-text-dark); text-underline-offset: 0.25rem; }
+
+@media (max-width: 1000px) {
+  .summit-top { grid-template-columns: minmax(0, 1fr); }
+  .summit-register { max-width: 44rem; }
+  .contact-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .contact-list a:nth-child(3) { border-left: 0; padding-left: 0; }
+  .contact-list a:nth-child(3):hover { padding-left: 0.6rem; }
+}
+@media (max-width: 600px) {
+  .summit-field { gap: 0.1rem; grid-template-columns: minmax(0, 1fr); padding: 0.7rem 0 0.4rem; }
+  .summit-field input, .summit-to-row { padding-left: 0; }
+  .summit-field-error { grid-column: 1; margin-left: 0; }
+  .summit-message textarea { font-size: 1.15rem; padding-inline: 0; }
+  .summit-register-top { align-items: flex-start; flex-direction: column; gap: 0.4rem; }
+  .summit-register-foot { align-items: stretch; flex-direction: column-reverse; }
+  .summit-send { justify-content: space-between; width: 100%; }
+  .contact-list { grid-template-columns: minmax(0, 1fr); }
+  .contact-list a + a { border-left: 0; padding-left: 0; }
+  .contact-list a + a:hover { padding-left: 0.6rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .summit-send:hover { transform: none; }
+  .summit-register-stamp { animation: none; }
+  .summit-send[aria-busy="true"] svg { animation: none; }
+}

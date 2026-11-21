@@ -38,7 +38,7 @@ test("the server List View and every published Case Study remain reachable witho
   await expect(list).toHaveClass("list-view");
   await expect(list.locator("[data-waypoint-slug]")).toHaveCount(6);
   await expect(list.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(list.getByRole("link", { name: "Email Diego" })).toHaveAttribute(
+  await expect(list.getByRole("link", { name: "diegommart2004@gmail.com" })).toHaveAttribute(
     "href", "mailto:diegommart2004@gmail.com",
   );
   for (const waypoint of waypoints) {

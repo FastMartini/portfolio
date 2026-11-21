@@ -88,7 +88,7 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
   align-items: center; border-radius: 999px; display: inline-flex; font-size: 0.76rem; font-weight: 700;
   gap: 1.75rem; letter-spacing: 0.04em; padding: 1rem 1.15rem 1rem 1.4rem; text-decoration: none;
 }
-.button svg, .contact-list svg {
+.button svg {
   fill: none; height: 1.15rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; width: 1.15rem;
 }
 .button-primary { background: var(--pine); color: var(--cream); transition: transform 180ms ease; }
@@ -157,12 +157,6 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .summit-heading { margin: clamp(5rem, 10vw, 9rem) 0; max-width: 70rem; }
 .summit-heading h2 { max-width: 10ch; }
 .summit-heading > p:last-child { color: rgba(255, 251, 237, 0.72); margin-top: 2rem; max-width: 38rem; }
-.contact-list { border-top: 1px solid rgba(255, 251, 237, 0.25); }
-.contact-list a { align-items: center; border-bottom: 1px solid rgba(255, 251, 237, 0.25); display: grid; gap: 1rem; grid-template-columns: 3rem minmax(8rem, 0.8fr) minmax(12rem, 1.2fr) auto; min-height: 6rem; text-decoration: none; transition: color 180ms ease, padding 180ms ease; }
-.contact-list a:hover { color: var(--copper-text-dark); padding-left: 0.75rem; }
-.contact-number, .contact-detail { color: rgba(255, 251, 237, 0.72); font-size: 0.67rem; }
-.contact-label { font-family: var(--font-newsreader), serif; font-size: clamp(1.5rem, 2.5vw, 2.4rem); }
-.contact-detail { letter-spacing: 0.03em; }
 
 footer { align-items: center; background: var(--deepest); border-top: 1px solid rgba(255, 251, 237, 0.15); color: rgba(255, 251, 237, 0.72); display: flex; font-size: 0.62rem; justify-content: space-between; letter-spacing: 0.08em; padding: 1.5rem var(--page-padding); text-transform: uppercase; }
 footer p { margin: 0; } footer a { text-decoration: none; }
@@ -191,8 +185,6 @@ footer p { margin: 0; } footer a { text-decoration: none; }
   .waypoint-case-study { padding-left: 1.25rem; padding-right: 1.25rem; }
   .waypoint-details { grid-column: 1; }
   .waypoint-index { padding-top: 0; }
-  .contact-list a { gap: 0.6rem; grid-template-columns: 2rem 1fr auto; padding: 1rem 0; }
-  .contact-detail { display: none; }
   footer { align-items: flex-start; flex-direction: column; gap: 0.75rem; }
 }
 

@@ -243,6 +243,7 @@ for (const [width, id, name] of [
   [1440, "summit", "summit-desktop"],
 ] as const) {
   test(`stable Editorial Alpine snapshot: ${name}`, async ({ page }) => {
+    if (id === "summit") await page.clock.setFixedTime(new Date("2026-11-17T12:00:00Z"));
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     // Preserve the approved Dark reference images while fresh visits default to Light.
