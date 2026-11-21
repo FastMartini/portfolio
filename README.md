@@ -36,13 +36,7 @@ public/       Served assets: responsive portraits, resume, social cards, evidenc
 tests/        Acceptance tests, helpers, fixtures, and visual baselines
 scripts/      Export server, social image generation, and scroll measurement
 docs/         Architecture decisions, agent conventions, and active design references
-deprecated/   Archived duplicates and original assets; see deprecated/README.md
 ```
-
-The original portrait and duplicate handoff packages live in
-[`deprecated/`](deprecated/README.md). Files needed by runtime code, tests, or
-development tools remain in their active directories. Local recovery bundles,
-duplicate editor files, and archived generated output stay untracked there.
 
 Use Node.js 22 or newer.
 
@@ -59,9 +53,8 @@ Tests always start their own production-export server, never reuse another workt
 
 The published résumé is `public/resume/Martinez_Diego_2026.pdf`. Replace that PDF
 in place to keep the shared résumé links working across Climb and List View.
-Keep incoming uploads and superseded copies in the ignored
-`deprecated/local/resume-replacements/` directory, rather than the repository root
-or the served asset directory.
+Keep incoming uploads and superseded copies outside the repository, rather than
+in the repository root or the served asset directory.
 
 ## Verification
 
@@ -110,7 +103,7 @@ To intentionally refresh local baselines, run `npm test -- --update-snapshots=al
 
 ## Design and architecture
 
-The original approved prototype is `docs/handoff/reference/climb-reference.html`; implementation guidance is `docs/handoff/CODEX_HANDOFF.md`. The trees follow the later [Alpine spruce handoff](docs/handoff/alpine-spruce.md), with its own approved visual reference. [ADR 0004](docs/adr/0004-illustrated-climb-replaces-threejs.md) records the illustrated Climb's replacement of the earlier Three.js Atmospheric Layer.
+The original approved prototype is `docs/handoff/reference/climb-reference.html`. Its original build handoff has been retired; later implementation notes and ADRs record the current design. The trees follow the later [Alpine spruce handoff](docs/handoff/alpine-spruce.md), with its own approved visual reference. [ADR 0004](docs/adr/0004-illustrated-climb-replaces-threejs.md) records the illustrated Climb's replacement of the earlier Three.js Atmospheric Layer.
 
 The Climb's [optional fire and snowstorm ambience](docs/handoff/ambient-audio.md) keeps the original synthesized crackles and a quieter warm fire bed at camp, with soft rushing wind in the snowy section and silence at the ski lodge and summit. Visitors enable it with the sound icon in the header beside the theme and view controls; it remains usable while a Waypoint Panel is open. Audio continues through panel reading; List View and hidden tabs suspend playback. Three procedural Web Audio voices run on the native audio thread with no audio downloads or server dependency.
 

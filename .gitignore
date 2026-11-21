@@ -16,5 +16,3 @@
 !.env.example
 
 # Archived local backups and generated output
-/deprecated/local/
-/deprecated/generated/
