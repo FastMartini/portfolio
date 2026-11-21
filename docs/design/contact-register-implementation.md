@@ -24,13 +24,21 @@ Typecheck and lint pass. All 25 keyless register tests pass in Chromium and WebK
 
 Five affected snapshots were refreshed on both macOS and Linux: the List View Summit and the four Light/Dark desktop/mobile Climb Summit captures. The decorative date is fixed in the List View snapshot test. The [Linux refresh workflow](https://github.com/FastMartini/portfolio/actions/runs/44439839463) passed typecheck, lint, and all 21 visual snapshot tests; only its five changed Summit captures were added. Deployment jobs were skipped for the feature branch. Firefox tests are configured but could not launch locally: Playwright’s Firefox exits with “Could not find profile folder,” including with an alternate temporary directory.
 
+## Review follow-up
+
+The failure fallback previously captured the draft only on submit, so edits after a failed send were omitted from the email link. It now refreshes from the same current values used for draft persistence on every input. A regression covers failure, edits to all four fields, Unicode and line breaks, and clearing the optional subject/name to restore the default subject.
+
+The three Firefox confirmation-return failures were reproduced in the Linux Playwright Docker image. After the external mailto launch, pointer events did not reach the page; keyboard activation still returned to the form and focused From. The keyless UI spec now disables external mailto handling in its browser launch options, keeping the native mail-app picker outside automation while retaining the encoded action/link assertions. The same three pointer-driven cases then passed in Linux Firefox. No product focus workaround or changed mail-app behavior was needed.
+
+Follow-up verification: all 50 keyless and 30 mocked-delivery checks passed in Chromium/WebKit. The three previously failing return-to-draft cases and the new edited-fallback regression also passed in Linux Firefox. The latter initially exceeded the overall 30-second test limit during concurrent emulated startup; a sequential rerun with a 60-second local limit passed in 12.4 seconds. Committed CI timeouts remain unchanged.
+
 ## Activation
 
 1. Create a free Web3Forms form for `diegommart2004@gmail.com` at <https://web3forms.com/#start> and verify the inbox.
 2. For local development, copy `.env.example` to `.env.local`, supply the public form key, and restart the dev server. Never commit the configured file.
 3. For GitHub Pages, set repository variable `NEXT_PUBLIC_WEB3FORMS_KEY` under Settings → Secrets and variables → Actions → Variables. The Pages build reads that variable. The key is embedded in static HTML by design; no inbox password or mail-server credentials are involved. Rebuild to apply key changes. No live key has been supplied or configured yet.
 
-`npm run test:contact-delivery` builds with a fake key and mocks every submission. Its 14 cases cover delayed success, duplicate suppression, optional fields, five failure modes, retry, draft clearing/retention, normal/reduced motion, both themes with Axe at 320px, and native POST/redirect without JavaScript. They pass in Chromium and WebKit; the native redirect mock uses a meta refresh in WebKit because Playwright cannot fulfill a 303 there. CI runs it on the first shard of each browser in addition to the normal keyless suite. Tests explicitly override any local live key so validation cannot send real messages.
+`npm run test:contact-delivery` builds with a fake key and mocks every submission. Its 15 cases cover delayed success, duplicate suppression, optional fields, five failure modes, editing the failure fallback, retry, draft clearing/retention, normal/reduced motion, both themes with Axe at 320px, and native POST/redirect without JavaScript. The native redirect mock uses a meta refresh in WebKit because Playwright cannot fulfill a 303 there. CI runs it on the first shard of each browser in addition to the normal keyless suite. Tests explicitly override any local live key so validation cannot send real messages.
 
 ## Provider documentation checked
 
