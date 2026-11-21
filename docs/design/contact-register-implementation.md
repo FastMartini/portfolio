@@ -1,6 +1,6 @@
 # Summit register implementation
 
-Reference: [Codex contact register handoff](../handoff/contact-register/CODEX_HANDOFF.md), extracted from the supplied `contact-register-handoff.zip` design bundle. The prototype and reference captures remain in that local bundle.
+Reference: the Codex contact register handoff from the supplied `contact-register-handoff.zip` design bundle, retired after this implementation merged in PR #38.
 
 1. Layout: add `components/summit/SummitRegister.tsx` and `summit.css`, update the Summit in `components/list-view.tsx`, move the profile links into four cells, and add the register action to `components/climb/StopCards.tsx`. Preserve the section copy, artwork, anchors, footer, and link destinations.
 2. Keyless interactions: share copy in `content/contact.ts`; add accessible validation, copying the address, a client-rendered date, local draft persistence, and an encoded mailto fallback. Keep the native `mailto:` POST with `text/plain` encoding and native validation for visitors without JavaScript. Verify both views, themes, small screens, and the static export under `/portfolio`.
