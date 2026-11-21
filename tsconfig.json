@@ -32,7 +32,6 @@
   ],
   "exclude": [
     "node_modules",
-    "deprecated",
     "docs/handoff"
   ]
 }
