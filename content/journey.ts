@@ -17,7 +17,7 @@ const workElevations = [
   "High pass",
 ] as const;
 
-// Exact STOP_T values from docs/handoff/reference/climb.js. Selected Work is a
+// Exact STOP_T values from tests/fixtures/reference/climb.js. Selected Work is a
 // List View heading, not an extra stop on the illustrated trail.
 const waypointTrailPositions = [0.17, 0.28, 0.39, 0.5, 0.61, 0.71] as const;
 

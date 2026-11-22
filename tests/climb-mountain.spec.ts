@@ -53,7 +53,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 
     const reference = await browser.newPage({ viewport, reducedMotion: "reduce" });
     await reference.route("https://fonts.googleapis.com/**", (route) => route.abort());
-    await reference.goto(pathToFileURL(resolve("docs/handoff/reference/alpine-spruce-reference.html")).href);
+    await reference.goto(pathToFileURL(resolve("tests/fixtures/reference/alpine-spruce-reference.html")).href);
     await expect(reference.locator("svg.mtn")).toBeAttached();
     // Its first camera frame runs after the inline script creates the SVG.
     await expect(reference.locator("svg.mtn")).toHaveCSS("transform", /matrix/);

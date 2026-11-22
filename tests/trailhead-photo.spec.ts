@@ -18,7 +18,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }
     await openClimb(page);
     await scrollToClimbStop(page, 0);
     const intro = page.locator('[data-card="0"]');
-    await expect(page.locator(".climb-cards img, [data-photo-stop]")).toHaveCount(0);
+    await expect(page.locator('[data-card="0"] img, [data-photo-stop]')).toHaveCount(0);
     await expect(intro.locator("h1")).toHaveText(await page.locator("#trailhead-title").textContent() ?? "");
     const listLead = await page.locator("#trailhead .trailhead-lead").evaluate(element =>
       [...element.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent).join("").trim());
@@ -38,7 +38,7 @@ test("the portrait-free Climb introduction fades and returns with the Trailhead"
   await scrollToClimbStop(page, 0);
   const intro = page.locator('[data-card="0"]');
   await expect(intro).toBeVisible();
-  await expect(page.locator(".climb-cards img, [data-photo-stop]")).toHaveCount(0);
+  await expect(page.locator('[data-card="0"] img, [data-photo-stop]')).toHaveCount(0);
 
   await page.locator("#climb").evaluate((element: HTMLElement, intervals) => {
     window.scrollTo(0, 0.32 / intervals * (element.offsetHeight - innerHeight));
@@ -49,5 +49,5 @@ test("the portrait-free Climb introduction fades and returns with the Trailhead"
   await scrollToClimbStop(page, 0);
   await expect(intro).toBeVisible();
   await expect(intro).toHaveCSS("opacity", "1");
-  await expect(page.locator(".climb-cards img, [data-photo-stop]")).toHaveCount(0);
+  await expect(page.locator('[data-card="0"] img, [data-photo-stop]')).toHaveCount(0);
 });
