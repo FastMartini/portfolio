@@ -2,12 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
-import { listTrailheadIntro } from "../../content/trailhead";
+import { trailheadIntro } from "../../content/trailhead";
 import { startSplash } from "./controller";
 import type { SplashElement } from "./controller";
 import { mapAssetStyles, mapOverlayMarkup } from "./map/markup";
 
-const markup = mapOverlayMarkup(listTrailheadIntro.heading, "splash-opening");
+const markup = mapOverlayMarkup(trailheadIntro.heading, "splash-opening");
 
 export function Splash() {
   const ref = useRef<HTMLDivElement>(null);

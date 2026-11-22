@@ -1,6 +1,6 @@
 # Map opening v2 implementation
 
-Implemented on `feat/map-opening-v2` from the repository-root `HANDOFF (1).md` and `map-opening-prototype-v2 (1).zip`. This replaces the earlier simplified opening. The prototype's map print, hinged folds, screen-space paper and view transition are carried into the existing Next.js application. The subsequent screen-recording revision replaces the hands with a feather-like descent and makes Light the first-visit default.
+Implemented on `feat/map-opening-v2` from the original implementation handoff and map-opening prototype, whose delivery files were subsequently deleted. This replaces the earlier simplified opening. The prototype's map print, hinged folds, screen-space paper and view transition are carried into the existing Next.js application. The subsequent screen-recording revision replaces the hands with a feather-like descent and makes Light the first-visit default.
 
 ## Result
 

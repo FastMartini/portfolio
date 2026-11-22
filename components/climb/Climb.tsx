@@ -399,12 +399,24 @@ export function Climb({ children, header, mountain, cards, summaries, cases }: {
   }
 
   function navigateHeader(event: MouseEvent<HTMLDivElement>) {
-    if (listMode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = (event.target as Element).closest<HTMLAnchorElement>("a[href^='#']");
     if (!link) return;
     const id = link.hash.slice(1);
     const index = journeyStops.findIndex((stop) => stop.id === id || stop.navigation === id);
     if (index < 0) return; // The skip link still opens the durable full text.
+    if (listMode) {
+      // Glide along the List View trail instead of jumping to the fragment.
+      const target = document.getElementById(id);
+      if (!target) return;
+      event.preventDefault();
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({ behavior: reduce ? "instant" : "smooth", block: "start" });
+      if (location.hash !== link.hash) history.pushState(null, "", link.hash);
+      if (!target.matches("a, button, [tabindex]")) target.tabIndex = -1;
+      target.focus({ preventScroll: true });
+      return;
+    }
     event.preventDefault();
     pendingFocus.current = null;
     setSelection(null);

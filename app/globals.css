@@ -98,7 +98,6 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .button-secondary:hover { background: var(--pine); color: var(--cream); transform: translateY(-2px); }
 .resume-note { border-bottom: 1px solid var(--line); color: var(--ink-muted); font-size: 0.72rem; letter-spacing: 0.04em; padding-bottom: 0.35rem; }
 
-.trailhead-photo { aspect-ratio: 3 / 4; display: block; height: auto; object-fit: cover; object-position: center; width: 100%; }
 .scroll-cue { align-items: center; bottom: 2rem; display: flex; font-size: 0.62rem; font-weight: 700; gap: 0.7rem; left: var(--page-padding); letter-spacing: 0.12em; position: absolute; text-decoration: none; text-transform: uppercase; }
 
 .about, .work, .summit { padding: clamp(6rem, 12vw, 11rem) var(--page-padding); }

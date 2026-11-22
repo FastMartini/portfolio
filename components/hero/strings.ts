@@ -236,7 +236,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   let canvas: HTMLCanvasElement | null = null, ctx: CanvasRenderingContext2D | null = null;
   let strings: Str[] = [], view = { vw: 1000, vh: 700 }, grid = new Map<number, number[]>();
   let resize: ResizeObserver | null = null, frame = 0, active = true, building = 0;
-  let size = { w: 0, h: 0, dpr: 1, scale: 1, ox: 0, oy: 0 };
+  let size = { w: 0, h: 0, dpr: 1, scale: 1, ox: 0, oy: 0, top: 0 };
   const pointer = { x: 0, y: 0, has: false, t: 0 };
   let tap: { id: number; x: number; y: number; started: number; si: number; i: number } | null = null;
   const TAP_SLOP = 10, TAP_DURATION = 700;
@@ -281,8 +281,13 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     if (w !== size.w || h !== size.h || dpr !== size.dpr) cancelTap();
     const bottom = contours?.dataset.fit === "width-bottom";
     const scale = bottom ? w / view.vw : Math.max(w / view.vw, h / view.vh);
-    size = { w, h, dpr, scale, ox: (w - view.vw * scale) / 2, oy: bottom ? h - view.vh * scale : (h - view.vh * scale) / 2 };
-    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    const oy = bottom ? h - view.vh * scale : (h - view.vh * scale) / 2;
+    // Bottom-fitted artwork only needs a canvas over its own band (plus room
+    // for the wave), which keeps tall sections under browser canvas limits.
+    const top = bottom ? Math.max(0, Math.floor(oy - 40)) : 0;
+    size = { w, h, dpr, scale, ox: (w - view.vw * scale) / 2, oy, top };
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round((h - top) * dpr);
+    canvas.style.top = top ? `${top}px` : ""; canvas.style.height = top ? `${h - top}px` : "";
     // Screen positions and a coarse grid of segments for crossing tests.
     grid = new Map();
     strings.forEach((s, si) => {
@@ -310,7 +315,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     const cs = getComputedStyle(contours!);
     const color = cs.backgroundColor.match(/[\d.]+/g)?.slice(0, 3).join(",") ?? "23,63,53";
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+    ctx.setTransform(size.dpr, 0, 0, size.dpr, 0, -size.top * size.dpr);
     ctx.lineCap = "round"; ctx.lineJoin = "round";
     // The artwork's own horizontal fade: quiet on the left, full on the right.
     const x0 = size.ox, x1 = size.ox + view.vw * size.scale;
@@ -400,8 +405,9 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
 
   // ---------------------------------------------------------------- events
   function sectionFor(target: EventTarget | null) {
-    if (!(target instanceof Element) || target.closest(".site-header, .photo-ring, .journey-trail")) return null;
-    return target.closest<HTMLElement>(".trailhead, .about");
+    // The Summit register is a form: typing or moving across it never plucks.
+    if (!(target instanceof Element) || target.closest(".site-header, .photo-ring, .journey-trail, .summit-register")) return null;
+    return target.closest<HTMLElement>(".trailhead, .about, .work, .summit");
   }
   const local = (x: number, y: number) => { const r = section!.getBoundingClientRect(); return { x: x - r.left, y: y - r.top }; };
   function cancelTap() { tap = null; }

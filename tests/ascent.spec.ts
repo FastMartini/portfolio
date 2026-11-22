@@ -262,3 +262,48 @@ for (const [width, id, name] of [
     await expect(page).toHaveScreenshot(`${name}.png`, { animations: "disabled" });
   });
 }
+
+test("Work ridge shows its whole artwork and its contours ring like the Trailhead's", async ({ page }) => {
+  await page.setViewportSize({ width: 1906, height: 900 });
+  await page.goto("./#list-view");
+  const ridge = page.locator("#work .journey-ridge");
+  // Width-fitted at the artwork's own ratio, so wide screens never crop the peaks.
+  const { width, height } = (await ridge.boundingBox())!;
+  expect(Math.abs(height - width * 700 / 1440)).toBeLessThan(2);
+  await expect(page.locator("#work .ridge-contours")).toHaveCount(0);
+
+  const contours = page.locator("#work .work-contours");
+  await contours.scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy({ top: 2000, behavior: "instant" }));
+  const box = (await page.locator("#work").boundingBox())!;
+  const bottom = box.y + box.height;
+  await page.mouse.move(600, bottom - 300);
+  await page.mouse.move(620, bottom - 20, { steps: 12 });
+  const canvas = page.locator("#work .hero-strings");
+  await expect(canvas).toBeAttached();
+  await expect(contours).toHaveCSS("visibility", "hidden");
+  // The string canvas covers only the artwork band, not the whole tall section.
+  expect(await canvas.evaluate((element: HTMLCanvasElement) => element.height)).toBeLessThan(box.height);
+});
+
+test("Summit ridge contours ring like the Work and Trailhead contours, but the register form never plucks", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#list-view");
+  await expect(page.locator("#summit .ridge-contours")).toHaveCount(0);
+  const contours = page.locator("#summit .summit-contours");
+  await page.locator("#summit").scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+  // Moving across the register form does not mount the strings.
+  const form = (await page.locator("#summit-register").boundingBox())!;
+  await page.mouse.move(form.x + 40, form.y + 40);
+  await page.mouse.move(form.x + form.width - 40, form.y + form.height - 40, { steps: 10 });
+  await expect(page.locator("#summit .hero-strings")).toHaveCount(0);
+  const box = (await page.locator("#summit").boundingBox())!;
+  const bottom = Math.min(900, box.y + box.height);
+  await page.mouse.move(300, bottom - 260);
+  await page.mouse.move(320, bottom - 10, { steps: 12 });
+  const canvas = page.locator("#summit .hero-strings");
+  await expect(canvas).toBeAttached();
+  await expect(contours).toHaveCSS("visibility", "hidden");
+  expect(await canvas.evaluate((element: HTMLCanvasElement) => element.height)).toBeLessThan(box.height);
+});

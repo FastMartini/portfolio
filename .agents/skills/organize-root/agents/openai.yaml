@@ -1,0 +1,14 @@
+interface:
+  display_name: Organize Project Root
+  short_description: Sort project files and archive obsolete items
+  default_prompt: Use $organize-root to tidy this project root and archive confirmed
+    obsolete items.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
