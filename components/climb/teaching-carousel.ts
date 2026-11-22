@@ -103,6 +103,9 @@ export function mountTeachingCarousel(root: HTMLElement, open: (index: number) =
   }, { ...options, passive: false });
   window.addEventListener("pointerup", event => {
     if (gesture?.id !== event.pointerId) return;
+    // Browsers can drop a coalesced pointermove when the release arrives, so
+    // land the drag on the release point instead of the last painted move.
+    if (gesture.dragging) { offset = gesture.offset - (event.clientX - gesture.x); paint(); }
     suppressClick ||= gesture.dragging || Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 8;
     release(); rest();
   }, options);
@@ -164,8 +167,9 @@ export function mountTeachingCarousel(root: HTMLElement, open: (index: number) =
     },
     dispose() {
       disposed = true;
-      release(); events.abort(); resize.disconnect(); visibility.disconnect();
-      cancelAnimationFrame(frame); clearTimeout(wake);
+      for (const stop of [release, () => events.abort(), () => resize.disconnect(), () => visibility.disconnect(), () => cancelAnimationFrame(frame), () => clearTimeout(wake)]) {
+        try { stop(); } catch { /* Release the other resources after an optional API failure. */ }
+      }
       track.style.removeProperty("transform");
       delete root.dataset.ready; delete root.dataset.playback;
     },
