@@ -113,7 +113,13 @@ export function mountTeachingCarousel(root: HTMLElement, open: (index: number) =
     if (gesture?.id !== event.pointerId) return;
     suppressClick = true; release(); rest();
   }, options);
-  viewport.addEventListener("lostpointercapture", () => { if (gesture) { suppressClick = true; release(); rest(); } }, options);
+  // Touch input is implicitly captured by the photo under the finger; moving
+  // capture to the viewport fires lostpointercapture there, which bubbles here.
+  // Only losing the viewport's own capture ends the gesture.
+  viewport.addEventListener("lostpointercapture", event => {
+    if (event.target !== viewport || gesture?.id !== event.pointerId) return;
+    suppressClick = true; release(); rest();
+  }, options);
   window.addEventListener("blur", () => { suppressClick = true; release(); rest(); }, options);
   viewport.addEventListener("dragstart", event => event.preventDefault(), options);
   viewport.addEventListener("click", event => {
