@@ -12,9 +12,9 @@ The large deterministic mountain SVG is built once from fixed seeds. Native scro
 
 The approved theme design adds warm parchment reading surfaces and moonlit Climb lighting. All four Climb cards use cream surfaces in Light mode. A shared controller supports continuous reversal, mid-transition view switches, pre-paint restoration, and a short color-only reduced-motion fade.
 
-The map opening starts with the folded trail map just above the viewport. It drifts into view with a gentle sway and begins unfolding as the last sway settles at the center. There are no hands or forearms. A single SVG on each physical face carries its printed contours, trail and live labels through every fold; numbered Waypoints sit beside the unchanged trail with visible clearance. All paper uses the Light navbar color (`#f3eedd`) in either theme. The camera eases into the open map while its ink fades and “Howdy, I'm Diego:” begins to appear, avoiding a blank-paper pause. The heading aligns with the List View heading and swaps to it in one frame. The opening lasts 6.4 seconds; List → Climb uses a 2.6-second pullback and look-up sequence. Climb → List looks down at the already-open map for 1.1 seconds, holds overhead for half a second, then reuses the opening zoom and hero reveal, finishing in 4.58 seconds. Reduced motion returns directly to List View. Both dismiss immediately on input. The opening runs once per session on an unfragmented homepage visit, with a 1.4-second opacity-only reduced-motion version; the reduced-motion Climb transition is a 320ms crossfade. See the [map opening implementation](docs/handoff/map-opening-implementation.md) for timing, replay, and review evidence.
+The map opening starts with the folded trail map just above the viewport. It drifts into view with a gentle sway and begins unfolding as the last sway settles at the center. There are no hands or forearms. A single SVG on each physical face carries its printed contours, trail and live labels through every fold; numbered Waypoints sit beside the unchanged trail with visible clearance. All paper uses the Light navbar color (`#f3eedd`) in either theme. The camera eases into the open map while its ink fades and “Howdy, I'm Diego:” begins to appear, avoiding a blank-paper pause. The heading aligns with the List View heading and swaps to it in one frame. The opening lasts 6.4 seconds; List → Climb uses a 2.6-second pullback and look-up sequence. Climb → List looks down at the already-open map for 1.1 seconds, holds overhead for half a second, then reuses the opening zoom and hero reveal, finishing in 4.58 seconds. Reduced motion returns directly to List View. Both dismiss immediately on input. The opening runs once per session on an unfragmented homepage visit, with a 1.4-second opacity-only reduced-motion version; the reduced-motion Climb transition is a 320ms crossfade.
 
-Palette values live in `components/theme/tokens.json`; run `npm run theme:generate` after changing them. UI roots own both settled and animated tokens so the mountain does not inherit frame-by-frame interface colors. See [the implementation and validation notes](docs/handoff/theme-validation.md) and [ADR 0005](docs/adr/0005-scope-theme-palettes-to-ui-roots.md).
+Palette values live in `components/theme/tokens.json`; run `npm run theme:generate` after changing them. UI roots own both settled and animated tokens so the mountain does not inherit frame-by-frame interface colors. See [ADR 0005](docs/adr/0005-scope-theme-palettes-to-ui-roots.md).
 
 ## Adaptive and fail-safe Climb
 
@@ -35,7 +35,7 @@ content/      Waypoints, journey stops, contact links, and metadata
 public/       Served assets: responsive portraits, resume, social cards, evidence
 tests/        Acceptance tests, helpers, fixtures, and visual baselines
 scripts/      Export server, social image generation, and scroll measurement
-docs/         Architecture decisions, agent conventions, and active design references
+docs/         Architecture decisions and agent conventions
 ```
 
 Use Node.js 22 or newer.
@@ -55,6 +55,17 @@ The published résumé is `public/resume/Martinez_Diego_2026.pdf`. Replace that 
 in place to keep the shared résumé links working across Climb and List View.
 Keep incoming uploads and superseded copies outside the repository, rather than
 in the repository root or the served asset directory.
+
+## Contact delivery
+
+The Summit register sends through Web3Forms when `NEXT_PUBLIC_WEB3FORMS_KEY` is
+present at build time; otherwise it falls back to a prepared `mailto:` email.
+The key is a public form key embedded in the static HTML by design, so it is not
+a credential. Locally, copy `.env.example` to `.env.local` and add the key
+(never commit it). For GitHub Pages, set the repository variable
+`NEXT_PUBLIC_WEB3FORMS_KEY` under Settings → Secrets and variables → Actions →
+Variables, then redeploy. `npm run test:contact-delivery` builds with a fake key
+and mocks every submission, so tests never send real messages.
 
 ## Verification
 
@@ -91,7 +102,7 @@ npx playwright install chromium firefox webkit
 npm test
 ```
 
-Playwright exercises the production browser boundary: all nine stops and dwell, native wheel/page-key scrolling, keyboard markers and Landmarks, Landmark hover/click, panel-open List View transitions, Waypoint Panel content and focus return after scrolling, embedded and standalone Case Studies, arbitrary List View hashes, no-JavaScript content, live reduced motion, responsive layout, and WCAG 2.2 AA with either browser color preference. Source-integrity and pure-builder tests also check exact stop positions and determinism; reference comparisons check seeded scenery, all six Landmark builders, and every generated flag keyframe against the approved handoff.
+Playwright exercises the production browser boundary: all nine stops and dwell, native wheel/page-key scrolling, keyboard markers and Landmarks, Landmark hover/click, panel-open List View transitions, Waypoint Panel content and focus return after scrolling, embedded and standalone Case Studies, arbitrary List View hashes, no-JavaScript content, live reduced motion, responsive layout, and WCAG 2.2 AA with either browser color preference. Source-integrity and pure-builder tests also check exact stop positions and determinism; reference comparisons check seeded scenery, all six Landmark builders, and every generated flag keyframe against the approved reference prototypes.
 
 `tests/climb-adaptive.spec.ts` checks the production `/portfolio/` experience with simulated device hints, live preference/network changes, optional canvas failures, required-feature failures, and controlled frame timestamps. This suite runs in Chromium, Firefox, and WebKit; the existing broader suite and visual baselines remain Chromium-only. WebKit and narrow viewports are compatibility proxies, not evidence of a physical iOS Safari or installed Microsoft Edge run.
 
@@ -103,9 +114,9 @@ To intentionally refresh local baselines, run `npm test -- --update-snapshots=al
 
 ## Design and architecture
 
-The original approved prototype is `docs/handoff/reference/climb-reference.html`. Its original build handoff has been retired; later implementation notes and ADRs record the current design. The trees follow the later [Alpine spruce handoff](docs/handoff/alpine-spruce.md), with its own approved visual reference. [ADR 0004](docs/adr/0004-illustrated-climb-replaces-threejs.md) records the illustrated Climb's replacement of the earlier Three.js Atmospheric Layer.
+The approved prototypes live in `tests/fixtures/reference/`: `climb-reference.html` and `climb.js` for the illustrated Climb, and `alpine-spruce-reference.html` for the trees. They are read only by the artwork acceptance tests; the ADRs record the current design. [ADR 0004](docs/adr/0004-illustrated-climb-replaces-threejs.md) records the illustrated Climb's replacement of the earlier Three.js Atmospheric Layer.
 
-The Climb's [optional fire and snowstorm ambience](docs/handoff/ambient-audio.md) keeps the original synthesized crackles and a quieter warm fire bed at camp, with soft rushing wind in the snowy section and silence at the ski lodge and summit. Visitors enable it with the sound icon in the header beside the theme and view controls; it remains usable while a Waypoint Panel is open. Audio continues through panel reading; List View and hidden tabs suspend playback. Three procedural Web Audio voices run on the native audio thread with no audio downloads or server dependency.
+The Climb's optional fire and snowstorm ambience keeps the original synthesized crackles and a quieter warm fire bed at camp, with soft rushing wind in the snowy section and silence at the ski lodge and summit. Visitors enable it with the sound icon in the header beside the theme and view controls; it remains usable while a Waypoint Panel is open. Audio continues through panel reading; List View and hidden tabs suspend playback. Three procedural Web Audio voices run on the native audio thread with no audio downloads or server dependency.
 
 ## Deployment
 

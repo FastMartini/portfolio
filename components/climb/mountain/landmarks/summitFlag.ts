@@ -1,6 +1,6 @@
 import type { Point } from "../geometry";
 
-// Exact traveling-wave model from reference/summit-flag-generator.py:
+// Exact traveling-wave model from the approved summit flag generator:
 // 12 vertical strips, 30 frames + the repeated initial frame, fold-slope light.
 export function summitFlag() {
   const columns = 12, frames = 30;
