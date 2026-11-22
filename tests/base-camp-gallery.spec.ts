@@ -224,6 +224,9 @@ test("a native phone swipe browses without opening, and a subsequent tap enlarge
     return visible && visible.width > 24 ? { x: visible.x, y: visible.y } : undefined;
   }, box);
   expect(target).toBeTruthy();
+  // Chromium spends a tap that lands while a swipe's fling settles on stopping
+  // it, as phones do, so pause like a person before tapping.
+  await page.waitForTimeout(600);
   await page.touchscreen.tap(target!.x, target!.y);
   await expect(page.getByRole("dialog", { name: /enlarged/ })).toBeVisible();
   await page.keyboard.press("Escape");
