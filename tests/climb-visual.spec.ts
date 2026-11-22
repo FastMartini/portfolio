@@ -26,7 +26,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
         }
         else await expect(page.locator(`[data-marker="${index}"]`)).toBeVisible();
         if (index === 0) {
-          await expect(page.locator(".climb-cards img")).toHaveCount(0);
+          await expect(page.locator('[data-card="0"] img')).toHaveCount(0);
         }
         await expect(page).toHaveScreenshot(`${theme === "dark" ? "dark-" : ""}${name}-${viewport.width < 600 ? "mobile" : "desktop"}.png`, { animations: "disabled" });
       });
