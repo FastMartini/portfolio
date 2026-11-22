@@ -1,0 +1,29 @@
+.teaching-gallery { border-top: 1px solid var(--line); margin-top: 1.4rem; padding-top: 1.2rem; }
+.teaching-gallery-heading { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 0.45rem; }
+.teaching-gallery-heading h3 { color: var(--r-ink); font: 450 1.3rem/1.2 var(--font-newsreader), serif; letter-spacing: -0.02em; margin: 0; }
+.climb-card .teaching-gallery-hint { font-size: 0.75rem; line-height: 1.5; margin: 0 0 0.9rem; }
+.teaching-gallery-viewport { border-radius: 3px; overflow: auto; overscroll-behavior-x: contain; position: relative; touch-action: pan-y pinch-zoom; }
+.teaching-gallery[data-ready] .teaching-gallery-viewport { cursor: grab; overflow: hidden; user-select: none; }
+.teaching-gallery[data-dragging] .teaching-gallery-viewport { cursor: grabbing; }
+.teaching-gallery-track { display: flex; position: relative; width: max-content; }
+.teaching-gallery-copy { display: flex; flex: none; gap: 12px; padding-right: 12px; }
+.teaching-gallery:not([data-ready]) .teaching-gallery-copy[aria-hidden] { display: none; }
+.teaching-photo { background: var(--bg); border: 1px solid var(--line); border-radius: 3px; color: var(--r-ink); display: block; flex: none; overflow: hidden; text-decoration: none; width: clamp(11rem, 56vw, 17rem); }
+.teaching-photo img { aspect-ratio: 4 / 3; display: block; height: auto; object-fit: contain; width: 100%; }
+.teaching-photo-caption { display: block; font-size: 0.72rem; font-weight: 600; line-height: 1.5; padding: 0.7rem 0.8rem; }
+.teaching-photo:focus-visible, .teaching-gallery-viewport:focus-visible { outline: 2px solid var(--r-accent); outline-offset: -3px; }
+
+.teaching-preview { background: transparent; border: 0; color: var(--r-ink); height: 100dvh; inset: 0; margin: 0; max-height: none; max-width: none; overflow: auto; overscroll-behavior: contain; padding: 4.5rem 1rem 1.5rem; position: fixed; width: 100%; }
+.teaching-preview[open] { display: grid; place-items: center; }
+.teaching-preview::backdrop { background: rgb(7 19 15 / 72%); }
+/* No overflow: hidden on <html> here: it stops the sticky Climb stage from painting,
+   blanking the mountain behind the preview. TeachingCarousel blocks page scrolling instead. */
+.teaching-preview figure { display: grid; justify-items: center; margin: auto; max-width: 100%; }
+.teaching-preview img { display: block; height: auto; max-height: calc(100dvh - 10rem); max-width: 100%; object-fit: contain; width: auto; }
+.teaching-preview figcaption { background: var(--raised); border-radius: 0 0 3px 3px; font-size: 0.85rem; line-height: 1.6; max-width: min(100%, 50rem); padding: 0.8rem 1.2rem; text-align: center; }
+.teaching-preview-close { align-items: center; background: var(--raised); border: 1px solid var(--line); border-radius: 50%; color: var(--r-ink); cursor: pointer; display: flex; padding: 0; height: 44px; justify-content: center; position: fixed; right: 1rem; top: 1rem; width: 44px; }
+.teaching-preview-close svg { display: block; flex: none; }
+.teaching-preview-close:focus-visible { outline: 3px solid var(--r-accent); outline-offset: 3px; }
+@media (max-width: 900px) {
+  .climb-card[data-card="1"] { max-height: calc(100svh - var(--home-header-height) - 2rem); }
+}

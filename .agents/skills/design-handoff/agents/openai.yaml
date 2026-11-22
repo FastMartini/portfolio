@@ -1,0 +1,14 @@
+interface:
+  display_name: Design Handoff
+  short_description: Package current UI code for Claude planning
+  default_prompt: Use $design-handoff to package the current design code and create
+    a planning brief for Claude.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
