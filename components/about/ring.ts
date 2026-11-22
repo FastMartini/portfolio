@@ -11,8 +11,11 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
   function render() {
     if (!active) return;
     cards.forEach((card, i) => {
-      const a = i * step + angle, face = Math.max(0, Math.cos(a * Math.PI / 180));
+      const a = i * step + angle, facing = Math.cos(a * Math.PI / 180), face = Math.max(0, facing);
       card.style.transform = `rotateY(${a}deg) translateZ(${radius}px)`;
+      // WebKit ignores backface-visibility on a card's composited children
+      // (image, link, number badge), mirroring a back card through the front one.
+      card.style.visibility = facing < 0 ? "hidden" : "";
       card.style.opacity = String(0.2 + 0.8 * face);
       card.style.filter = face > 0.999 ? "none" : `brightness(${0.5 + 0.5 * face})`;
     });
@@ -64,7 +67,7 @@ export function mountRing(root: HTMLElement, onFront: (index: number) => void, o
     active = false;
     for (const stop of [() => abort.abort(), () => resize?.disconnect(), () => preload?.disconnect(), () => cancelAnimationFrame(frame), () => clearTimeout(wheelIdle)]) { try { stop(); } catch { /* Release the other optional resources as well. */ } }
     delete root.dataset.ringReady;
-    cards.forEach(card => { card.removeAttribute("aria-hidden"); card.inert = false; for (const property of ["transform", "opacity", "filter"]) card.style.removeProperty(property); });
+    cards.forEach(card => { card.removeAttribute("aria-hidden"); card.inert = false; for (const property of ["transform", "opacity", "filter", "visibility"]) card.style.removeProperty(property); });
     track.style.transform = ""; stage.classList.remove("is-dragging");
   };
   try {

@@ -1,5 +1,5 @@
 import { mapAssetStyles, mapOverlayMarkup } from "./map/markup";
-import { listTrailheadIntro } from "../../content/trailhead";
+import { trailheadIntro } from "../../content/trailhead";
 import { revealGreeting } from "../hero/reveal";
 import { HERO_READY_EVENT } from "../trailhead-art";
 
@@ -363,7 +363,7 @@ function toListTransition(el: HTMLElement, switchView: () => void, options: Opti
   add(doc.querySelector(".climb-stage"), [{ translate: "0 0" }, { translate: "0 -62vh" }], { duration: LIST.tilt, easing, fill: "both" });
   // The original header reveal takes over while this short departure finishes.
   add(doc.querySelector(".site-header"), [{ opacity: 1, translate: "0 0" }, { opacity: 0, translate: "0 -8px", offset: 0.25 }, { opacity: 0, translate: "0 -8px" }], { duration: LIST.tilt + 200, fill: "none" });
-  doc.querySelectorAll(".climb-rail, .climb-marker, .climb-card, .climb-portrait").forEach(target =>
+  doc.querySelectorAll(".climb-rail, .climb-marker, .climb-card").forEach(target =>
     add(target, [{ opacity: getComputedStyle(target).opacity }, { opacity: 0 }], { duration: 300, fill: "forwards" }));
 
   const base = life.review(undefined, false);
@@ -409,7 +409,7 @@ export function createListTransition(switchView: () => void, onDone?: () => void
   const overlay = document.createElement("div");
   overlay.className = "splash splash--list";
   overlay.setAttribute("aria-hidden", "true");
-  overlay.innerHTML = mapOverlayMarkup(listTrailheadIntro.heading, "splash-list");
+  overlay.innerHTML = mapOverlayMarkup(trailheadIntro.heading, "splash-list");
   for (const [name, value] of Object.entries(mapAssetStyles)) overlay.style.setProperty(name, value);
   document.body.prepend(overlay);
   let switched = false;
@@ -534,7 +534,6 @@ export function toClimbTransition(el: HTMLElement, switchView: () => void, optio
   markers.forEach((m, i) => add(m, [{ opacity: 0, scale: "0.4" }, { opacity: 1, scale: "1" }], { delay: 1780 + i * 90, duration: 420, easing: "cubic-bezier(0.3, 1.45, 0.5, 1)" }));
   add(doc.querySelector<HTMLElement>(".climb-rail"), [{ opacity: 0 }, { opacity: 1 }], { delay: 1900, duration: 420 });
   add(doc.querySelector<HTMLElement>('.climb-card[data-card="0"]'), [{ opacity: 0, translate: "0 14px" }, { opacity: 1, translate: "0 0" }], { delay: 2000, duration: 480, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-  add(doc.querySelector<HTMLElement>(".climb-portrait"), [{ opacity: 0, translate: "0 14px" }, { opacity: 1, translate: "0 0" }], { delay: 2080, duration: 480, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
   add(world, [{ opacity: 1 }, { opacity: 1 }], { delay: C, duration: t0 + td - C, fill: "none" });
   add(world, [{ visibility: "hidden" }, { visibility: "hidden" }], { delay: t0 + td, duration: CLIMB.end, fill: "none" });
 
@@ -554,7 +553,7 @@ export function createClimbTransition(switchView: () => void, onDone?: () => voi
   const overlay = document.createElement("div");
   overlay.className = "splash splash--climb";
   overlay.setAttribute("aria-hidden", "true");
-  overlay.innerHTML = mapOverlayMarkup(listTrailheadIntro.heading, "splash-climb");
+  overlay.innerHTML = mapOverlayMarkup(trailheadIntro.heading, "splash-climb");
   for (const [name, value] of Object.entries(mapAssetStyles)) overlay.style.setProperty(name, value);
   try { return toClimbTransition(overlay, switchView, { onDone }); }
   catch { (overlay as SplashElement).splashController?.skip(); overlay.remove(); switchView(); onDone?.(); return null; }

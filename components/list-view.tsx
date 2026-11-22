@@ -8,7 +8,7 @@ import { contactEmail, contactLinks, summitRegister } from "../content/contact";
 import { PortfolioLink } from "./portfolio-link";
 import { ResumeLink } from "./resume-link";
 import { About } from "./about/About";
-import { listTrailheadIntro } from "../content/trailhead";
+import { trailheadIntro } from "../content/trailhead";
 import { SummitRegister } from "./summit/SummitRegister";
 
 function ArrowIcon() {
@@ -46,7 +46,7 @@ function Waypoint({ waypoint }: { waypoint: (typeof waypoints)[number] }) {
 // The durable content layer: keep this component server-rendered and complete
 // without JavaScript while the illustrated Climb is added as an enhancement.
 export function ListView() {
-  const [greeting, name] = listTrailheadIntro.heading.split(", ");
+  const [greeting, name] = trailheadIntro.heading.split(", ");
   return (
     <div className="list-view" id="list-view" tabIndex={-1}>
       <div className="list-sections">
@@ -61,7 +61,7 @@ export function ListView() {
             <span className="trailhead-title-line">{name}</span>
           </h1>
           <p className="trailhead-lead">
-            {listTrailheadIntro.lead}
+            {trailheadIntro.lead}
             <span className="trailhead-surprise">Click the contour lines for a little surprise.</span>
           </p>
           <div className="trailhead-actions">

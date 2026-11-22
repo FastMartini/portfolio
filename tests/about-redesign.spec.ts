@@ -146,7 +146,7 @@ for (const width of [390, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("./#trailhead"); await enterClimb(page); await scrollToClimbStop(page, 1);
     const card = page.locator('[data-card="1"]');
-    await expect(card.locator(".base-camp-stats li")).toHaveText(["2hackathon wins, out of 4 entered", "300+students through CodePath", "30+students in public schools"]);
+    await expect(card.locator(".base-camp-stats li")).toHaveText(["2hackathon wins, out of 4 entered", "300+students taught through CodePath", "30+students taught in public schools"]);
     expect(await card.evaluate(el => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
   });
 }
@@ -155,7 +155,7 @@ test("About remains readable with correct heading order, image metadata and ever
   const context = await browser.newContext({ baseURL, javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   const page = await context.newPage(); await page.goto("./#about");
   await expect(page.locator("#about h2, #about h3")).toHaveText(["Engineering with intent.", "The Design Idea", "The Builder", "The Teacher"]);
-  await expect(page.locator("#about img")).toHaveCount(9);
+  await expect(page.locator("#about img")).toHaveCount(12);
   await expect(page.getByRole("link", { name: "Watch the Veritas demo video", exact: true })).toHaveAttribute("href", "https://youtu.be/_CG-xtdMhHI");
   await expect(page.getByRole("link", { name: "View Grassroots on Devpost ↗", exact: true })).toBeVisible();
   for (const image of await page.locator("#about img").all()) {

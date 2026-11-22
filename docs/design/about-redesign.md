@@ -1,6 +1,6 @@
 # About redesign
 
-Implemented from `about-redesign-codex-handoff.zip` and the matching root `CODEX_HANDOFF.md` supplied on November 17, 2026. The prototype was served over HTTP and inspected on desktop and mobile.
+Implemented from the About redesign package and matching implementation handoff supplied on November 17, 2026. Those original delivery files were subsequently deleted. The prototype was served over HTTP and inspected on desktop and mobile.
 
 The About section now has three pitches: The Design Idea, The Builder, and The Teacher. `content/about.ts` owns their approved copy, ring metadata, and the shorter Base camp stats. All copy, image metadata, captions, and external links render in the static HTML. The existing hero greeting, surprise hint, Resume action, theme selection, and map transitions remain in place; only its lead copy and trail presentation change.
 

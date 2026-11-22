@@ -181,3 +181,47 @@ test("the first held touch on About plays without a hover or a previous About ca
   await expect.poll(() => page.evaluate(() => Reflect.get(window, "aboutNotes"))).toBeGreaterThan(0);
   await context.close();
 });
+
+for (const width of [390, 1440]) {
+  test(`clicking the front photo enlarges it in a lightbox at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("./#about");
+    const ring = page.getByRole("region", { name: "Teaching moments" });
+    await expect(ring).toHaveAttribute("data-ring-ready", "true");
+    await ring.scrollIntoViewIfNeeded();
+    const dialog = ring.locator("dialog.ring-lightbox");
+
+    // A drag turns the ring and never opens the lightbox.
+    const stage = ring.locator(".ring-stage"), bounds = (await stage.boundingBox())!;
+    await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + 110); await page.mouse.down();
+    await page.mouse.move(bounds.x + bounds.width / 2 - 180, bounds.y + 110, { steps: 12 }); await page.mouse.up();
+    await expect(ring.locator(".ring-count")).not.toHaveText("01 / 08");
+    await expect(dialog).not.toBeVisible();
+
+    await ring.getByRole("button", { name: "Show photo 8: In the classroom" }).click();
+    await expect(ring.locator(".ring-count")).toHaveText("08 / 08");
+    const zoom = ring.getByRole("link", { name: "Enlarge In the classroom" });
+    await zoom.click();
+    await expect(dialog).toBeVisible();
+    const image = dialog.locator("img");
+    await expect(image).toHaveAttribute("src", /teacher\/classroom\.jpg$/);
+    await expect(dialog.locator("figcaption")).toHaveText("Teaching Python at a public elementary school");
+    const box = (await image.boundingBox())!, card = (await ring.locator(".ring-card").last().boundingBox())!;
+    expect(box.width).toBeGreaterThan(card.width);
+    expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(width);
+    expect(box.y).toBeGreaterThanOrEqual(0); expect(box.y + box.height).toBeLessThanOrEqual(900);
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(zoom).toBeFocused();
+
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
+    await page.mouse.click(4, 4); // the backdrop
+    await expect(dialog).not.toBeVisible();
+    await zoom.click();
+    await dialog.getByRole("button", { name: "Close enlarged image" }).click();
+    await expect(dialog).not.toBeVisible();
+  });
+}
