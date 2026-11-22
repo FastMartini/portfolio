@@ -62,7 +62,7 @@ test("auto-scroll runs faster to the right, pauses on drag and resumes 3 seconds
   const start = await position(page);
   await page.waitForTimeout(1000);
   // About 18px per second, left to right.
-  expect(await position(page) - start).toBeGreaterThan(12);
+  expect(await loopDistance(page, start)).toBeGreaterThan(12);
   const box = (await page.locator(".teaching-gallery-viewport").boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + 40);
   await page.mouse.down();
@@ -80,7 +80,7 @@ test("auto-scroll runs faster to the right, pauses on drag and resumes 3 seconds
   await page.waitForTimeout(2000);
   expect(await position(page)).toBe(again);
   await expect(gallery).toHaveAttribute("data-playback", "paused");
-  await expect.poll(() => position(page), { timeout: 3000 }).toBeGreaterThan(again + 2);
+  await expect.poll(() => loopDistance(page, again), { timeout: 3000 }).toBeGreaterThan(2);
   await expect(gallery).toHaveAttribute("data-playback", "running");
 });
 
@@ -100,7 +100,8 @@ test("dragging browses both ways without opening a photo, then automatic movemen
   await expect(page.getByRole("dialog", { name: /enlarged/ })).toHaveCount(0);
   await page.waitForTimeout(300);
   expect(await position(page)).toBe(right);
-  await expect.poll(() => position(page), { timeout: 5000 }).toBeGreaterThan(right + 2);
+  // The drag can end beside the seam, so automatic movement may wrap around it.
+  await expect.poll(() => loopDistance(page, right), { timeout: 5000 }).toBeGreaterThan(2);
 });
 
 test("an enlarged photo keeps the strip paused and restores focus before resuming", async ({ page }) => {
