@@ -61,8 +61,9 @@ test("auto-scroll runs faster to the right, pauses on drag and resumes 3 seconds
   await expect(gallery).toHaveAttribute("data-playback", "running");
   const start = await position(page);
   await page.waitForTimeout(1000);
-  // About 18px per second, left to right.
-  expect(await loopDistance(page, start)).toBeGreaterThan(12);
+  // About 18px per second, left to right. Frames are capped at 50ms so slow
+  // renderers move more slowly instead of jumping; allow for that on CI.
+  await expect.poll(() => loopDistance(page, start), { timeout: 3000 }).toBeGreaterThan(12);
   const box = (await page.locator(".teaching-gallery-viewport").boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + 40);
   await page.mouse.down();
@@ -161,7 +162,10 @@ test("reduced motion keeps manual keyboard browsing and modal focus recovery", a
   await expect(gallery.getByRole("link", { name: "Enlarge Leadership" })).toBeFocused();
 });
 
-test("a full manual loop has identical photo pixels at the seam", async ({ page }, info) => {
+test("a full manual loop has identical photo pixels at the seam", async ({ page, browserName }, info) => {
+  // One full period is wider than the window, and Firefox drops synthetic
+  // pointer coordinates outside it. Its drags are covered by the browsing test.
+  test.skip(browserName === "firefox", "Firefox drops synthetic pointer moves outside the window.");
   const gallery = await baseCamp(page, "reduce");
   const viewport = gallery.locator(".teaching-gallery-viewport");
   const clip = (await viewport.boundingBox())!;
@@ -209,7 +213,13 @@ test("a native phone swipe browses without opening, and a subsequent tap enlarge
   await input.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   expect(await position(page)).not.toBe(before);
   await expect(page.getByRole("dialog", { name: /enlarged/ })).toHaveCount(0);
-  await page.touchscreen.tap(x - 40, y);
+  // Tap the middle of a photo that is fully visible after the swipe.
+  const target = await page.locator('.teaching-gallery-copy[data-copy="1"] [data-photo-index]').evaluateAll((links, bounds) => {
+    const fits = links.map(link => link.getBoundingClientRect()).find(rect => rect.left >= bounds.x && rect.right <= bounds.x + bounds.width);
+    return fits && { x: fits.left + fits.width / 2, y: fits.top + Math.min(45, fits.height / 2) };
+  }, box);
+  expect(target).toBeTruthy();
+  await page.touchscreen.tap(target!.x, target!.y);
   await expect(page.getByRole("dialog", { name: /enlarged/ })).toBeVisible();
   await page.keyboard.press("Escape");
   const card = page.locator('[data-card="1"]');
