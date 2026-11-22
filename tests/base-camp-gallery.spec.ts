@@ -213,10 +213,15 @@ test("a native phone swipe browses without opening, and a subsequent tap enlarge
   await input.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   expect(await position(page)).not.toBe(before);
   await expect(page.getByRole("dialog", { name: /enlarged/ })).toHaveCount(0);
-  // Tap the middle of a photo that is fully visible after the swipe.
-  const target = await page.locator('.teaching-gallery-copy[data-copy="1"] [data-photo-index]').evaluateAll((links, bounds) => {
-    const fits = links.map(link => link.getBoundingClientRect()).find(rect => rect.left >= bounds.x && rect.right <= bounds.x + bounds.width);
-    return fits && { x: fits.left + fits.width / 2, y: fits.top + Math.min(45, fits.height / 2) };
+  // Tap the middle of the most visible photo after the swipe; a fixed point
+  // can land in the gap between photos.
+  const target = await page.locator(".teaching-gallery-copy [data-photo-index]").evaluateAll((links, bounds) => {
+    const visible = links.map(link => {
+      const rect = link.getBoundingClientRect();
+      const left = Math.max(rect.left, bounds.x), right = Math.min(rect.right, bounds.x + bounds.width);
+      return { width: right - left, x: (left + right) / 2, y: rect.top + Math.min(45, rect.height / 2) };
+    }).sort((first, second) => second.width - first.width)[0];
+    return visible && visible.width > 24 ? { x: visible.x, y: visible.y } : undefined;
   }, box);
   expect(target).toBeTruthy();
   await page.touchscreen.tap(target!.x, target!.y);
