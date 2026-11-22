@@ -83,7 +83,8 @@ export function ListView() {
       <About />
 
       <section className="work" id="work" aria-labelledby="work-title">
-        <JourneyRidge />
+        <JourneyRidge contours={false} />
+        <div className="trailhead-contours work-contours" data-fit="width-bottom" data-fade="none" aria-hidden="true" />
         <div className="section-kicker section-kicker-dark">
           <span>02</span>
           <span>Selected Work</span>
@@ -108,7 +109,8 @@ export function ListView() {
       </section>
 
       <section className="summit" id="summit" aria-labelledby="summit-title">
-        <JourneyRidge summit />
+        <JourneyRidge summit contours={false} />
+        <div className="trailhead-contours summit-contours" data-fit="width-bottom" data-fade="none" aria-hidden="true" />
         <div className="section-kicker">
           <span>03</span>
           <span>Contact</span>

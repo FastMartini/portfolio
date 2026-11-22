@@ -1,4 +1,6 @@
-export function JourneyRidge({ summit = false, about = false }: { summit?: boolean; about?: boolean }) {
+// `contours={false}` drops the static contours when the section renders them
+// as a pluckable `.trailhead-contours` layer instead (see hero/strings.ts).
+export function JourneyRidge({ summit = false, about = false, contours = !about }: { summit?: boolean; about?: boolean; contours?: boolean }) {
   return (
     <svg
       className={`journey-ridge${summit ? " journey-ridge--summit" : ""}`}
@@ -8,7 +10,7 @@ export function JourneyRidge({ summit = false, about = false }: { summit?: boole
     >
       <path className="ridge-distance" d="M0 570 115 485 205 530 420 270 537 388 701 215 815 351 940 170 1035 305 1210 115 1440 425V700H0Z" />
       <path className="ridge-near" d="M0 662 186 528 274 585 513 402 641 525 848 312 964 411 1122 240 1231 361 1440 292V700H0Z" />
-      {!about && <g className="ridge-contours" fill="none">
+      {contours && <g className="ridge-contours" fill="none">
         <path d="M-70 620C140 410 185 710 420 443S658 650 859 399s249-140 405-238 235 4 275 119" />
         <path d="M-70 650C140 440 185 740 420 473S658 680 859 429s249-140 405-238 235 4 275 119" />
         <path d="M-70 680C140 470 185 770 420 503S658 710 859 459s249-140 405-238 235 4 275 119" />
