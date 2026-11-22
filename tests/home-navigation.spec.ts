@@ -97,3 +97,19 @@ test("shared header navigation closes an open reading panel and reaches the requ
   await expect(contact).toHaveAttribute("aria-current", "location");
   await expect(page.locator("#summit, [data-card=\"8\"]").getByRole("link", { name: /Devpost/ })).toBeVisible();
 });
+
+test("List View header navigation scrolls along the trail instead of jumping", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("./#list-view");
+  await expect(page.locator(".mountain-journey")).toHaveAttribute("data-enhanced", "true");
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  const navigation = page.getByRole("navigation", { name: "Primary navigation" });
+  await navigation.getByRole("link", { name: "Contact", exact: true }).click();
+  await expect(page).toHaveURL(/#summit$/);
+  const target = await page.locator("#summit").evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+  // A smooth scroll passes through intermediate positions before arriving.
+  const midway = await page.evaluate(() => new Promise<number>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(window.scrollY)))));
+  expect(midway).toBeLessThan(target - 200);
+  await expect(page.locator("#summit")).toBeInViewport();
+  await expect(page.locator("#summit")).toBeFocused();
+});
