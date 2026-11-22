@@ -7,7 +7,7 @@ import { waypoints } from "../content/waypoints";
 
 test("the nine Climb stops preserve the retained reference STOP_T and canonical Waypoint order", () => {
   const reference = readFileSync(
-    "docs/handoff/reference/climb.js",
+    "tests/fixtures/reference/climb.js",
     "utf8",
   );
   const positions = reference.match(/var STOP_T = (\[[^\]]+\]);/);

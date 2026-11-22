@@ -16,7 +16,7 @@ test("all six Landmarks and flag keyframes match approved reference artwork", as
   await expect(page.locator(".lm")).toHaveCount(6);
   const reference = await browser.newPage({ reducedMotion: "reduce" });
   await reference.route("https://fonts.googleapis.com/**", (route) => route.abort());
-  await reference.goto(pathToFileURL(resolve("docs/handoff/reference/climb-reference.html")).href);
+  await reference.goto(pathToFileURL(resolve("tests/fixtures/reference/climb-reference.html")).href);
   for (const stop of [2, 3, 4, 5, 6, 7]) {
     // The named keyboard control wraps decorative, unchanged reference art.
     expect(await page.locator(`.lm[data-stop="${stop}"] > .lm-art`).innerHTML()).toBe(
