@@ -46,8 +46,8 @@ test("all nine stops show their card or Waypoint marker and update the bottom-to
   await openClimb(page, "light");
   const root = page.locator("#climb");
   await expect(root).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego:");
-  await expect(page.locator('[data-card="0"] .trailhead-lead')).toHaveText("Software engineer, problem solver, and lifelong learner passionate about building technology that makes an impact.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Howdy, I'm Diego.");
+  await expect(page.locator('[data-card="0"] .trailhead-lead')).toHaveText("I’m Diego, a software engineer and a teacher. I build with other people, and I help other people learn to build.");
   await expect(page.locator(".climb-stage")).toHaveCSS("position", "sticky");
   const rail = page.getByRole("navigation", { name: "Trail stops" });
   expect(await rail.locator("button").evaluateAll((buttons) => buttons.map((button) => Number((button as HTMLElement).dataset.rail)))).toEqual(journeyStops.map((_, index) => index).reverse());
