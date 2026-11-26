@@ -211,8 +211,7 @@ test("an idle guitar keeps the native output ready without starting another soun
   await session.send("Tracing.start", { categories: "webaudio", transferMode: "ReportEvents" });
   await page.goto("./#trailhead"); await expect(page.locator(".hero-strings")).toHaveCount(1);
   const point = await contourPoint(page); await page.mouse.click(point.x, point.y);
-  // One click strums a six-string chord.
-  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(6);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
   await page.waitForTimeout(5000);
   const finished = new Promise<void>(resolve => session.once("Tracing.tracingComplete", () => resolve()));
   await session.send("Tracing.end"); await finished;
@@ -221,7 +220,7 @@ test("an idle guitar keeps the native output ready without starting another soun
   const decision = events.filter(event => event.name === "AudioDestination::SetDetectSilence").at(-1);
   const args = decision?.args;
   expect(typeof args === "object" && args !== null && "detect_silence" in args && args.detect_silence === false).toBe(true);
-  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(6);
+  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
 });
 
 test("warm guitar output is silent between clicks and pauses with a hidden page", async ({ page }) => {
@@ -238,8 +237,7 @@ test("warm guitar output is silent between clicks and pauses with a hidden page"
   });
   await page.goto("./#trailhead"); await expect(page.locator(".hero-strings")).toHaveCount(1);
   const point = await contourPoint(page); await page.mouse.click(point.x, point.y);
-  // One click strums a six-string chord.
-  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(6);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
   // Wait for the pluck and room tail to finish; the readiness node adds no sound.
   await page.waitForTimeout(5000);
   const rms = await page.evaluate(() => {
@@ -251,7 +249,7 @@ test("warm guitar output is silent between clicks and pauses with a hidden page"
   await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarContexts")[0].state)).toBe("suspended");
   await page.evaluate(() => { Reflect.deleteProperty(document, "hidden"); document.dispatchEvent(new Event("visibilitychange")); });
   await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarContexts")[0].state)).toBe("running");
-  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(6);
+  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(1);
   await page.evaluate(() => {
     Object.defineProperty(document, "hidden", { configurable: true, value: true }); document.dispatchEvent(new Event("visibilitychange"));
     Reflect.deleteProperty(document, "hidden"); document.dispatchEvent(new Event("visibilitychange"));
@@ -259,10 +257,10 @@ test("warm guitar output is silent between clicks and pauses with a hidden page"
   await page.waitForTimeout(100);
   await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarContexts")[0].state)).toBe("running");
   await page.mouse.click(point.x, point.y);
-  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(12);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(2);
 });
 
-test("each contour click strums the next chord of a 12-bar blues in C, looping after bar 12", async ({ page }) => {
+test("each contour click plays the next note of the blues riff, looping after the last", async ({ page }) => {
   test.slow();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => {
@@ -279,14 +277,13 @@ test("each contour click strums the next chord of a 12-bar blues in C, looping a
   await expect(page.locator(".hero-strings")).toHaveCount(1);
   const point = await contourPoint(page);
   const played = () => page.evaluate(() => (Reflect.get(window, "guitarPlayed") as number[]).length);
-  const chords: string[] = [];
-  // Thirteen clicks on the same line: every bar, then the loop back to bar 1.
-  for (let bar = 1; bar <= 13; bar++) {
+  // Nine clicks on the same line, faster than a note rings: all eight notes, then the loop.
+  for (let click = 1; click <= 9; click++) {
     await page.mouse.click(point.x, point.y);
-    await expect.poll(played).toBe(bar * 6);
-    chords.push(await page.evaluate(n => (Reflect.get(window, "guitarPlayed") as number[]).slice(n - 6, n).join(","), bar * 6));
+    await expect.poll(played).toBe(click);
   }
-  const [C7, F7, G7] = [chords[0], chords[4], chords[8]];
-  expect(new Set([C7, F7, G7]).size).toBe(3);
-  expect(chords).toEqual([C7, C7, C7, C7, F7, F7, C7, C7, G7, F7, C7, G7, C7]);
+  const notes = await page.evaluate(() => Reflect.get(window, "guitarPlayed") as number[]);
+  const [A3, C4, D4, E4, G4] = notes;
+  expect(new Set([A3, C4, D4, E4, G4]).size).toBe(5);
+  expect(notes).toEqual([A3, C4, D4, E4, G4, E4, C4, A3, A3]);
 });
