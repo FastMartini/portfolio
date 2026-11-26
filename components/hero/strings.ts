@@ -2,9 +2,9 @@
 //   - Each contour in hero-contours.svg is its own string, redrawn as vectors on
 //     a canvas. Crossing one plucks only that line: a fluid, damped wave runs
 //     along it from the crossing point, and the line darkens while it rings.
-//   - Every click or tap strums the next chord of a 12-bar blues in C through a
-//     small overdriven amp with a room tail. One position is shared by all the
-//     lines: any trigger, on any line or the same one again, advances a bar.
+//   - Every click or tap plays the next note of a short blues riff on a warm,
+//     clean electric guitar in a small room. One position is shared by all the
+//     lines: any trigger, on any line or the same one again, advances the riff.
 //   - A quick swipe vibrates several lines in order, silently. Only a click or
 //     tap on a line plays its note.
 // Native cursor. Reduced motion: nothing mounts. Audio starts only on a
@@ -26,17 +26,9 @@ export const STRUM = {
 };
 // The About braid's single discovery note (G4).
 const BRAID_NOTE = 392;
-// Open-position guitar voicings, low string first, kept above the amp's
-// 110 Hz high-pass so the root never disappears.
-const CHORDS = {
-  C7: [130.81, 164.81, 196, 233.08, 261.63, 329.63], // C3 E3 G3 B♭3 C4 E4
-  F7: [130.81, 174.61, 220, 311.13, 349.23, 440],    // C3 F3 A3 E♭4 F4 A4
-  G7: [146.83, 196, 246.94, 293.66, 349.23, 392],    // D3 G3 B3 D4 F4 G4
-} as const;
-export type BluesChord = keyof typeof CHORDS;
-// Bars 1–12 of a 12-bar blues in C; bar 13 loops back to bar 1.
-export const BLUES_PROGRESSION: readonly BluesChord[] = ["C7", "C7", "C7", "C7", "F7", "F7", "C7", "C7", "G7", "F7", "C7", "G7"];
-const STRUM_SPREAD = 0.014; // s between strings of one downstroke
+// A3 C4 D4 E4 G4 E4 C4 A3, then back to the first note.
+export const RIFF = [220, 261.63, 293.66, 329.63, 392, 329.63, 261.63, 220] as const;
+const NOTE = { attack: 0.006, hold: 0.22, release: 0.035, cut: 0.012 }; // s: ~300 ms ring
 
 type Pluck = { s: number; t0: number; amp: number; dir: number };
 type Str = {
@@ -101,9 +93,8 @@ async function loadStrings(src: string): Promise<{ strings: Str[]; vw: number; v
 // ------------------------------------------------------------------ the amp
 function amp(win: Window) {
   let ctx: AudioContext | null = null, input: AudioNode | null = null;
-  // Ringing strings, oldest first. Fast strumming steals the oldest voice.
+  // The riff is monophonic: a new note quickly fades whatever still rings.
   const voices: { src: AudioBufferSourceNode; level: GainNode }[] = [];
-  const VOICES = 24;
   let output: GainNode | null = null;
   let unlocking: Promise<void> | null = null;
   let monitor: AnalyserNode | null = null, monitoring = false;
@@ -112,21 +103,21 @@ function amp(win: Window) {
   const audioWindow = win as Window & { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
   const Ctor = audioWindow.AudioContext ?? audioWindow.webkitAudioContext;
   function build(c: AudioContext) {
-    // Guitar → soft-clipping overdrive → mid-forward cabinet → small room.
-    const pre = c.createBiquadFilter(); pre.type = "highpass"; pre.frequency.value = 110;
-    const drive = c.createWaveShaper(), curve = new Float32Array(2048), k = 9;
+    // Guitar → barely-there valve warmth → rounded cabinet → subtle room.
+    const pre = c.createBiquadFilter(); pre.type = "highpass"; pre.frequency.value = 90;
+    const drive = c.createWaveShaper(), curve = new Float32Array(2048), k = 1.4;
     for (let i = 0; i < curve.length; i++) { const x = (i / (curve.length - 1)) * 2 - 1; curve[i] = Math.tanh(k * x) / Math.tanh(k); }
     drive.curve = curve; drive.oversample = "4x";
-    const mid = c.createBiquadFilter(); mid.type = "peaking"; mid.frequency.value = 820; mid.Q.value = 0.9; mid.gain.value = 5;
-    const cab = c.createBiquadFilter(); cab.type = "lowpass"; cab.frequency.value = 3300; cab.Q.value = 0.8;
-    const room = c.createConvolver(), seconds = 1.6, ir = c.createBuffer(2, Math.floor(c.sampleRate * seconds), c.sampleRate);
+    const mid = c.createBiquadFilter(); mid.type = "peaking"; mid.frequency.value = 420; mid.Q.value = 0.8; mid.gain.value = 2.5;
+    const cab = c.createBiquadFilter(); cab.type = "lowpass"; cab.frequency.value = 2600; cab.Q.value = 0.6;
+    const room = c.createConvolver(), seconds = 1.1, ir = c.createBuffer(2, Math.floor(c.sampleRate * seconds), c.sampleRate);
     for (let ch = 0; ch < 2; ch++) {
       const data = ir.getChannelData(ch);
-      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 4);
     }
     room.buffer = ir;
     const dry = c.createGain(), wet = c.createGain(), level = c.createDynamicsCompressor(), out = c.createGain();
-    dry.gain.value = 0.85; wet.gain.value = 0.24; level.threshold.value = -20; level.ratio.value = 4; out.gain.value = heroSound.get() ? 0.32 : 0;
+    dry.gain.value = 0.9; wet.gain.value = 0.14; level.threshold.value = -20; level.ratio.value = 4; out.gain.value = heroSound.get() ? 0.32 : 0;
     output = out;
     monitor = c.createAnalyser(); monitor.fftSize = 32;
     pre.connect(drive); drive.connect(mid); mid.connect(cab);
@@ -137,45 +128,44 @@ function amp(win: Window) {
   function string(c: AudioContext, f: number) {
     let b = cache.get(f);
     if (b) return b;
-    // Karplus–Strong with a bright pick and long sustain.
-    const sr = c.sampleRate, length = Math.floor(sr * 2.6), N = Math.max(2, Math.round(sr / f));
+    // Karplus–Strong with a soft, rounded pick: the burst is smoothed twice.
+    const sr = c.sampleRate, length = Math.floor(sr * 0.6), N = Math.max(2, Math.round(sr / f));
     const ring = new Float32Array(N), data = new Float32Array(length);
     for (let i = 0; i < N; i++) ring[i] = Math.random() * 2 - 1;
-    for (let i = 1; i < N; i++) ring[i] = 0.6 * ring[i] + 0.4 * ring[i - 1];
+    for (let pass = 0; pass < 2; pass++) for (let i = 1; i < N; i++) ring[i] = 0.5 * ring[i] + 0.5 * ring[i - 1];
     let peak = 0;
     for (let i = 0, j = 0; i < length; i++) {
       const next = (j + 1) % N, value = ring[j];
       data[i] = value; peak = Math.max(peak, Math.abs(value));
       ring[j] = 0.9985 * (0.5 * value + 0.5 * ring[next]); j = next;
     }
-    const fade = Math.floor(sr * 0.12);
+    const fade = Math.floor(sr * 0.05);
     for (let i = 0; i < length; i++) data[i] = (data[i] / (peak || 1)) * Math.min(1, (length - i) / fade);
     b = c.createBuffer(1, length, sr); b.copyToChannel(data, 0);
     cache.set(f, b);
     return b;
   }
-  function note(c: AudioContext, f: number, gain: number, pan: number, when: number, bend: number) {
+  function note(c: AudioContext, f: number, gain: number, pan: number, when: number) {
     if (!input) return;
-    while (voices.length >= VOICES) {
-      const old = voices.shift()!;
-      old.level.gain.setTargetAtTime(0, c.currentTime, 0.015);
-      try { old.src.stop(c.currentTime + 0.08); } catch { /* Already stopped. */ }
+    for (const old of voices.splice(0)) {
+      old.level.gain.cancelScheduledValues(when);
+      old.level.gain.setTargetAtTime(0, when, NOTE.cut);
+      try { old.src.stop(when + NOTE.cut * 5); } catch { /* Already stopped. */ }
     }
     const src = c.createBufferSource(), level = c.createGain(), side = c.createStereoPanner();
     src.buffer = string(c, f);
-    // Blues bend: start flat, push up to pitch, then a little vibrato as it rings.
-    const rate = src.playbackRate;
-    rate.setValueAtTime(Math.pow(2, -bend / 1200), when);
-    rate.linearRampToValueAtTime(1, when + (bend ? 0.13 : 0.001));
-    const lfo = c.createOscillator(), depth = c.createGain();
-    lfo.frequency.value = 5.4; depth.gain.setValueAtTime(0, when); depth.gain.linearRampToValueAtTime(0.006, when + 0.6);
-    lfo.connect(depth); depth.connect(rate);
-    level.gain.value = gain; side.pan.value = pan;
+    // Soft pick in, ring briefly, then let the room carry the tail.
+    const g = level.gain;
+    g.setValueAtTime(0, when);
+    g.linearRampToValueAtTime(gain, when + NOTE.attack);
+    g.setValueAtTime(gain, when + NOTE.hold);
+    g.setTargetAtTime(0, when + NOTE.hold, NOTE.release);
+    side.pan.value = pan;
     src.connect(level); level.connect(side); side.connect(input);
     const voice = { src, level };
     voices.push(voice);
-    src.onended = () => { const at = voices.indexOf(voice); if (at >= 0) voices.splice(at, 1); lfo.stop(); src.disconnect(); side.disconnect(); depth.disconnect(); };
-    src.start(when); lfo.start(when); src.stop(when + 2.6);
+    src.onended = () => { const at = voices.indexOf(voice); if (at >= 0) voices.splice(at, 1); src.disconnect(); side.disconnect(); };
+    src.start(when); src.stop(when + NOTE.hold + NOTE.release * 6);
   }
   function keepReady(ready: boolean) {
     if (!output || !monitor || ready === monitoring) return;
@@ -195,8 +185,7 @@ function amp(win: Window) {
       ctx = null; input = null; output = null; monitor = null; monitoring = false; unlocking = null;
     }
   }
-  // Plays notes as a downstroke: one frequency is a single pluck.
-  function play(notes: readonly number[], strength: number, pan: number, delay: number) {
+  function play(f: number, strength: number, pan: number, delay: number) {
     // Never create the context from hover: it may only start after a gesture.
     const c = ctx, ticket = generation;
     if (!c || !visible || !heroSound.get()) return;
@@ -204,14 +193,12 @@ function amp(win: Window) {
       // Safari resumes asynchronously on the first tap. Keep that pluck so
       // the gesture that unlocks the amp also plays the touched string.
       void unlocking?.then(() => {
-        if (ctx === c && ticket === generation && visible && c.state === "running" && heroSound.get()) play(notes, strength, pan, delay);
+        if (ctx === c && ticket === generation && visible && c.state === "running" && heroSound.get()) play(f, strength, pan, delay);
       });
       return;
     }
     const when = c.currentTime + delay / 1000;
-    // Six strings share the level of one, so a chord sits where a note did.
-    const gain = STRUM.volume * (0.5 + 0.5 * strength) / Math.sqrt(notes.length);
-    notes.forEach((f, string) => note(c, f, gain, pan, when + string * STRUM_SPREAD, 0));
+    note(c, f, STRUM.volume * (0.5 + 0.5 * strength), pan, when);
   }
   return {
     wake,
@@ -254,8 +241,8 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   let resize: ResizeObserver | null = null, frame = 0, active = true, building = 0;
   let size = { w: 0, h: 0, dpr: 1, scale: 1, ox: 0, oy: 0, top: 0 };
   const pointer = { x: 0, y: 0, has: false, t: 0 };
-  // One shared place in the progression for every contour line.
-  let bar = 0;
+  // One shared place in the riff for every contour line.
+  let step = 0;
   let tap: { id: number; x: number; y: number; started: number; si: number; i: number } | null = null;
   const TAP_SLOP = 10, TAP_DURATION = 700;
   const CELL = 48;
@@ -384,9 +371,9 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     const t = Math.min(1, speed / 2.2);
     // A click still sounds if a recent hover pluck is throttling the visual.
     if (playSound && heroSound.get()) {
-      const chord = CHORDS[BLUES_PROGRESSION[bar]];
-      bar = (bar + 1) % BLUES_PROGRESSION.length;
-      sound.play(chord, t, (s.screen[i * 2] / (size.w || 1)) * 1.2 - 0.6, order * STRUM.strumGap);
+      const f = RIFF[step];
+      step = (step + 1) % RIFF.length;
+      sound.play(f, t, (s.screen[i * 2] / (size.w || 1)) * 1.2 - 0.6, order * STRUM.strumGap);
     }
     if (now - s.last < STRUM.repluck) return;
     s.last = now;
@@ -504,7 +491,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   }
   function onMotion() { if (reduce.matches) dispose(); }
   function onVisibility() { sound.setVisible(!doc.hidden); }
-  function onBraid() { if (!busy() && !reduce.matches && active && heroSound.get()) { sound.wake(); sound.play([BRAID_NOTE], 0.75, 0, 0); } }
+  function onBraid() { if (!busy() && !reduce.matches && active && heroSound.get()) { sound.wake(); sound.play(BRAID_NOTE, 0.75, 0, 0); } }
   try {
     observer = new MutationObserver(() => draw(performance.now()));
     observer.observe(doc.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
