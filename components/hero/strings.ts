@@ -1,12 +1,14 @@
 // the hero's contour lines as guitar strings ("Branding iron" direction).
 //   - Each contour in hero-contours.svg is its own string, redrawn as vectors on
-//     a canvas. Crossing one plucks only that line: a fluid, damped wave runs
-//     along it from the crossing point, and the line darkens while it rings.
+//     a canvas. Touching or crossing one bends it silently: a slow pass leaves a
+//     small ripple, a fast swipe pushes the line along the movement before it
+//     springs back. Every string has its own pitch of vibration.
 //   - Every click or tap plays the next note of a short blues riff on a warm,
 //     clean electric guitar in a small room. One position is shared by all the
 //     lines: any trigger, on any line or the same one again, advances the riff.
-//   - A quick swipe vibrates several lines in order, silently. Only a click or
-//     tap on a line plays its note.
+//   - A quick sweep vibrates every line it crosses, in the order and at the
+//     moment it crossed them. Only a click or tap on a line plays a note, and
+//     it always shows a visible pluck, even right after a hover.
 // Native cursor. Reduced motion: nothing mounts. Audio starts only on a
 // click or tap on a contour, or when the sound toggle is explicitly enabled.
 import { heroSound } from "./sound";
@@ -14,13 +16,16 @@ import { heroSound } from "./sound";
 export const STRUM = {
   opacity: 0.22,        // matches the static contours before interaction mounts
   ringDarken: 2.6,      // extra strength on a ringing string, at full energy
-  amp: [5, 14],         // px, slow → fast crossing
+  amp: [1.5, 9],        // px of ripple, light touch → fast swipe
+  bend: 20,             // px a fast swipe pushes the line before it springs back
+  bendTime: 0.07,       // s for the bend to spring back
+  pluck: 0.75,          // strength of a click's visible pluck
+  touch: 4,             // px: a cursor this close to a line touches it
   hz: 6,                // visible vibration rate: slow enough to read as a wave
   wavelength: 190,      // px along the string
   spread: [36, 520],    // wave packet: start width (px) and growth (px/s)
   decay: 1.5,           // per second
   life: 2.6,            // s
-  strumGap: 16,         // ms between visual plucks of one swipe
   repluck: 90,          // ms before the same string can be plucked again
   volume: 0.5,
 };
@@ -30,10 +35,11 @@ const BRAID_NOTE = 392;
 export const RIFF = [220, 261.63, 293.66, 329.63, 392, 329.63, 261.63, 220] as const;
 const NOTE = { attack: 0.006, hold: 0.22, release: 0.035, cut: 0.012 }; // s: ~300 ms ring
 
-type Pluck = { s: number; t0: number; amp: number; dir: number };
+type Pluck = { s: number; t0: number; amp: number; bend: number; dir: number };
 type Str = {
   pts: Float32Array; normals: Float32Array; lengths: Float32Array; width: number; closed: boolean;
   screen: Float32Array; plucks: Pluck[]; last: number;
+  hz: number; decay: number; wavelength: number; // this string's own vibration
 };
 
 // ------------------------------------------------------------------ geometry
@@ -84,9 +90,20 @@ async function loadStrings(src: string): Promise<{ strings: Str[]; vw: number; v
       if (i) lengths[i] = lengths[i - 1] + Math.hypot(pts[i * 2] - pts[i * 2 - 2], pts[i * 2 + 1] - pts[i * 2 - 1]);
     }
     const closed = Math.hypot(pts[0] - pts[pts.length - 2], pts[1] - pts[pts.length - 1]) < 2;
-    return { pts, normals, lengths, closed, width: parseFloat(path.getAttribute("stroke-width") ?? "1"), screen: new Float32Array(pts.length), plucks: [], last: 0 };
+    return { pts, normals, lengths, closed, width: parseFloat(path.getAttribute("stroke-width") ?? "1"), screen: new Float32Array(pts.length), plucks: [], last: 0,
+      hz: STRUM.hz, decay: STRUM.decay, wavelength: STRUM.wavelength };
   }).filter(s => s.pts.length >= 4);
   if (!strings.length) return null;
+  // Shorter strings vibrate faster with tighter waves, like a real instrument;
+  // a fixed per-string jitter keeps neighbours of similar length distinct.
+  [...strings].sort((a, b) => b.lengths[b.lengths.length - 1] - a.lengths[a.lengths.length - 1])
+    .forEach((s, rank, all) => {
+      const r = all.length > 1 ? rank / (all.length - 1) : 0;
+      const jitter = (k: number) => { const v = Math.sin((rank + 1) * k) * 43758.5453; return v - Math.floor(v); };
+      s.hz = STRUM.hz * (0.8 + 0.45 * r + 0.12 * jitter(12.9898));
+      s.decay = STRUM.decay * (0.85 + 0.35 * jitter(78.233));
+      s.wavelength = STRUM.wavelength * (1.15 - 0.3 * r);
+    });
   return { strings, vw: box[2] || 1000, vh: box[3] || 700 };
 }
 
@@ -243,6 +260,8 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   const pointer = { x: 0, y: 0, has: false, t: 0 };
   // One shared place in the riff for every contour line.
   let step = 0;
+  // Strings the pointer is resting on or sliding along without crossing.
+  let near = new Set<number>();
   let tap: { id: number; x: number; y: number; started: number; si: number; i: number } | null = null;
   const TAP_SLOP = 10, TAP_DURATION = 700;
   const CELL = 48;
@@ -310,7 +329,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     const previousResize = resize; resize = null;
     canvas?.remove(); canvas = null; ctx = null;
     if (contours) contours.style.visibility = "";
-    section = contours = null; strings = []; grid = new Map();
+    section = contours = null; strings = []; grid = new Map(); near = new Set();
     try { previousResize?.disconnect(); } catch { /* The canvas is already released. */ }
   }
 
@@ -333,8 +352,9 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     const opacity = contours?.dataset.fade === "none" ? 0.16 : STRUM.opacity;
     const base = stroke(Math.min(1, opacity));
     let ringing = false;
-    const { hz, wavelength, spread, decay, life } = STRUM;
+    const { spread, life, bendTime } = STRUM;
     for (const s of strings) {
+      const { hz, wavelength, decay } = s;
       s.plucks = s.plucks.filter(p => (now - p.t0) / 1000 < life);
       const live = s.plucks.filter(p => p.t0 <= now);
       ctx.lineWidth = s.width * size.scale;
@@ -352,6 +372,8 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
             const width = spread[0] + spread[1] * t;
             const envelope = p.amp * Math.exp(-decay * t) * (1 - Math.exp(-t / 0.035)) * Math.sqrt(spread[0] / width);
             d += p.dir * envelope * Math.exp(-(dist * dist) / (2 * width * width)) * Math.cos(2 * Math.PI * (hz * t - dist / wavelength));
+            // A fast swipe drags the string along with it, then lets it spring back.
+            if (p.bend) d += p.dir * p.bend * Math.exp(-t / bendTime) * (1 - Math.exp(-t / 0.012)) * Math.exp(-(dist * dist) / (2 * 70 * 70));
           }
           x += s.normals[i * 2] * d; y += s.normals[i * 2 + 1] * d;
         }
@@ -366,26 +388,26 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   }
 
   // ---------------------------------------------------------------- plucking
-  function pluck(si: number, i: number, frac: number, speed: number, dx: number, dy: number, order: number, playSound = false) {
+  // Silent visual pluck. strength 0 is the lightest touch, 1 a fast swipe.
+  function pluck(si: number, i: number, frac: number, strength: number, dir: number, t0: number, force = false) {
     const s = strings[si], now = performance.now();
-    const t = Math.min(1, speed / 2.2);
-    // A click still sounds if a recent hover pluck is throttling the visual.
-    if (playSound && heroSound.get()) {
-      const f = RIFF[step];
-      step = (step + 1) % RIFF.length;
-      sound.play(f, t, (s.screen[i * 2] / (size.w || 1)) * 1.2 - 0.6, order * STRUM.strumGap);
-    }
-    if (now - s.last < STRUM.repluck) return;
+    if (!force && now - s.last < STRUM.repluck) return;
     s.last = now;
     const along = (s.lengths[i] + (s.lengths[i + 1] - s.lengths[i]) * frac) * size.scale;
-    const dir = s.normals[i * 2] * dx + s.normals[i * 2 + 1] * dy < 0 ? -1 : 1;
-    s.plucks.push({ s: along, t0: now + order * STRUM.strumGap, amp: STRUM.amp[0] + (STRUM.amp[1] - STRUM.amp[0]) * t, dir });
+    s.plucks.push({ s: along, t0, dir, amp: STRUM.amp[0] + (STRUM.amp[1] - STRUM.amp[0]) * strength, bend: STRUM.bend * strength * strength });
     if (s.plucks.length > 4) s.plucks.shift();
+    if (canvas) canvas.dataset.plucks = String(Number(canvas.dataset.plucks ?? 0) + 1);
     wake();
   }
-  function crossings(ax: number, ay: number, bx: number, by: number, dt: number) {
+  // Which way the movement pushes a string across its segment.
+  const side = (s: Str, i: number, dx: number, dy: number) => (s.normals[i * 2] * dx + s.normals[i * 2 + 1] * dy < 0 ? -1 : 1);
+  const strength = (length: number, dt: number) => Math.min(1, length / Math.max(1, dt) / 2.5);
+  // Every string crossed between two pointer samples, each at the moment the
+  // pointer actually crossed it, so a quick sweep still reads as a strum.
+  function crossings(ax: number, ay: number, bx: number, by: number, dt: number, now: number) {
     const dx = bx - ax, dy = by - ay, length = Math.hypot(dx, dy);
-    if (!length) return;
+    const done = new Set<number>();
+    if (!length) return done;
     const seen = new Set<number>(), hits: { u: number; si: number; i: number; v: number }[] = [];
     const steps = Math.ceil(length / (CELL / 2));
     for (let k = 0; k <= steps; k++) {
@@ -404,12 +426,36 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
       }
     }
     hits.sort((a, b) => a.u - b.u);
-    const done = new Set<number>(); let order = 0;
+    const force = strength(length, dt), taken = new Map<number, number[]>();
     for (const hit of hits) {
-      if (done.has(hit.si) || order >= 8) continue;
-      done.add(hit.si);
-      pluck(hit.si, hit.i, hit.v, length / Math.max(1, dt), dx, dy, order++);
+      // A loop crossed twice moves at both points; one crossing that falls on a
+      // segment joint (two hits a hair apart) counts once.
+      const s = strings[hit.si], along = s.lengths[hit.i] + (s.lengths[hit.i + 1] - s.lengths[hit.i]) * hit.v;
+      const seen = taken.get(hit.si) ?? [];
+      if (seen.some(at => Math.abs(at - along) < 12)) continue;
+      taken.set(hit.si, [...seen, along]); done.add(hit.si);
+      pluck(hit.si, hit.i, hit.v, force, side(s, hit.i, dx, dy), now - (1 - hit.u) * Math.min(dt, 120), seen.length > 0);
     }
+    return done;
+  }
+  function touches(x: number, y: number, dx: number, dy: number, dt: number, now: number, crossed: Set<number>) {
+    const found = new Map<number, { i: number; v: number }>();
+    const cx = Math.floor(x / CELL), cy = Math.floor(y / CELL);
+    for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
+      const bucket = grid.get((cx + ox) * 4096 + cy + oy); if (!bucket) continue;
+      for (let b = 0; b < bucket.length; b += 2) {
+        const si = bucket[b], s = strings[si], i = bucket[b + 1];
+        const px = s.screen[i * 2], py = s.screen[i * 2 + 1], qx = s.screen[i * 2 + 2] - px, qy = s.screen[i * 2 + 3] - py;
+        const q = qx * qx + qy * qy, v = q ? Math.max(0, Math.min(1, ((x - px) * qx + (y - py) * qy) / q)) : 0;
+        const reach = STRUM.touch + (s.width * size.scale) / 2;
+        if (Math.hypot(px + qx * v - x, py + qy * v - y) <= reach && !found.has(si)) found.set(si, { i, v });
+      }
+    }
+    // Only the moment of contact plucks; sliding along a line doesn't re-trigger it.
+    for (const [si, at] of found) if (!near.has(si) && !crossed.has(si)) {
+      pluck(si, at.i, at.v, strength(Math.hypot(dx, dy), dt), dx || dy ? side(strings[si], at.i, dx, dy) : 1, now);
+    }
+    near = new Set(found.keys());
   }
 
   // ---------------------------------------------------------------- events
@@ -425,10 +471,14 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     // Remember the entire gesture, including a drag that returns to its start.
     if (tap?.id === event.pointerId && moved(event)) cancelTap();
     const next = busy() ? null : sectionFor(event.target);
-    if (!next) { pointer.has = false; return; }
-    if (section !== next || !next.isConnected) { void build(next).catch(() => release()); pointer.has = false; return; }
+    if (!next) { pointer.has = false; near = new Set(); return; }
+    if (section !== next || !next.isConnected) { void build(next).catch(() => release()); pointer.has = false; near = new Set(); return; }
     const at = local(event.clientX, event.clientY), now = performance.now();
-    if (pointer.has && strings.length) crossings(pointer.x, pointer.y, at.x, at.y, now - pointer.t);
+    if (strings.length) {
+      const dx = pointer.has ? at.x - pointer.x : 0, dy = pointer.has ? at.y - pointer.y : 0, dt = now - pointer.t;
+      const crossed = pointer.has ? crossings(pointer.x, pointer.y, at.x, at.y, dt, now) : new Set<number>();
+      touches(at.x, at.y, dx, dy, dt, now, crossed);
+    }
     pointer.x = at.x; pointer.y = at.y; pointer.t = now; pointer.has = true;
   }
   function onDown(event: PointerEvent) {
@@ -462,7 +512,15 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     cancelTap();
     if (valid) {
       // Pointer-up is the completed gesture, including the first Safari tap.
-      sound.wake(); pluck(selected.si, selected.i, 0, 1.4, 0, 1, 0, true);
+      // The click always shows its pluck, even if a hover just plucked this line.
+      sound.wake();
+      const s = strings[selected.si];
+      pluck(selected.si, selected.i, 0, STRUM.pluck, 1, performance.now(), true);
+      if (heroSound.get()) {
+        const f = RIFF[step];
+        step = (step + 1) % RIFF.length;
+        sound.play(f, STRUM.pluck, (s.screen[selected.i * 2] / (size.w || 1)) * 1.2 - 0.6, 0);
+      }
     }
   }
 

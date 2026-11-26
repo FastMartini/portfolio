@@ -287,3 +287,70 @@ test("each contour click plays the next note of the blues riff, looping after th
   expect(new Set([A3, C4, D4, E4, G4]).size).toBe(5);
   expect(notes).toEqual([A3, C4, D4, E4, G4, E4, C4, A3, A3]);
 });
+
+test("a quick sweep silently vibrates every contour it crosses", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 }); await probeAudio(page);
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const plucks = () => page.locator(".hero-strings").evaluate(c => Number((c as HTMLCanvasElement).dataset.plucks ?? 0));
+  const [from, to] = [{ x: 1400, y: 140 }, { x: 260, y: 880 }];
+  // Count the separate lines drawn along the sweep before anything moves.
+  const lines = await page.locator(".hero-strings").evaluate((canvas, [a, b]) => {
+    const c = canvas as HTMLCanvasElement, box = c.getBoundingClientRect(), data = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+    // About 3 samples per pixel; antialiasing can split one line by a pixel or two.
+    let runs = 0, lastOn = -Infinity;
+    for (let k = 0, n = 4000; k <= n; k++) {
+      const x = Math.floor((a.x + ((b.x - a.x) * k) / n - box.left) * (c.width / box.width));
+      const y = Math.floor((a.y + ((b.y - a.y) * k) / n - box.top) * (c.height / box.height));
+      if (data[(y * c.width + x) * 4 + 3] > 5) { if (k - lastOn > 8) runs++; lastOn = k; }
+    }
+    return runs;
+  }, [from, to]);
+  expect(lines, "the sweep must cross more lines than the former limit of eight").toBeGreaterThan(8);
+  await page.mouse.move(from.x, from.y);
+  const before = await plucks();
+  // A single pointer sample across the whole band: every crossing must register.
+  await page.mouse.move(to.x, to.y);
+  expect(await plucks() - before).toBeGreaterThanOrEqual(lines);
+  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(0);
+  expect(await page.evaluate(() => Reflect.get(window, "guitarContexts").length)).toBe(0);
+});
+
+test("hovering and dragging never advance the riff, and a click right after a hover still plucks", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => {
+    const buffers: AudioBuffer[] = [], played: number[] = [];
+    Reflect.set(window, "guitarPlayed", played);
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (...args) {
+      if (this.buffer) { let id = buffers.indexOf(this.buffer); if (id < 0) id = buffers.push(this.buffer) - 1; played.push(id); }
+      return Reflect.apply(start, this, args);
+    };
+  });
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const point = await contourPoint(page);
+  const played = () => page.evaluate(() => (Reflect.get(window, "guitarPlayed") as number[]).length);
+  const plucks = () => page.locator(".hero-strings").evaluate(c => Number((c as HTMLCanvasElement).dataset.plucks ?? 0));
+  // Hover across, slowly and quickly, then drag across the line.
+  await page.mouse.move(point.x - 40, point.y - 40);
+  await page.mouse.move(point.x + 40, point.y + 40, { steps: 30 });
+  await page.mouse.move(point.x - 40, point.y - 40);
+  await page.mouse.down(); await page.mouse.move(point.x + 40, point.y + 40, { steps: 6 }); await page.mouse.up();
+  expect(await played()).toBe(0);
+  for (let click = 1; click <= 8; click++) {
+    // Arrive on the line (a hover pluck), then click at once: the click must still pluck.
+    await page.mouse.move(point.x, point.y);
+    const before = await plucks();
+    await page.mouse.down(); await page.mouse.up();
+    await expect.poll(played).toBe(click);
+    expect(await plucks()).toBeGreaterThan(before);
+    await page.mouse.move(point.x - 40, point.y - 40);
+  }
+  // The riff still starts on A3: A3 C4 D4 E4 G4 E4 C4 A3.
+  const notes = await page.evaluate(() => Reflect.get(window, "guitarPlayed") as number[]);
+  const [A3, C4, D4, E4, G4] = notes;
+  expect(new Set([A3, C4, D4, E4, G4]).size).toBe(5);
+  expect(notes).toEqual([A3, C4, D4, E4, G4, E4, C4, A3]);
+});
