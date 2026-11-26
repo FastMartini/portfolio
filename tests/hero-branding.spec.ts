@@ -354,3 +354,42 @@ test("hovering and dragging never advance the riff, and a click right after a ho
   expect(new Set([A3, C4, D4, E4, G4]).size).toBe(5);
   expect(notes).toEqual([A3, C4, D4, E4, G4, E4, C4, A3]);
 });
+
+test("each contour line has its own tone while the riff keeps one shared position", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => {
+    const buffers: AudioBuffer[] = [], played: number[] = [];
+    Reflect.set(window, "guitarPlayed", played);
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (...args) {
+      if (this.buffer) { let id = buffers.indexOf(this.buffer); if (id < 0) id = buffers.push(this.buffer) - 1; played.push(id); }
+      return Reflect.apply(start, this, args);
+    };
+  });
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const first = await contourPoint(page);
+  // A second line, well clear of the first.
+  const second = await page.locator(".hero-strings").evaluate((canvas, avoid) => {
+    const c = canvas as HTMLCanvasElement, box = c.getBoundingClientRect(), data = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+    const sx = c.width / box.width, sy = c.height / box.height;
+    // Walk down a column far to the left of the first point, so a closed loop
+    // through the first point can't be the line we land on.
+    for (let x = box.width - 520; x > box.width - 760; x -= 40) for (let y = 160; y < 880; y++) {
+      if (Math.hypot(x + box.left - avoid.x, y + box.top - avoid.y) < 200) continue;
+      if (data[(Math.floor(y * sy) * c.width + Math.floor(x * sx)) * 4 + 3] > 5) return { x: x + box.left, y: y + box.top };
+    }
+    throw new Error("No second contour found");
+  }, first);
+  const played = () => page.evaluate(() => (Reflect.get(window, "guitarPlayed") as number[]).length);
+  // Bar 1 (A3) on the first line, the other seven on the second: the riff
+  // still advances across lines, and its closing A3 has the second line's tone.
+  await page.mouse.click(first.x, first.y); await expect.poll(played).toBe(1);
+  for (let click = 2; click <= 8; click++) { await page.mouse.click(second.x, second.y); await expect.poll(played).toBe(click); }
+  const notes = await page.evaluate(() => Reflect.get(window, "guitarPlayed") as number[]);
+  const [, C4, D4, E4, G4] = notes;
+  expect(notes.slice(1, 7)).toEqual([C4, D4, E4, G4, E4, C4]);
+  expect(new Set(notes.slice(1, 5)).size).toBe(4);
+  expect(notes[7], "the same A3 on another line uses that line's tone").not.toBe(notes[0]);
+});

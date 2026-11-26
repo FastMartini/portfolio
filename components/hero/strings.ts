@@ -4,7 +4,8 @@
 //     small ripple, a fast swipe pushes the line along the movement before it
 //     springs back. Every string has its own pitch of vibration.
 //   - Every click or tap plays the next note of a short blues riff on a warm,
-//     clean electric guitar in a small room. One position is shared by all the
+//     clean electric guitar in a lively room. Each line has its own tone: where
+//     it is picked, how bright the attack is, how long it rings. One position is shared by all the
 //     lines: any trigger, on any line or the same one again, advances the riff.
 //   - A quick sweep vibrates every line it crosses, in the order and at the
 //     moment it crossed them. Only a click or tap on a line plays a note, and
@@ -33,13 +34,19 @@ export const STRUM = {
 const BRAID_NOTE = 392;
 // A3 C4 D4 E4 G4 E4 C4 A3, then back to the first note.
 export const RIFF = [220, 261.63, 293.66, 329.63, 392, 329.63, 261.63, 220] as const;
-const NOTE = { attack: 0.006, hold: 0.22, release: 0.035, cut: 0.012 }; // s: ~300 ms ring
+const NOTE = { attack: 0.004, hold: 0.2, release: 0.07, cut: 0.012 }; // s: ~300 ms ring, then the room
 
+// A line's tone colour. Pick position: low is near the bridge (thin, bright),
+// high toward the neck (round, hollow). Brightness shapes the pick attack,
+// sustain how long the string rings, cutoff how dark the note sits.
+type Tone = { id: number; pick: number; bright: number; sustain: number; cutoff: number };
+const DEFAULT_TONE: Tone = { id: -1, pick: 0.13, bright: 0.55, sustain: 0.9985, cutoff: 3200 };
 type Pluck = { s: number; t0: number; amp: number; bend: number; dir: number };
 type Str = {
   pts: Float32Array; normals: Float32Array; lengths: Float32Array; width: number; closed: boolean;
   screen: Float32Array; plucks: Pluck[]; last: number;
   hz: number; decay: number; wavelength: number; // this string's own vibration
+  tone: Tone;
 };
 
 // ------------------------------------------------------------------ geometry
@@ -91,7 +98,7 @@ async function loadStrings(src: string): Promise<{ strings: Str[]; vw: number; v
     }
     const closed = Math.hypot(pts[0] - pts[pts.length - 2], pts[1] - pts[pts.length - 1]) < 2;
     return { pts, normals, lengths, closed, width: parseFloat(path.getAttribute("stroke-width") ?? "1"), screen: new Float32Array(pts.length), plucks: [], last: 0,
-      hz: STRUM.hz, decay: STRUM.decay, wavelength: STRUM.wavelength };
+      hz: STRUM.hz, decay: STRUM.decay, wavelength: STRUM.wavelength, tone: DEFAULT_TONE };
   }).filter(s => s.pts.length >= 4);
   if (!strings.length) return null;
   // Shorter strings vibrate faster with tighter waves, like a real instrument;
@@ -103,6 +110,15 @@ async function loadStrings(src: string): Promise<{ strings: Str[]; vw: number; v
       s.hz = STRUM.hz * (0.8 + 0.45 * r + 0.12 * jitter(12.9898));
       s.decay = STRUM.decay * (0.85 + 0.35 * jitter(78.233));
       s.wavelength = STRUM.wavelength * (1.15 - 0.3 * r);
+      // Spread tones by a golden-ratio walk so neighbouring lines never sound alike.
+      const w = (rank * 0.618034) % 1, w2 = (rank * 0.381966 + 0.5) % 1;
+      s.tone = {
+        id: rank,
+        pick: 0.07 + 0.2 * w,
+        bright: 0.42 + 0.33 * w2,
+        sustain: 0.9975 + 0.0016 * jitter(39.425),
+        cutoff: 1900 + 2600 * (1 - w) * (0.6 + 0.4 * w2),
+      };
     });
   return { strings, vw: box[2] || 1000, vh: box[3] || 700 };
 }
@@ -116,61 +132,79 @@ function amp(win: Window) {
   let unlocking: Promise<void> | null = null;
   let monitor: AnalyserNode | null = null, monitoring = false;
   let visible = !win.document.hidden, generation = 0;
-  const cache = new Map<number, AudioBuffer>();
+  const cache = new Map<string, AudioBuffer>();
   const audioWindow = win as Window & { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
   const Ctor = audioWindow.AudioContext ?? audioWindow.webkitAudioContext;
   function build(c: AudioContext) {
-    // Guitar → barely-there valve warmth → rounded cabinet → subtle room.
+    // Guitar → barely-there valve warmth → rounded cabinet → a lively room.
     const pre = c.createBiquadFilter(); pre.type = "highpass"; pre.frequency.value = 90;
     const drive = c.createWaveShaper(), curve = new Float32Array(2048), k = 1.4;
     for (let i = 0; i < curve.length; i++) { const x = (i / (curve.length - 1)) * 2 - 1; curve[i] = Math.tanh(k * x) / Math.tanh(k); }
     drive.curve = curve; drive.oversample = "4x";
     const mid = c.createBiquadFilter(); mid.type = "peaking"; mid.frequency.value = 420; mid.Q.value = 0.8; mid.gain.value = 2.5;
     const cab = c.createBiquadFilter(); cab.type = "lowpass"; cab.frequency.value = 2600; cab.Q.value = 0.6;
-    const room = c.createConvolver(), seconds = 1.1, ir = c.createBuffer(2, Math.floor(c.sampleRate * seconds), c.sampleRate);
+    // A ~2 s room: a few early reflections, then a decorrelated stereo tail
+    // that decays exponentially and darkens as it fades, like real walls.
+    const sr = c.sampleRate, rt60 = 2, seconds = 2.4, ir = c.createBuffer(2, Math.floor(sr * seconds), sr);
     for (let ch = 0; ch < 2; ch++) {
       const data = ir.getChannelData(ch);
-      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 4);
+      let low = 0;
+      for (let i = 0; i < data.length; i++) {
+        const t = i / sr, damp = 0.25 + 0.7 * Math.min(1, t / seconds);
+        low += (1 - damp) * ((Math.random() * 2 - 1) - low);
+        data[i] = low * Math.exp((-6.9 * t) / rt60) * Math.min(1, (data.length - i) / (sr * 0.1));
+      }
+      for (const [at, gain] of [[0.011, 0.5], [0.019, -0.4], [0.027, 0.32], [0.041, -0.25]]) {
+        data[Math.floor(sr * (at + ch * 0.003))] += gain;
+      }
     }
-    room.buffer = ir;
+    const room = c.createConvolver(); room.buffer = ir;
+    const preDelay = c.createDelay(0.1); preDelay.delayTime.value = 0.022;
+    const tail = c.createBiquadFilter(); tail.type = "lowpass"; tail.frequency.value = 4800;
     const dry = c.createGain(), wet = c.createGain(), level = c.createDynamicsCompressor(), out = c.createGain();
-    dry.gain.value = 0.9; wet.gain.value = 0.14; level.threshold.value = -20; level.ratio.value = 4; out.gain.value = heroSound.get() ? 0.32 : 0;
+    dry.gain.value = 0.8; wet.gain.value = 0.42; level.threshold.value = -20; level.ratio.value = 4; out.gain.value = heroSound.get() ? 0.32 : 0;
     output = out;
     monitor = c.createAnalyser(); monitor.fftSize = 32;
     pre.connect(drive); drive.connect(mid); mid.connect(cab);
-    cab.connect(dry); cab.connect(room); room.connect(wet);
+    cab.connect(dry); cab.connect(preDelay); preDelay.connect(room); room.connect(tail); tail.connect(wet);
     dry.connect(level); wet.connect(level); level.connect(out); out.connect(c.destination);
     return pre;
   }
-  function string(c: AudioContext, f: number) {
-    let b = cache.get(f);
+  function string(c: AudioContext, f: number, tone: Tone) {
+    const key = `${f}|${tone.id}`;
+    let b = cache.get(key);
     if (b) return b;
-    // Karplus–Strong with a soft, rounded pick: the burst is smoothed twice.
-    const sr = c.sampleRate, length = Math.floor(sr * 0.6), N = Math.max(2, Math.round(sr / f));
+    // Karplus–Strong. One smoothing pass keeps the pick soft without turning it
+    // into a felt hammer, and the pick position notches out the harmonics a
+    // pick there can't excite: the hollow sound of a plucked string.
+    const sr = c.sampleRate, length = Math.floor(sr * 0.8), N = Math.max(2, Math.round(sr / f));
     const ring = new Float32Array(N), data = new Float32Array(length);
     for (let i = 0; i < N; i++) ring[i] = Math.random() * 2 - 1;
-    for (let pass = 0; pass < 2; pass++) for (let i = 1; i < N; i++) ring[i] = 0.5 * ring[i] + 0.5 * ring[i - 1];
+    for (let i = 1; i < N; i++) ring[i] = tone.bright * ring[i] + (1 - tone.bright) * ring[i - 1];
+    const pick = Math.max(1, Math.round(N * tone.pick)), burst = ring.slice();
+    for (let i = 0; i < N; i++) ring[i] = burst[i] - burst[(i - pick + N) % N];
     let peak = 0;
     for (let i = 0, j = 0; i < length; i++) {
       const next = (j + 1) % N, value = ring[j];
       data[i] = value; peak = Math.max(peak, Math.abs(value));
-      ring[j] = 0.9985 * (0.5 * value + 0.5 * ring[next]); j = next;
+      ring[j] = tone.sustain * (0.5 * value + 0.5 * ring[next]); j = next;
     }
     const fade = Math.floor(sr * 0.05);
     for (let i = 0; i < length; i++) data[i] = (data[i] / (peak || 1)) * Math.min(1, (length - i) / fade);
     b = c.createBuffer(1, length, sr); b.copyToChannel(data, 0);
-    cache.set(f, b);
+    cache.set(key, b);
     return b;
   }
-  function note(c: AudioContext, f: number, gain: number, pan: number, when: number) {
+  function note(c: AudioContext, f: number, tone: Tone, gain: number, pan: number, when: number) {
     if (!input) return;
     for (const old of voices.splice(0)) {
       old.level.gain.cancelScheduledValues(when);
       old.level.gain.setTargetAtTime(0, when, NOTE.cut);
       try { old.src.stop(when + NOTE.cut * 5); } catch { /* Already stopped. */ }
     }
-    const src = c.createBufferSource(), level = c.createGain(), side = c.createStereoPanner();
-    src.buffer = string(c, f);
+    const src = c.createBufferSource(), color = c.createBiquadFilter(), level = c.createGain(), side = c.createStereoPanner();
+    src.buffer = string(c, f, tone);
+    color.type = "lowpass"; color.frequency.value = tone.cutoff; color.Q.value = 0.7;
     // Soft pick in, ring briefly, then let the room carry the tail.
     const g = level.gain;
     g.setValueAtTime(0, when);
@@ -178,10 +212,10 @@ function amp(win: Window) {
     g.setValueAtTime(gain, when + NOTE.hold);
     g.setTargetAtTime(0, when + NOTE.hold, NOTE.release);
     side.pan.value = pan;
-    src.connect(level); level.connect(side); side.connect(input);
+    src.connect(color); color.connect(level); level.connect(side); side.connect(input);
     const voice = { src, level };
     voices.push(voice);
-    src.onended = () => { const at = voices.indexOf(voice); if (at >= 0) voices.splice(at, 1); src.disconnect(); side.disconnect(); };
+    src.onended = () => { const at = voices.indexOf(voice); if (at >= 0) voices.splice(at, 1); src.disconnect(); color.disconnect(); side.disconnect(); };
     src.start(when); src.stop(when + NOTE.hold + NOTE.release * 6);
   }
   function keepReady(ready: boolean) {
@@ -202,7 +236,7 @@ function amp(win: Window) {
       ctx = null; input = null; output = null; monitor = null; monitoring = false; unlocking = null;
     }
   }
-  function play(f: number, strength: number, pan: number, delay: number) {
+  function play(f: number, strength: number, pan: number, delay: number, tone: Tone = DEFAULT_TONE) {
     // Never create the context from hover: it may only start after a gesture.
     const c = ctx, ticket = generation;
     if (!c || !visible || !heroSound.get()) return;
@@ -210,12 +244,12 @@ function amp(win: Window) {
       // Safari resumes asynchronously on the first tap. Keep that pluck so
       // the gesture that unlocks the amp also plays the touched string.
       void unlocking?.then(() => {
-        if (ctx === c && ticket === generation && visible && c.state === "running" && heroSound.get()) play(f, strength, pan, delay);
+        if (ctx === c && ticket === generation && visible && c.state === "running" && heroSound.get()) play(f, strength, pan, delay, tone);
       });
       return;
     }
     const when = c.currentTime + delay / 1000;
-    note(c, f, STRUM.volume * (0.5 + 0.5 * strength), pan, when);
+    note(c, f, tone, STRUM.volume * (0.5 + 0.5 * strength), pan, when);
   }
   return {
     wake,
@@ -519,7 +553,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
       if (heroSound.get()) {
         const f = RIFF[step];
         step = (step + 1) % RIFF.length;
-        sound.play(f, STRUM.pluck, (s.screen[selected.i * 2] / (size.w || 1)) * 1.2 - 0.6, 0);
+        sound.play(f, STRUM.pluck, (s.screen[selected.i * 2] / (size.w || 1)) * 1.2 - 0.6, 0, s.tone);
       }
     }
   }
