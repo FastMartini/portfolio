@@ -259,3 +259,137 @@ test("warm guitar output is silent between clicks and pauses with a hidden page"
   await page.mouse.click(point.x, point.y);
   await expect.poll(() => page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(2);
 });
+
+test("each contour click plays the next note of the blues riff, looping after the last", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => {
+    // Strings are cached per pitch, so a buffer's identity names its pitch.
+    const buffers: AudioBuffer[] = [], played: number[] = [];
+    Reflect.set(window, "guitarPlayed", played);
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (...args) {
+      if (this.buffer) { let id = buffers.indexOf(this.buffer); if (id < 0) id = buffers.push(this.buffer) - 1; played.push(id); }
+      return Reflect.apply(start, this, args);
+    };
+  });
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const point = await contourPoint(page);
+  const played = () => page.evaluate(() => (Reflect.get(window, "guitarPlayed") as number[]).length);
+  // Nine clicks on the same line, faster than a note rings: all eight notes, then the loop.
+  for (let click = 1; click <= 9; click++) {
+    await page.mouse.click(point.x, point.y);
+    await expect.poll(played).toBe(click);
+  }
+  const notes = await page.evaluate(() => Reflect.get(window, "guitarPlayed") as number[]);
+  const [A3, C4, D4, E4, G4] = notes;
+  expect(new Set([A3, C4, D4, E4, G4]).size).toBe(5);
+  expect(notes).toEqual([A3, C4, D4, E4, G4, E4, C4, A3, A3]);
+});
+
+test("a quick sweep silently vibrates every contour it crosses", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 }); await probeAudio(page);
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const plucks = () => page.locator(".hero-strings").evaluate(c => Number((c as HTMLCanvasElement).dataset.plucks ?? 0));
+  const [from, to] = [{ x: 1400, y: 140 }, { x: 260, y: 880 }];
+  // Count the separate lines drawn along the sweep before anything moves.
+  const lines = await page.locator(".hero-strings").evaluate((canvas, [a, b]) => {
+    const c = canvas as HTMLCanvasElement, box = c.getBoundingClientRect(), data = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+    // About 3 samples per pixel; antialiasing can split one line by a pixel or two.
+    let runs = 0, lastOn = -Infinity;
+    for (let k = 0, n = 4000; k <= n; k++) {
+      const x = Math.floor((a.x + ((b.x - a.x) * k) / n - box.left) * (c.width / box.width));
+      const y = Math.floor((a.y + ((b.y - a.y) * k) / n - box.top) * (c.height / box.height));
+      if (data[(y * c.width + x) * 4 + 3] > 5) { if (k - lastOn > 8) runs++; lastOn = k; }
+    }
+    return runs;
+  }, [from, to]);
+  expect(lines, "the sweep must cross more lines than the former limit of eight").toBeGreaterThan(8);
+  await page.mouse.move(from.x, from.y);
+  const before = await plucks();
+  // A single pointer sample across the whole band: every crossing must register.
+  await page.mouse.move(to.x, to.y);
+  expect(await plucks() - before).toBeGreaterThanOrEqual(lines);
+  expect(await page.evaluate(() => Reflect.get(window, "guitarNotes"))).toBe(0);
+  expect(await page.evaluate(() => Reflect.get(window, "guitarContexts").length)).toBe(0);
+});
+
+test("hovering and dragging never advance the riff, and a click right after a hover still plucks", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => {
+    const buffers: AudioBuffer[] = [], played: number[] = [];
+    Reflect.set(window, "guitarPlayed", played);
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (...args) {
+      if (this.buffer) { let id = buffers.indexOf(this.buffer); if (id < 0) id = buffers.push(this.buffer) - 1; played.push(id); }
+      return Reflect.apply(start, this, args);
+    };
+  });
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const point = await contourPoint(page);
+  const played = () => page.evaluate(() => (Reflect.get(window, "guitarPlayed") as number[]).length);
+  const plucks = () => page.locator(".hero-strings").evaluate(c => Number((c as HTMLCanvasElement).dataset.plucks ?? 0));
+  // Hover across, slowly and quickly, then drag across the line.
+  await page.mouse.move(point.x - 40, point.y - 40);
+  await page.mouse.move(point.x + 40, point.y + 40, { steps: 30 });
+  await page.mouse.move(point.x - 40, point.y - 40);
+  await page.mouse.down(); await page.mouse.move(point.x + 40, point.y + 40, { steps: 6 }); await page.mouse.up();
+  expect(await played()).toBe(0);
+  for (let click = 1; click <= 8; click++) {
+    // Arrive on the line (a hover pluck), then click at once: the click must still pluck.
+    await page.mouse.move(point.x, point.y);
+    const before = await plucks();
+    await page.mouse.down(); await page.mouse.up();
+    await expect.poll(played).toBe(click);
+    expect(await plucks()).toBeGreaterThan(before);
+    await page.mouse.move(point.x - 40, point.y - 40);
+  }
+  // The riff still starts on A3: A3 C4 D4 E4 G4 E4 C4 A3.
+  const notes = await page.evaluate(() => Reflect.get(window, "guitarPlayed") as number[]);
+  const [A3, C4, D4, E4, G4] = notes;
+  expect(new Set([A3, C4, D4, E4, G4]).size).toBe(5);
+  expect(notes).toEqual([A3, C4, D4, E4, G4, E4, C4, A3]);
+});
+
+test("each contour line has its own tone while the riff keeps one shared position", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => {
+    const buffers: AudioBuffer[] = [], played: number[] = [];
+    Reflect.set(window, "guitarPlayed", played);
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (...args) {
+      if (this.buffer) { let id = buffers.indexOf(this.buffer); if (id < 0) id = buffers.push(this.buffer) - 1; played.push(id); }
+      return Reflect.apply(start, this, args);
+    };
+  });
+  await page.goto("./#trailhead");
+  await expect(page.locator(".hero-strings")).toHaveCount(1);
+  const first = await contourPoint(page);
+  // A second line, well clear of the first.
+  const second = await page.locator(".hero-strings").evaluate((canvas, avoid) => {
+    const c = canvas as HTMLCanvasElement, box = c.getBoundingClientRect(), data = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+    const sx = c.width / box.width, sy = c.height / box.height;
+    // Walk down a column far to the left of the first point, so a closed loop
+    // through the first point can't be the line we land on.
+    for (let x = box.width - 520; x > box.width - 760; x -= 40) for (let y = 160; y < 880; y++) {
+      if (Math.hypot(x + box.left - avoid.x, y + box.top - avoid.y) < 200) continue;
+      if (data[(Math.floor(y * sy) * c.width + Math.floor(x * sx)) * 4 + 3] > 5) return { x: x + box.left, y: y + box.top };
+    }
+    throw new Error("No second contour found");
+  }, first);
+  const played = () => page.evaluate(() => (Reflect.get(window, "guitarPlayed") as number[]).length);
+  // Bar 1 (A3) on the first line, the other seven on the second: the riff
+  // still advances across lines, and its closing A3 has the second line's tone.
+  await page.mouse.click(first.x, first.y); await expect.poll(played).toBe(1);
+  for (let click = 2; click <= 8; click++) { await page.mouse.click(second.x, second.y); await expect.poll(played).toBe(click); }
+  const notes = await page.evaluate(() => Reflect.get(window, "guitarPlayed") as number[]);
+  const [, C4, D4, E4, G4] = notes;
+  expect(notes.slice(1, 7)).toEqual([C4, D4, E4, G4, E4, C4]);
+  expect(new Set(notes.slice(1, 5)).size).toBe(4);
+  expect(notes[7], "the same A3 on another line uses that line's tone").not.toBe(notes[0]);
+});

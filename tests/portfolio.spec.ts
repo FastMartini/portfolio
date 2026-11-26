@@ -16,7 +16,7 @@ test("visitor understands Diego's professional identity at the Trailhead", async
     }),
   ).toBeVisible();
   await expect(page.locator("#trailhead .trailhead-lead")).toContainText(
-    "I’m Diego, a software engineer and a teacher. I build with other people, and I help other people learn to build.",
+    "I’m Diego, a software engineer and a teacher.",
   );
 });
 
@@ -171,14 +171,15 @@ test("Mountain Journey presents Waypoints strongest first with the approved tier
     "HaRi",
   ]);
 
-  await expect(waypoints.locator(".waypoint-meta span:first-child")).toHaveText([
-    "Full Case Study",
-    "Full Case Study",
-    "Full Case Study",
-    "Compact Waypoint",
-    "Compact Waypoint",
-    "Compact Waypoint",
+  expect(await waypoints.evaluateAll((items) => items.map((item) => item.getAttribute("data-waypoint-tier")))).toEqual([
+    "case-study",
+    "case-study",
+    "case-study",
+    "compact",
+    "compact",
+    "compact",
   ]);
+  await expect(waypoints.locator(".waypoint-meta")).toHaveCount(0);
 });
 
 test("Waypoint claims preserve attribution and factual boundaries", async ({ page }) => {

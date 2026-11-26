@@ -66,10 +66,11 @@
 .climb-panel-tools button { background: transparent; border: 1px solid var(--line); border-radius: 999px; color: var(--r-ink); cursor: pointer; font: inherit; font-size: 0.8rem; font-weight: 700; min-height: 44px; padding: 0.4rem 0.8rem; }
 .climb-panel-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem 1.5rem 3rem; }
 .climb-panel-body:focus { outline: none; }
-.climb-panel-title { font-size: 1rem; font-weight: 450; line-height: 1.3; margin: 0 0 1.5rem; }
+/* Names the dialog for assistive tech; the visible title is the content's own heading. */
+.climb-panel-title { block-size: 1px; clip-path: inset(50%); inline-size: 1px; margin: -1px; overflow: hidden; position: absolute; white-space: nowrap; }
 .climb-panel .waypoint-story h3 { font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; }
 .climb-panel .waypoint-details { margin-top: 1.75rem; }
-.climb-panel .waypoint-meta, .climb-panel .technology-list li { color: var(--r-ink); }
+.climb-panel .technology-list li { color: var(--r-ink); }
 .climb-panel .waypoint-evidence { background: #173f35; color: #fffbed; }
 .inline-case { display: none; }
 .inline-case:target, .inline-case:has(:target) { display: block; }

@@ -7,13 +7,8 @@ function ArrowIcon() {
 
 // One canonical rendering for the List View and Waypoint Panel.
 export function WaypointContent({ waypoint, titleId }: { waypoint: (typeof waypoints)[number]; titleId: string }) {
-  const tierLabel = waypoint.tier === "case-study" ? "Full Case Study" : "Compact Waypoint";
   return <>
       <div className="waypoint-story">
-        <div className="waypoint-meta">
-          <span>{tierLabel}</span>
-          <span>{waypoint.period}</span>
-        </div>
         <h3 id={titleId}>{waypoint.name}</h3>
         <p className="waypoint-summary">{waypoint.summary}</p>
         <p className="waypoint-purpose">{waypoint.purpose}</p>

@@ -98,8 +98,6 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .button-secondary:hover { background: var(--pine); color: var(--cream); transform: translateY(-2px); }
 .resume-note { border-bottom: 1px solid var(--line); color: var(--ink-muted); font-size: 0.72rem; letter-spacing: 0.04em; padding-bottom: 0.35rem; }
 
-.scroll-cue { align-items: center; bottom: 2rem; display: flex; font-size: 0.62rem; font-weight: 700; gap: 0.7rem; left: var(--page-padding); letter-spacing: 0.12em; position: absolute; text-decoration: none; text-transform: uppercase; }
-
 .about, .work, .summit { padding: clamp(6rem, 12vw, 11rem) var(--page-padding); }
 .about { background: var(--deep); color: var(--cream); min-height: max(90svh, calc(100vw * 700 / 1440)); position: relative; }
 .section-kicker { border-top: 1px solid rgba(255, 251, 237, 0.25); color: var(--cream); justify-content: space-between; padding-top: 1rem; }
@@ -120,8 +118,6 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 }
 .waypoint-case-study { background: var(--raised); border: 1px solid var(--line); padding-left: clamp(1.25rem, 3vw, 3rem); padding-right: clamp(1.25rem, 3vw, 3rem); }
 .waypoint-index { color: var(--ink-accent); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; margin: 0; padding-top: 0.35rem; }
-.waypoint-meta { color: var(--ink-label); display: flex; flex-wrap: wrap; font-size: 0.62rem; font-weight: 800; gap: 0.65rem 1.25rem; letter-spacing: 0.12em; margin-bottom: 1.2rem; text-transform: uppercase; }
-.waypoint-meta span:first-child { color: var(--ink-accent); }
 .waypoint-story h3 { font-family: var(--font-newsreader), serif; font-size: clamp(2.5rem, 5vw, 5rem); font-weight: 450; letter-spacing: -0.05em; line-height: 0.94; margin: 0; }
 .waypoint-summary { font-family: var(--font-newsreader), serif; font-size: clamp(1.25rem, 2vw, 1.8rem); line-height: 1.35; margin: 1.5rem 0 0; }
 .waypoint-purpose { line-height: 1.75; margin: 1.5rem 0 0; max-width: 44rem; }
@@ -149,10 +145,8 @@ h1 { font-size: clamp(3.8rem, 8.2vw, 8.7rem); line-height: 0.88; margin: 0; max-
 .waypoint-compact { margin-left: clamp(0rem, 4vw, 4rem); }
 .waypoint-compact .waypoint-story h3 { font-size: clamp(2.35rem, 4vw, 4rem); }
 
-.handwritten { color: var(--ink-accent); font-family: var(--font-newsreader), serif; font-size: 1.1rem; font-style: italic; margin: 0 0 1.25rem; }
 
 .summit { background: var(--deepest); color: var(--cream); min-height: 90svh; }
-.summit .handwritten { color: var(--copper-text-dark); }
 .summit-heading { margin: clamp(5rem, 10vw, 9rem) 0; max-width: 70rem; }
 .summit-heading h2 { max-width: 10ch; }
 .summit-heading > p:last-child { color: rgba(255, 251, 237, 0.72); margin-top: 2rem; max-width: 38rem; }
@@ -164,7 +158,6 @@ footer p { margin: 0; } footer a { text-decoration: none; }
   .site-header:not(.site-header--case-study) nav a:not(:last-child) { display: none; }
   .trailhead { grid-template-columns: 1fr; padding-bottom: 0; }
   .trailhead-copy { padding-bottom: 4rem; }
-  .scroll-cue { display: none; }
   .work-heading { grid-template-columns: 1fr; }
   .about { min-height: auto; padding-bottom: 8rem; }
   .section-coordinate { bottom: 1.5rem; }

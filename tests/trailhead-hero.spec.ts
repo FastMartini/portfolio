@@ -36,7 +36,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       const crossings = await hero.evaluate(el => {
         const svg = [...el.querySelectorAll<SVGSVGElement>(".trailhead-route")].find(svg => getComputedStyle(svg).display !== "none")!;
         const path = svg.querySelector<SVGPathElement>("path")!, matrix = path.getScreenCTM()!;
-        const boxes = [...el.querySelectorAll("h1, .trailhead-lead, .trailhead-actions .button, .scroll-cue")].filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect());
+        const boxes = [...el.querySelectorAll("h1, .trailhead-lead, .trailhead-actions .button")].filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect());
         return Array.from({ length: 301 }, (_, i) => path.getPointAtLength(path.getTotalLength() * i / 300).matrixTransform(matrix))
           .filter(p => boxes.some(r => p.x > r.left - 5 && p.x < r.right + 5 && p.y > r.top - 5 && p.y < r.bottom + 5)).length;
       });
