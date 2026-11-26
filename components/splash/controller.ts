@@ -297,11 +297,7 @@ export function startSplash(el: HTMLElement, options: Options = {}) {
           maskRepeat: "no-repeat", webkitMaskRepeat: "no-repeat", maskPosition: `${x}px 0`, webkitMaskPosition: `${x}px 0` });
         add(sheet, [at(-0.2 * vw - M / 2), at(1.2 * vw - M / 2)], { delay: OPEN.handoff[0], duration: OPEN.handoff[1], easing: "cubic-bezier(0.45, 0, 0.4, 1)", fill: "forwards" });
       }
-      const rise = (target: Element | null, delay: number, duration: number, distance = 6) => add(target, [{ opacity: 0, translate: `0 ${distance}px` }, { opacity: 1, translate: "0 0" }],
-        { delay, duration, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
       add(doc.querySelector<HTMLElement>(".site-header"), [{ opacity: 0, translate: "0 -8px" }, { opacity: 1, translate: "0 0" }], { delay: 6650, duration: 500, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" });
-      rise(section.querySelector<HTMLElement>(".eyebrow"), 6850, 420);
-      rise(section.querySelector<HTMLElement>(".scroll-cue"), OPEN.swap, 420);
     }
 
   }

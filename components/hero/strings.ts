@@ -2,9 +2,9 @@
 //   - Each contour in hero-contours.svg is its own string, redrawn as vectors on
 //     a canvas. Crossing one plucks only that line: a fluid, damped wave runs
 //     along it from the crossing point, and the line darkens while it rings.
-//   - Each string has its own note — shorter contours sound higher — from an
-//     E blues scale through a small overdriven amp with a room tail. Bends and
-//     a fifth on hard strums give it a late-60s blues-rock bite.
+//   - Every click or tap strums the next chord of a 12-bar blues in C through a
+//     small overdriven amp with a room tail. One position is shared by all the
+//     lines: any trigger, on any line or the same one again, advances a bar.
 //   - A quick swipe vibrates several lines in order, silently. Only a click or
 //     tap on a line plays its note.
 // Native cursor. Reduced motion: nothing mounts. Audio starts only on a
@@ -24,14 +24,24 @@ export const STRUM = {
   repluck: 90,          // ms before the same string can be plucked again
   volume: 0.5,
 };
-// E blues: E G A B♭ B D, E3 → D5. B♭ is the blue note.
-const SCALE = [164.81, 196, 220, 233.08, 246.94, 293.66, 329.63, 392, 440, 466.16, 493.88, 587.33];
-const BLUE = new Set([3, 9]);
+// The About braid's single discovery note (G4).
+const BRAID_NOTE = 392;
+// Open-position guitar voicings, low string first, kept above the amp's
+// 110 Hz high-pass so the root never disappears.
+const CHORDS = {
+  C7: [130.81, 164.81, 196, 233.08, 261.63, 329.63], // C3 E3 G3 B♭3 C4 E4
+  F7: [130.81, 174.61, 220, 311.13, 349.23, 440],    // C3 F3 A3 E♭4 F4 A4
+  G7: [146.83, 196, 246.94, 293.66, 349.23, 392],    // D3 G3 B3 D4 F4 G4
+} as const;
+export type BluesChord = keyof typeof CHORDS;
+// Bars 1–12 of a 12-bar blues in C; bar 13 loops back to bar 1.
+export const BLUES_PROGRESSION: readonly BluesChord[] = ["C7", "C7", "C7", "C7", "F7", "F7", "C7", "C7", "G7", "F7", "C7", "G7"];
+const STRUM_SPREAD = 0.014; // s between strings of one downstroke
 
 type Pluck = { s: number; t0: number; amp: number; dir: number };
 type Str = {
   pts: Float32Array; normals: Float32Array; lengths: Float32Array; width: number; closed: boolean;
-  screen: Float32Array; note: number; plucks: Pluck[]; last: number;
+  screen: Float32Array; plucks: Pluck[]; last: number;
 };
 
 // ------------------------------------------------------------------ geometry
@@ -82,18 +92,18 @@ async function loadStrings(src: string): Promise<{ strings: Str[]; vw: number; v
       if (i) lengths[i] = lengths[i - 1] + Math.hypot(pts[i * 2] - pts[i * 2 - 2], pts[i * 2 + 1] - pts[i * 2 - 1]);
     }
     const closed = Math.hypot(pts[0] - pts[pts.length - 2], pts[1] - pts[pts.length - 1]) < 2;
-    return { pts, normals, lengths, closed, width: parseFloat(path.getAttribute("stroke-width") ?? "1"), screen: new Float32Array(pts.length), note: 0, plucks: [], last: 0 };
+    return { pts, normals, lengths, closed, width: parseFloat(path.getAttribute("stroke-width") ?? "1"), screen: new Float32Array(pts.length), plucks: [], last: 0 };
   }).filter(s => s.pts.length >= 4);
   if (!strings.length) return null;
-  // Shorter strings sound higher, like a real instrument.
-  [...strings].sort((a, b) => b.lengths[b.lengths.length - 1] - a.lengths[a.lengths.length - 1])
-    .forEach((s, rank, all) => { s.note = Math.min(SCALE.length - 1, Math.floor((rank / all.length) * SCALE.length)); });
   return { strings, vw: box[2] || 1000, vh: box[3] || 700 };
 }
 
 // ------------------------------------------------------------------ the amp
 function amp(win: Window) {
-  let ctx: AudioContext | null = null, input: AudioNode | null = null, live = 0;
+  let ctx: AudioContext | null = null, input: AudioNode | null = null;
+  // Ringing strings, oldest first. Fast strumming steals the oldest voice.
+  const voices: { src: AudioBufferSourceNode; level: GainNode }[] = [];
+  const VOICES = 24;
   let output: GainNode | null = null;
   let unlocking: Promise<void> | null = null;
   let monitor: AnalyserNode | null = null, monitoring = false;
@@ -145,7 +155,12 @@ function amp(win: Window) {
     return b;
   }
   function note(c: AudioContext, f: number, gain: number, pan: number, when: number, bend: number) {
-    if (!input || live >= 10) return;
+    if (!input) return;
+    while (voices.length >= VOICES) {
+      const old = voices.shift()!;
+      old.level.gain.setTargetAtTime(0, c.currentTime, 0.015);
+      try { old.src.stop(c.currentTime + 0.08); } catch { /* Already stopped. */ }
+    }
     const src = c.createBufferSource(), level = c.createGain(), side = c.createStereoPanner();
     src.buffer = string(c, f);
     // Blues bend: start flat, push up to pitch, then a little vibrato as it rings.
@@ -157,8 +172,9 @@ function amp(win: Window) {
     lfo.connect(depth); depth.connect(rate);
     level.gain.value = gain; side.pan.value = pan;
     src.connect(level); level.connect(side); side.connect(input);
-    live++;
-    src.onended = () => { live--; lfo.stop(); src.disconnect(); side.disconnect(); depth.disconnect(); };
+    const voice = { src, level };
+    voices.push(voice);
+    src.onended = () => { const at = voices.indexOf(voice); if (at >= 0) voices.splice(at, 1); lfo.stop(); src.disconnect(); side.disconnect(); depth.disconnect(); };
     src.start(when); lfo.start(when); src.stop(when + 2.6);
   }
   function keepReady(ready: boolean) {
@@ -179,7 +195,8 @@ function amp(win: Window) {
       ctx = null; input = null; output = null; monitor = null; monitoring = false; unlocking = null;
     }
   }
-  function play(index: number, strength: number, pan: number, delay: number) {
+  // Plays notes as a downstroke: one frequency is a single pluck.
+  function play(notes: readonly number[], strength: number, pan: number, delay: number) {
     // Never create the context from hover: it may only start after a gesture.
     const c = ctx, ticket = generation;
     if (!c || !visible || !heroSound.get()) return;
@@ -187,15 +204,14 @@ function amp(win: Window) {
       // Safari resumes asynchronously on the first tap. Keep that pluck so
       // the gesture that unlocks the amp also plays the touched string.
       void unlocking?.then(() => {
-        if (ctx === c && ticket === generation && visible && c.state === "running" && heroSound.get()) play(index, strength, pan, delay);
+        if (ctx === c && ticket === generation && visible && c.state === "running" && heroSound.get()) play(notes, strength, pan, delay);
       });
       return;
     }
-    const when = c.currentTime + delay / 1000, f = SCALE[index];
-    const bend = BLUE.has(index) ? 160 : Math.random() < 0.28 ? 100 : 0;
-    note(c, f, STRUM.volume * (0.5 + 0.5 * strength), pan, when, bend);
-    // Dig in hard and a fifth rings with it: a little power chord.
-    if (strength > 0.65) note(c, f * 1.5, STRUM.volume * 0.4 * strength, pan, when + 0.008, 0);
+    const when = c.currentTime + delay / 1000;
+    // Six strings share the level of one, so a chord sits where a note did.
+    const gain = STRUM.volume * (0.5 + 0.5 * strength) / Math.sqrt(notes.length);
+    notes.forEach((f, string) => note(c, f, gain, pan, when + string * STRUM_SPREAD, 0));
   }
   return {
     wake,
@@ -238,6 +254,8 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   let resize: ResizeObserver | null = null, frame = 0, active = true, building = 0;
   let size = { w: 0, h: 0, dpr: 1, scale: 1, ox: 0, oy: 0, top: 0 };
   const pointer = { x: 0, y: 0, has: false, t: 0 };
+  // One shared place in the progression for every contour line.
+  let bar = 0;
   let tap: { id: number; x: number; y: number; started: number; si: number; i: number } | null = null;
   const TAP_SLOP = 10, TAP_DURATION = 700;
   const CELL = 48;
@@ -365,7 +383,11 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
     const s = strings[si], now = performance.now();
     const t = Math.min(1, speed / 2.2);
     // A click still sounds if a recent hover pluck is throttling the visual.
-    if (playSound && heroSound.get()) sound.play(s.note, t, (s.screen[i * 2] / (size.w || 1)) * 1.2 - 0.6, order * STRUM.strumGap);
+    if (playSound && heroSound.get()) {
+      const chord = CHORDS[BLUES_PROGRESSION[bar]];
+      bar = (bar + 1) % BLUES_PROGRESSION.length;
+      sound.play(chord, t, (s.screen[i * 2] / (size.w || 1)) * 1.2 - 0.6, order * STRUM.strumGap);
+    }
     if (now - s.last < STRUM.repluck) return;
     s.last = now;
     const along = (s.lengths[i] + (s.lengths[i + 1] - s.lengths[i]) * frac) * size.scale;
@@ -482,7 +504,7 @@ export function mountHeroInteraction(doc: Document = document): HeroInteraction 
   }
   function onMotion() { if (reduce.matches) dispose(); }
   function onVisibility() { sound.setVisible(!doc.hidden); }
-  function onBraid() { if (!busy() && !reduce.matches && active && heroSound.get()) { sound.wake(); sound.play(7, 0.75, 0, 0); } }
+  function onBraid() { if (!busy() && !reduce.matches && active && heroSound.get()) { sound.wake(); sound.play([BRAID_NOTE], 0.75, 0, 0); } }
   try {
     observer = new MutationObserver(() => draw(performance.now()));
     observer.observe(doc.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
