@@ -53,9 +53,6 @@ export function ListView() {
       <section className="trailhead" id="trailhead" aria-labelledby="trailhead-title">
         <TrailheadArt />
         <div className="trailhead-copy">
-          <p className="eyebrow">
-            <span aria-hidden="true" /> Trailhead
-          </p>
           <h1 id="trailhead-title">
             <span className="trailhead-title-line">{greeting},</span>{" "}
             <span className="trailhead-title-line">{name}</span>
@@ -73,11 +70,6 @@ export function ListView() {
             </a>
           </div>
         </div>
-
-        <a className="scroll-cue" href="#about">
-          <span>Begin the journey</span>
-          <span aria-hidden="true">↓</span>
-        </a>
       </section>
 
       <About />
@@ -91,7 +83,6 @@ export function ListView() {
         </div>
         <div className="work-heading">
           <div>
-            <p className="handwritten">Evidence along the ascent</p>
             <h2 id="work-title">Built, tested, and learned in public.</h2>
           </div>
           <p>
@@ -117,7 +108,6 @@ export function ListView() {
         </div>
         <div className="summit-top">
           <div className="summit-heading">
-            <p className="handwritten">The next ascent</p>
             <h2 id="summit-title">Let&apos;s build what comes next.</h2>
             <p>
               If you’re assembling a team, shaping an ambitious product, or want
